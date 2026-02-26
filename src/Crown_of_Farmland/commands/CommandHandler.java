@@ -17,16 +17,31 @@ public class CommandHandler {
     private static final String COMMAND_DELIMITER_REGEX = "\\s+";
     private static final String COMMAND_DELIMITER_REPLACEMENT = " ";
     private static final String COMMAND_NOT_FOUND_ERROR = "ERROR: Command '%s' not recognised by any pattern%n";
+    private static final String HELP_MESSAGE = "Use one of the following commands: select, board, move, flip, block, hand, place, show, yield, state, quit.";
+
+    private final GameConfig config;
     private final Map<String, Command> commands;
+    private Game game;
     private boolean running = false;
 
     /**
-     * Creates a new command handler object and initisalizes its program.commands.
+     * Creates a new command handler object and initializes its commands.
      *
+     * @param config the game configuration loaded at startup
      */
-    public CommandHandler() {
+    public CommandHandler(GameConfig config) {
+        this.config = config;
         this.commands = new HashMap<>();
         this.initCommands();
+    }
+
+    /**
+     * Returns the current game instance.
+     *
+     * @return the game, or null if not yet initialized
+     */
+    public Game getGame() {
+        return game;
     }
 
     /**
@@ -34,13 +49,16 @@ public class CommandHandler {
      * The input is taken so long, as this (command handler) was not stopped by the quit command.
      */
     public void handleUserInput() {
+        this.game = new Game(config);
+        this.game.initFromConfig();
+
+        System.out.println(HELP_MESSAGE);
         this.running = true;
 
         try (Scanner scanner = new Scanner(System.in)) {
             while (running) {
                 executeCommand(scanner.nextLine());
             }
-
         }
     }
 

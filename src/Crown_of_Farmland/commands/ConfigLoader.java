@@ -1,22 +1,32 @@
 package Crown_of_Farmland.commands;
 
+import Crown_of_Farmland.exceptions.ConflictingDeckArgumentsException;
 import Crown_of_Farmland.exceptions.FileNotFoundException;
 import Crown_of_Farmland.exceptions.InvalidArgumentException;
 import Crown_of_Farmland.exceptions.InvalidBoardFileException;
+import Crown_of_Farmland.exceptions.InvalidDeckFileException;
 import Crown_of_Farmland.exceptions.InvalidIntegerException;
+import Crown_of_Farmland.exceptions.InvalidUnitsFileException;
 import Crown_of_Farmland.exceptions.MissingArgumentException;
 import Crown_of_Farmland.exceptions.StartupException;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class ConfigLoader {
+    private static final int MAX_UNITS = 80;
+    private static final int DECK_SIZE = 40;
+
     public static GameConfig load(Map<String, String> kv) throws StartupException {
-        // TODO: validate required keys: seed + units + (deck OR deck1+deck2)
-
-
         long seed = parseLongRequired(kv, "seed");
+
+        if (!kv.containsKey("units")) {
+            throw new MissingArgumentException("units");
+        }
+        validateDeckKeys(kv);
 
         String team1 = kv.getOrDefault("team1", "Player");
         String team2 = kv.getOrDefault("team2", "Enemy");
@@ -28,7 +38,98 @@ public class ConfigLoader {
             symbolSet = readBoardSymbols(Path.of(kv.get("board")));
         }
 
-        return new GameConfig(seed, team1, team2, mode, symbolSet);
+        List<UnitTemplate> units = readUnitsFile(Path.of(kv.get("units")));
+        List<Integer> deckCountsTeam1;
+        List<Integer> deckCountsTeam2;
+        if (kv.containsKey("deck")) {
+            List<Integer> counts = readDeckFile(Path.of(kv.get("deck")), units.size());
+            deckCountsTeam1 = counts;
+            deckCountsTeam2 = counts;
+        } else {
+            deckCountsTeam1 = readDeckFile(Path.of(kv.get("deck1")), units.size());
+            deckCountsTeam2 = readDeckFile(Path.of(kv.get("deck2")), units.size());
+        }
+
+        return new GameConfig(seed, team1, team2, mode, symbolSet, units, deckCountsTeam1, deckCountsTeam2);
+    }
+
+    private static void validateDeckKeys(Map<String, String> kv) throws ConflictingDeckArgumentsException {
+        boolean hasDeck = kv.containsKey("deck");
+        boolean hasDeck1 = kv.containsKey("deck1");
+        boolean hasDeck2 = kv.containsKey("deck2");
+        if (hasDeck && (hasDeck1 || hasDeck2)) {
+            throw new ConflictingDeckArgumentsException("cannot use deck together with deck1/deck2");
+        }
+        if (!hasDeck && !(hasDeck1 && hasDeck2)) {
+            throw new ConflictingDeckArgumentsException("must specify either deck or both deck1 and deck2");
+        }
+    }
+
+    private static List<UnitTemplate> readUnitsFile(Path path) throws StartupException {
+        List<String> lines = readAndOutputFile(path);
+        if (lines.size() > MAX_UNITS) {
+            throw new InvalidUnitsFileException("more than " + MAX_UNITS + " units");
+        }
+        List<UnitTemplate> units = new ArrayList<>();
+        for (String line : lines) {
+            String trimmed = line.strip();
+            if (trimmed.endsWith(";") || trimmed.contains("  ")) {
+                throw new InvalidUnitsFileException("line must not end with semicolon or contain extra spaces");
+            }
+            String[] parts = trimmed.split(";", -1);
+            if (parts.length != 4) {
+                throw new InvalidUnitsFileException("each line must have exactly 4 semicolon-separated fields");
+            }
+            String qualifier = parts[0].strip();
+            String role = parts[1].strip();
+            int atk = parseNonNegativeInt(parts[2].strip(), "ATK");
+            int def = parseNonNegativeInt(parts[3].strip(), "DEF");
+            units.add(new UnitTemplate(qualifier, role, atk, def));
+        }
+        return List.copyOf(units);
+    }
+
+    private static List<Integer> readDeckFile(Path path, int expectedLines) throws StartupException {
+        List<String> lines = readAndOutputFile(path);
+        if (lines.size() != expectedLines) {
+            throw new InvalidDeckFileException("deck line count must match number of units");
+        }
+        List<Integer> counts = new ArrayList<>();
+        int sum = 0;
+        for (String line : lines) {
+            int count = parseNonNegativeInt(line.strip(), "deck count");
+            counts.add(count);
+            sum += count;
+        }
+        if (sum != DECK_SIZE) {
+            throw new InvalidDeckFileException("deck must contain exactly " + DECK_SIZE + " units");
+        }
+        return List.copyOf(counts);
+    }
+
+    private static List<String> readAndOutputFile(Path path) throws FileNotFoundException {
+        List<String> lines;
+        try {
+            lines = Files.readAllLines(path);
+        } catch (Exception e) {
+            throw new FileNotFoundException(path.toString());
+        }
+        for (String line : lines) {
+            System.out.println(line);
+        }
+        return lines;
+    }
+
+    private static int parseNonNegativeInt(String value, String context) throws InvalidIntegerException {
+        try {
+            int n = Integer.parseInt(value);
+            if (n < 0) {
+                throw new InvalidIntegerException(value);
+            }
+            return n;
+        } catch (NumberFormatException e) {
+            throw new InvalidIntegerException(value);
+        }
     }
 
     private static VerbosityMode parseVerbosity(String v) throws InvalidArgumentException {

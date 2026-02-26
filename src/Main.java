@@ -1,5 +1,7 @@
+import Crown_of_Farmland.commands.ConfigLoader;
 import Crown_of_Farmland.commands.ArgumentParser;
 import Crown_of_Farmland.commands.CommandHandler;
+import Crown_of_Farmland.commands.GameConfig;
 import Crown_of_Farmland.exceptions.GameException;
 
 import java.util.Map;
@@ -23,7 +25,8 @@ public final class Main {
     public static void main(String[] args) {
         try {
             Map<String, String> kv = ArgumentParser.parse(args);
-            CommandHandler handler = new CommandHandler();
+            GameConfig config = ConfigLoader.load(kv);
+            CommandHandler handler = new CommandHandler(config);
             handler.handleUserInput();
         } catch (GameException e) {
             System.out.println(e.getFormattedMessage());
