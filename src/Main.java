@@ -12,7 +12,6 @@ import java.util.Map;
  * @author Programmieren-Team
  */
 public final class Main {
-
     private Main() {
 
     }

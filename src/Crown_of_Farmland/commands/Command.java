@@ -1,6 +1,6 @@
 package Crown_of_Farmland.commands;
 
-import Crown_of_Farmland.exceptions.InvalidCommandArgumentsException;
+import Crown_of_Farmland.exceptions.GameException;
 
 
 public abstract class Command {
@@ -48,10 +48,9 @@ public abstract class Command {
      * Executes a given command. The arguments are already split by the command handler.
      *
      * @param commandArguments The arguments the command needs to run. Can contain optional arguments
-     * @throws InvalidCommandArgumentsException If the arguments don't match the required types or formats,
-     *                                          this exception will be thrown
+     * @throws GameException If the command fails (invalid arguments, invalid state, etc.)
      */
-    public abstract void execute(String[] commandArguments) throws InvalidCommandArgumentsException;
+    public abstract void execute(String[] commandArguments) throws GameException;
 
 
 }

@@ -7,6 +7,7 @@ import Crown_of_Farmland.exceptions.HandFullMustDiscardException;
 import Crown_of_Farmland.exceptions.InvalidArgumentException;
 import Crown_of_Farmland.exceptions.InvalidHandIndexException;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
@@ -133,6 +134,25 @@ public class Game {
     }
 
     /**
+     * Returns the number of units (excluding the King) of the given team on the board.
+     *
+     * @param team the team
+     * @return count of that team's non-King units on the board
+     */
+    public int getBoardCount(Team team) {
+        int count = 0;
+        for (int row = 0; row < GameBoard.SIZE; row++) {
+            for (int col = 0; col < GameBoard.SIZE; col++) {
+                Unit u = gameBoard.getField(row, col).getUnit();
+                if (u != null && team.equals(u.getTeam()) && !u.isKing()) {
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
+
+    /**
      * Ends the current turn: resets selection, optionally discards one card,
      * switches to the other team, and has the new team draw one card (or sets game over if deck empty).
      *
@@ -191,5 +211,168 @@ public class Game {
                 }
             }
         }
+    }
+
+    /**
+     * Performs a duel between attacker (on fromField) and defender (on toField).
+     * Reveals both, applies damage/removals, moves attacker if it wins.
+     *
+     * @return duel result with lines to print and winner if game over
+     */
+    public DuelResult performDuel(Unit attacker, Unit defender, boolean defenderBlocked,
+                                  int fromRow, int fromCol, int toRow, int toCol) {
+        List<String> lines = new ArrayList<>();
+        Team attackerTeam = attacker.getTeam();
+        Team defenderTeam = defender.getTeam();
+        Field fromField = gameBoard.getField(fromRow, fromCol);
+        Field toField = gameBoard.getField(toRow, toCol);
+
+        if (!attacker.isRevealed()) {
+            attacker.setRevealed(true);
+            lines.add(attacker.getName() + " (" + attacker.getAtk() + "/" + attacker.getDef() + ") was flipped on "
+                    + fromField.coordinate() + "!");
+        }
+        if (!defender.isRevealed()) {
+            defender.setRevealed(true);
+            lines.add(defender.getName() + " (" + defender.getAtk() + "/" + defender.getDef() + ") was flipped on "
+                    + toField.coordinate() + "!");
+        }
+        if (attacker.isBlocked()) {
+            lines.add(attacker.getName() + " no longer blocks.");
+            attacker.setBlocked(false);
+        }
+
+        int atkA = attacker.getAtk();
+        int atkB = defender.getAtk();
+        int defB = defender.getDef();
+
+        lines.add(attacker.getName() + " (" + atkA + "/" + attacker.getDef() + ") attacks " + defender.getName()
+                + " (" + atkB + "/" + defB + ") on " + toField.coordinate() + "!");
+
+        if (defender.isKing()) {
+            defenderTeam.takeDamage(atkA);
+            lines.add(defenderTeam.getName() + " takes " + atkA + " damage!");
+            Team winner = checkGameOver();
+            if (winner != null) {
+                lines.add(defenderTeam.getName() + "'s life points dropped to 0!");
+                lines.add(winner.getName() + " wins!");
+            }
+            return new DuelResult(lines, winner);
+        }
+
+        if (defenderBlocked) {
+            if (atkA > defB) {
+                toField.removeUnit();
+                fromField.removeUnit();
+                gameBoard.placeUnit(toRow, toCol, attacker);
+                lines.add(defender.getName() + " was eliminated!");
+                lines.add(attacker.getName() + " moves to " + toField.coordinate() + ".");
+            } else if (atkA < defB) {
+                int dmg = defB - atkA;
+                attackerTeam.takeDamage(dmg);
+                lines.add(attackerTeam.getName() + " takes " + dmg + " damage!");
+                Team winner = checkGameOver();
+                if (winner != null) {
+                    lines.add(attackerTeam.getName() + "'s life points dropped to 0!");
+                    lines.add(winner.getName() + " wins!");
+                }
+                return new DuelResult(lines, winner);
+            }
+        } else {
+            if (atkA > atkB) {
+                int dmg = atkA - atkB;
+                defenderTeam.takeDamage(dmg);
+                lines.add(defender.getName() + " was eliminated!");
+                lines.add(defenderTeam.getName() + " takes " + dmg + " damage!");
+                fromField.removeUnit();
+                gameBoard.placeUnit(toRow, toCol, attacker);
+                lines.add(attacker.getName() + " moves to " + toField.coordinate() + ".");
+                Team winner = checkGameOver();
+                if (winner != null) {
+                    lines.add(defenderTeam.getName() + "'s life points dropped to 0!");
+                    lines.add(winner.getName() + " wins!");
+                }
+                return new DuelResult(lines, winner);
+            } else if (atkA < atkB) {
+                int dmg = atkB - atkA;
+                attackerTeam.takeDamage(dmg);
+                lines.add(attacker.getName() + " was eliminated!");
+                lines.add(attackerTeam.getName() + " takes " + dmg + " damage!");
+                fromField.removeUnit();
+                Team winner = checkGameOver();
+                if (winner != null) {
+                    lines.add(attackerTeam.getName() + "'s life points dropped to 0!");
+                    lines.add(winner.getName() + " wins!");
+                }
+                return new DuelResult(lines, winner);
+            } else {
+                lines.add(defender.getName() + " was eliminated!");
+                lines.add(attacker.getName() + " was eliminated!");
+                fromField.removeUnit();
+                toField.removeUnit();
+            }
+        }
+        return new DuelResult(lines, null);
+    }
+
+    private Team checkGameOver() {
+        if (team1.isDead()) {
+            gameOver = true;
+            return team2;
+        }
+        if (team2.isDead()) {
+            gameOver = true;
+            return team1;
+        }
+        return null;
+    }
+
+    /**
+     * Creates a merged unit from A (moving/placing) and B (on field). Stats from MergeStats.
+     * Name: Qualifier_B Qualifier_A Role_B. Revealed if both were revealed.
+     */
+    public static Unit createMergedUnit(Unit unitA, Unit unitB, Compatibility.MergeStats stats) {
+        String qualifier = unitB.getQualifier() + " " + unitA.getQualifier();
+        String role = unitB.getRole();
+        BasicUnit merged = new BasicUnit(qualifier, role, stats.atk(), stats.def());
+        merged.setRevealed(unitA.isRevealed() && unitB.isRevealed());
+        return merged;
+    }
+
+    /** Manhattan distance 1 (including en place). */
+    public static boolean isAdjacent(int fromRow, int fromCol, int toRow, int toCol) {
+        return Math.abs(fromRow - toRow) + Math.abs(fromCol - toCol) <= 1;
+    }
+
+    /** True if (row, col) is adjacent to the given team's king (8 directions). */
+    public boolean isAdjacentToKing(Team team, int row, int col) {
+        int kr = team.equals(team1) ? KING_TEAM1_ROW : KING_TEAM2_ROW;
+        int kc = KING_COL;
+        return Math.abs(row - kr) <= 1 && Math.abs(col - kc) <= 1;
+    }
+
+    /** Parses "A1"-"G7" to row,col. Row 1 = index 0. */
+    public static int[] parseField(String coord) {
+        String u = coord.strip().toUpperCase();
+        if (u.length() != 2 || u.charAt(0) < 'A' || u.charAt(0) > 'G' || u.charAt(1) < '1' || u.charAt(1) > '7') {
+            return null;
+        }
+        int col = u.charAt(0) - 'A';
+        int row = u.charAt(1) - '1';
+        return new int[] { row, col };
+    }
+
+    /** Returns current [row, col] of the given team's king, or null if not found. */
+    public int[] getKingPosition(Team team) {
+        Unit king = team.getKing();
+        for (int r = 0; r < GameBoard.SIZE; r++) {
+            for (int c = 0; c < GameBoard.SIZE; c++) {
+                Unit u = gameBoard.getField(r, c).getUnit();
+                if (u == king) {
+                    return new int[] { r, c };
+                }
+            }
+        }
+        return null;
     }
 }

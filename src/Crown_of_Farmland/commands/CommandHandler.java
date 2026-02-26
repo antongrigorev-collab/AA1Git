@@ -46,6 +46,13 @@ public class CommandHandler {
     }
 
     /**
+     * Requests the command loop to stop. Used by the quit command.
+     */
+    public void requestQuit() {
+        this.running = false;
+    }
+
+    /**
      * This method handles the input of the user.
      * The input is taken so long, as this (command handler) was not stopped by the quit command.
      */
@@ -79,8 +86,6 @@ public class CommandHandler {
             if (strippedInput.matches(command.getCommandRegex())) {
                 try {
                     command.execute(commandArguments);
-                } catch (InvalidCommandArgumentsException e) {
-                    System.out.println(e.getFormattedMessage());
                 } catch (GameException e) {
                     System.out.println(e.getFormattedMessage());
                 }
@@ -94,13 +99,14 @@ public class CommandHandler {
         this.addCommand(new BlockCommand(this));
         this.addCommand(new BoardCommand(this));
         this.addCommand(new FlipCommand(this));
+        this.addCommand(new HandCommand(this));
         this.addCommand(new MoveCommand(this));
         this.addCommand(new PlaceCommand(this));
+        this.addCommand(new QuitCommand(this));
         this.addCommand(new ShowCommand(this));
         this.addCommand(new SelectCommand(this));
         this.addCommand(new StateCommand(this));
         this.addCommand(new YieldCommand(this));
-        this.addCommand(new HandCommand(this));
     }
 
     private void addCommand(Command command) {

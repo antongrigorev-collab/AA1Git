@@ -2,8 +2,10 @@ package Crown_of_Farmland.commands;
 
 import Crown_of_Farmland.exceptions.CannotDiscardException;
 import Crown_of_Farmland.exceptions.HandFullMustDiscardException;
+import Crown_of_Farmland.exceptions.GameException;
 import Crown_of_Farmland.exceptions.InvalidCommandArgumentsException;
 import Crown_of_Farmland.exceptions.InvalidHandIndexException;
+import Crown_of_Farmland.model.AIPlayer;
 import Crown_of_Farmland.model.Game;
 import Crown_of_Farmland.model.Unit;
 
@@ -17,7 +19,7 @@ public class YieldCommand extends Command {
     }
 
     @Override
-    public void execute(String[] commandArguments) throws InvalidCommandArgumentsException {
+    public void execute(String[] commandArguments) throws GameException {
         Game game = commandHandler.getGame();
         if (game == null) {
             return;
@@ -52,6 +54,9 @@ public class YieldCommand extends Command {
             }
         } catch (HandFullMustDiscardException | CannotDiscardException | InvalidHandIndexException e) {
             System.out.println(e.getFormattedMessage());
+        }
+        if (game != null && !game.isGameOver() && game.getCurrentTeam().equals(game.getTeam2())) {
+            AIPlayer.runTurn(game);
         }
     }
 }
