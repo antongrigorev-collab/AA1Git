@@ -2,7 +2,10 @@ package Crown_of_Farmland.model;
 
 import Crown_of_Farmland.commands.GameConfig;
 import Crown_of_Farmland.commands.UnitTemplate;
+import Crown_of_Farmland.exceptions.CannotDiscardException;
+import Crown_of_Farmland.exceptions.HandFullMustDiscardException;
 import Crown_of_Farmland.exceptions.InvalidArgumentException;
+import Crown_of_Farmland.exceptions.InvalidHandIndexException;
 
 import java.util.List;
 import java.util.Objects;
@@ -10,7 +13,20 @@ import java.util.Random;
 
 public class Game {
 
+    /**
+     * Result of ending the current turn (yield). Used for command output.
+     *
+     * @param discarded       unit discarded from hand, or null if none
+     * @param yieldingTeam   team that ended the turn (the one that had the turn before switch)
+     * @param newTeamDeckEmpty whether the new team's deck was empty and could not draw
+     * @param winner         winning team if game over, otherwise null
+     */
+    public record YieldResult(Unit discarded, Team yieldingTeam,
+                             boolean newTeamDeckEmpty, Team winner) { }
+
     private static final int INITIAL_HAND_SIZE = 4;
+    private static final int MAX_HAND_SIZE = 5;
+    private static final int CARDS_DRAWN_PER_TURN = 1;
     private static final int KING_TEAM1_ROW = 0;
     private static final int KING_TEAM2_ROW = 6;
     private static final int KING_COL = 3;
@@ -114,5 +130,66 @@ public class Game {
 
     public boolean isGameOver() {
         return gameOver;
+    }
+
+    /**
+     * Ends the current turn: resets selection, optionally discards one card,
+     * switches to the other team, and has the new team draw one card (or sets game over if deck empty).
+     *
+     * @param discardHandIndex 1-based index of card to discard, or null if not discarding
+     * @return result for command output (discarded unit, yielding team, deck empty, winner)
+     * @throws HandFullMustDiscardException if hand has 5 cards and no index given
+     * @throws CannotDiscardException      if index given but hand has fewer than 5 cards
+     * @throws InvalidHandIndexException   if index is out of range
+     */
+    public YieldResult endTurn(Integer discardHandIndex)
+            throws HandFullMustDiscardException, CannotDiscardException, InvalidHandIndexException {
+        Team yieldingTeam = currentTeam;
+        int handSize = yieldingTeam.getHand().size();
+
+        if (handSize == MAX_HAND_SIZE && discardHandIndex == null) {
+            throw new HandFullMustDiscardException(yieldingTeam.getName());
+        }
+        if (discardHandIndex != null && handSize < MAX_HAND_SIZE) {
+            throw new CannotDiscardException();
+        }
+        if (discardHandIndex != null && (discardHandIndex < 1 || discardHandIndex > handSize)) {
+            throw new InvalidHandIndexException(discardHandIndex);
+        }
+
+        selectedField = null;
+
+        Unit discarded = null;
+        if (discardHandIndex != null) {
+            discarded = yieldingTeam.getHand().remove(discardHandIndex);
+        }
+
+        Team nextTeam = yieldingTeam == team1 ? team2 : team1;
+        currentTeam = nextTeam;
+
+        resetTurnStateFor(nextTeam);
+
+        boolean newTeamDeckEmpty = nextTeam.getDeck().isEmpty();
+        Team winner = null;
+        if (newTeamDeckEmpty) {
+            gameOver = true;
+            winner = yieldingTeam;
+        } else {
+            drawToHand(nextTeam, CARDS_DRAWN_PER_TURN);
+        }
+
+        return new YieldResult(discarded, yieldingTeam, newTeamDeckEmpty, winner);
+    }
+
+    private void resetTurnStateFor(Team team) {
+        team.getHand().resetTurn();
+        for (int row = 0; row < GameBoard.SIZE; row++) {
+            for (int col = 0; col < GameBoard.SIZE; col++) {
+                Unit u = gameBoard.getField(row, col).getUnit();
+                if (u != null && team.equals(u.getTeam())) {
+                    u.setMovedThisTurn(false);
+                }
+            }
+        }
     }
 }

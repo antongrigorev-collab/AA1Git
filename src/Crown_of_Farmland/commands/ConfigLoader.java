@@ -149,7 +149,7 @@ public class ConfigLoader {
                 throw new InvalidBoardFileException("Board symbols must have 29 characters.");
             }
             return new SymbolSet(line.toCharArray());
-        } catch (InvalidBoardFileException | FileNotFoundException e) {
+        } catch (InvalidBoardFileException e) {
             throw e;
         } catch (Exception ex) {
             throw new FileNotFoundException(path.toString());

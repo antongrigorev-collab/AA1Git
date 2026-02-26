@@ -1,5 +1,6 @@
 package Crown_of_Farmland.commands;
 
+import Crown_of_Farmland.exceptions.GameException;
 import Crown_of_Farmland.exceptions.InvalidCommandArgumentsException;
 import Crown_of_Farmland.model.Game;
 
@@ -49,8 +50,13 @@ public class CommandHandler {
      * The input is taken so long, as this (command handler) was not stopped by the quit command.
      */
     public void handleUserInput() {
-        this.game = new Game(config);
-        this.game.initFromConfig();
+        try {
+            this.game = new Game(config);
+            this.game.initFromConfig();
+        } catch (GameException e) {
+            System.out.println(e.getFormattedMessage());
+            return;
+        }
 
         System.out.println(HELP_MESSAGE);
         this.running = true;
@@ -74,7 +80,9 @@ public class CommandHandler {
                 try {
                     command.execute(commandArguments);
                 } catch (InvalidCommandArgumentsException e) {
-                    System.err.println(e.getMessage());
+                    System.out.println(e.getFormattedMessage());
+                } catch (GameException e) {
+                    System.out.println(e.getFormattedMessage());
                 }
                 return;
             }
