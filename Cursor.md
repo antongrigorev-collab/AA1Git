@@ -17,16 +17,34 @@ Java-Spiel „Crown of Farmland“ (Programmieren WS 2025/26, Abschlussaufgabe 1
 - **Model:** `Team` (Deck, Hand, King), `Unit`/`BasicUnit`/`King`, `GameBoard` (7×7 `Field`), `Field` (row, col, unit). Koordinaten: Zeile 0 = Spec-Zeile 1 (unten), Spalte 0 = A; D1 = (0,3), D7 = (6,3).
 
 ## Bereits umgesetzt (Stand Wissensbasis)
-- Programmstart: Argument-Parsing, Config-Loading (units, deck/deck1+deck2), Validierung.
-- Spiel-Init in `handleUserInput()`: Decks aus Config, Shuffle, 4 Karten pro Hand, Kings auf D1/D7.
-- GameBoard mit `placeUnit(row, col, unit)` und `getField(row, col)`.
-- Command-Struktur und Hilfetext; viele Commands noch Stubs (z. B. `YieldCommand.execute()` leer).
+- **Programmstart:** Argument-Parsing, Config-Loading (units, deck/deck1+deck2), Validierung.
+- **Spiel-Init:** Decks aus Config, Shuffle, 4 Karten pro Hand, Kings auf D1/D7; `Game.getBoardCount(Team)`, `Game.getKingPosition(Team)`, `Game.parseField(String)`, `Game.isAdjacent`, `Game.isAdjacentToKing`.
+- **GameBoard:** `placeUnit`, `getField`, `render(Field selectedField, Team currentTeam)` mit Standard-/angepasstem Symbolsatz, Verbosity all/compact, Einheiten (x/X/y/Y, *, b).
+- **Befehle (alle implementiert):**
+  - **quit:** `QuitCommand`, `CommandHandler.requestQuit()` beendet die Eingabeschleife.
+  - **hand:** 1-basierte Liste mit Name und (ATK/DEF).
+  - **select:** Feld A–G/1–7 parsen, `setSelectedField`, Ausgabe board + show.
+  - **show:** `<no unit>` / Einheiteninfos / ??? bei verdecktem Gegner / Bauernkönig; `ShowCommand.printShow(Game)` wiederverwendbar.
+  - **board:** Ausgabe über `GameBoard.render(...)`.
+  - **state:** Teamnamen, LP/8000, DC/40, BC/5 (Zeilenlänge 31), dann board, dann show bei Auswahl.
+  - **yield:** `Game.endTurn(Integer discardHandIndex)` mit Validierung (Hand voll → Abwurf nötig), Teamwechsel, Nachzug, Spielende bei leerem Stapel; danach bei Team 2 Aufruf von `AIPlayer.runTurn(game)`.
+  - **move:** Validierung (Feld, Abstand, King-Regeln), leeres Feld / Duell / Zusammenschluss; Ausgaben inkl. „no longer blocks“, Duelltexte, join forces / Union failed.
+  - **place:** Feld an King angrenzend (8 Richtungen), ein oder mehrere Hand-Indizes, Zusammenschluss, 6.-Einheit-Regel; danach board + show.
+  - **flip:** Einheit aufdecken (nur wenn nicht bewegt, noch verdeckt).
+  - **block:** Blockade einleiten, zählt als Bewegung.
+- **Duell (A.1.4):** `Game.performDuel(attacker, defender, defenderBlocked, fromRow, fromCol, toRow, toCol)` mit Blockade-, König- und Standardfällen; Schaden, Elimination, Aufdecken; `DuelResult` mit Zeilen und Gewinner.
+- **Kompatibilität (A.1.10):** `Compatibility.check(unitA, unitB)` → `MergeStats` oder null (Symbiose, Gleichgesinntheit, Prim); `Game.createMergedUnit(unitA, unitB, stats)` für Namen und Werte.
+- **Zusammenschluss (A.1.9):** in move/place umgesetzt (Erfolg/Fehlschlag, 6. Einheit sofort entfernt).
+- **KI-Gegner (A.2):** `AIPlayer.runTurn(Game)` – Königbewegung (Score, gewichtete Zufallsauswahl), Platzierung (Feld- und Einheitenwahl), Einheitenzüge (Bewertung, gewichtete Auswahl), Abwurf (umgekehrt gewichtet); wird nach `yield` ausgeführt, wenn `currentTeam == team2`.
 
 ## Noch offen / geplant
-- **Zugwechsel:** `yield`-Logik (Zug beenden, currentTeam wechseln, Auswahl zurücksetzen, ggf. Karte abwerfen, neues Team zieht vom Stapel, „It is <team>'s turn!“, ggf. Spielende bei leerem Stapel). Dafür in `Game` z. B. `setCurrentTeam(Team)` oder `endTurn()` ergänzen.
-- Weitere Befehle implementieren (select, board, move, flip, block, hand, place, show, state, quit) gemäß Spec A.5.
-- KI-Gegner (A.2) für Team 2.
-- Duell-, Zusammenschluss- und Kompatibilitätslogik (A.1.4, A.1.9, A.1.10).
+- Ggf. Feinschliff an Ausgabeformaten (z. B. Duell „???“ vor Aufdecken) und Tests gegen Beispielinteraktion aus dem Aufgaben-PDF.
+- Checkstyle durchlaufen lassen und ggf. Anpassungen.
+
+## Erledigt (Beispielinteraktion A.5.10)
+- **yield bei voller Hand:** Ausgabe `ERROR: Player's hand is full!` (war bereits korrekt).
+- **place bei voller Hand:** Ausgabe `ERROR: cannot place a card, you must discard!` (MustDiscardException von „place“ auf „place a card“ geändert).
+- **place 3 C2:** Befehl akzeptiert (optionales Feldargument), danach gleiche Fehlermeldung wenn Hand voll. Eingabedateien `input/units/default.txt` und `input/decks/default.txt` für die Beispiel-Parameter angelegt.
 
 ## Konventionen & Besonderheiten
 - Exceptions: `GameException` (mit `getFormattedMessage()`), `StartupException` für Startfehler, `CommandException` für Laufzeitfehler bei Befehlen.

@@ -74,6 +74,11 @@ public class Game {
 
         gameBoard.placeUnit(KING_TEAM1_ROW, KING_COL, team1.getKing());
         gameBoard.placeUnit(KING_TEAM2_ROW, KING_COL, team2.getKing());
+
+        // Zu Beginn jedes eigenen Zuges eine weitere (A.1.5): Team 1 zieht zu Beginn des ersten Zugs.
+        if (!team1.getDeck().isEmpty()) {
+            drawToHand(team1, CARDS_DRAWN_PER_TURN);
+        }
     }
 
     private void fillDeck(Team team, List<Integer> counts) {
