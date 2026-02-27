@@ -354,8 +354,12 @@ public class Game {
 
     /** True if (row, col) is adjacent to the given team's king (8 directions). */
     public boolean isAdjacentToKing(Team team, int row, int col) {
-        int kr = team.equals(team1) ? KING_TEAM1_ROW : KING_TEAM2_ROW;
-        int kc = KING_COL;
+        int[] kingPos = getKingPosition(team);
+        if (kingPos == null) {
+            return false;
+        }
+        int kr = kingPos[0];
+        int kc = kingPos[1];
         return Math.abs(row - kr) <= 1 && Math.abs(col - kc) <= 1;
     }
 
