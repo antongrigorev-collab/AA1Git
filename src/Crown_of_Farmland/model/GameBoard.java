@@ -94,7 +94,7 @@ public class GameBoard {
         if (!compact) {
             out.add(buildSeparatorLine(-1, false, selectedField, useStandard, sym));
         }
-        out.add("  A B C D E F G");
+        out.add(buildColumnLabelLine());
         return out;
     }
 
@@ -115,7 +115,8 @@ public class GameBoard {
         for (int c = 0; c < SIZE; c++) {
             boolean cornerLeftSel = (c == 0 && isSelected(r, 0, selectedField))
                     || (c > 0 && (isSelected(r, c - 1, selectedField) || isSelected(r, c, selectedField)));
-            boolean cornerRightSel = (c < SIZE - 1 && (isSelected(r, c, selectedField) || isSelected(r, c + 1, selectedField)))
+            boolean cornerRightSel = (c < SIZE - 1
+                    && (isSelected(r, c, selectedField) || isSelected(r, c + 1, selectedField)))
                     || (c == SIZE - 1 && isSelected(r, SIZE - 1, selectedField));
             if (c == 0) {
                 sb.append(cornerChar(true, true, isSelected(r, 0, selectedField), useStandard, sym));
@@ -140,14 +141,32 @@ public class GameBoard {
         StringBuilder sb = new StringBuilder();
         sb.append(r + 1).append(" ");
         for (int c = 0; c < SIZE; c++) {
-            boolean sel = isSelected(r, c, selectedField);
-            char vChar = useStandard ? (sel ? STD_V_SEL : STD_V) : (sel && sym.length > 24 ? sym[24] : sym[9]);
+            boolean edgeSelected = isSelected(r, c, selectedField)
+                    || (c > 0 && isSelected(r, c - 1, selectedField));
+            char vChar = useStandard
+                    ? (edgeSelected ? STD_V_SEL : STD_V)
+                    : (edgeSelected && sym.length > 24 ? sym[24] : sym[9]);
             sb.append(vChar);
             sb.append(cellContent(r, c, currentTeam));
         }
-        boolean lastSel = isSelected(r, SIZE - 1, selectedField);
-        char lastV = useStandard ? (lastSel ? STD_V_SEL : STD_V) : (lastSel && sym.length > 24 ? sym[24] : sym[9]);
+        boolean rightEdgeSelected = isSelected(r, SIZE - 1, selectedField);
+        char lastV = useStandard
+                ? (rightEdgeSelected ? STD_V_SEL : STD_V)
+                : (rightEdgeSelected && sym.length > 24 ? sym[24] : sym[9]);
         sb.append(lastV);
+        return sb.toString();
+    }
+
+    /** Builds the column label line (A..G) with each letter centered under its column. */
+    private String buildColumnLabelLine() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("    ");
+        for (int c = 0; c < SIZE; c++) {
+            if (c > 0) {
+                sb.append("   ");
+            }
+            sb.append((char) ('A' + c));
+        }
         return sb.toString();
     }
 

@@ -1,0 +1,4 @@
+{"sessionId":"0641ca","runId":"pre-fix","hypothesisId":"H1","location":"Crown_of_Farmland/model/GameBoard.java:140","message":"render-selected-row-pre-fix","data":{"row":0,"line":"1 |   |   |   N*X N   |   |   |"},"timestamp":1772169296452}
+{"sessionId":"0641ca","runId":"pre-fix","hypothesisId":"H1","location":"Crown_of_Farmland/model/GameBoard.java:140","message":"render-selected-row-pre-fix","data":{"row":1,"line":"2 |   |   |   N X N   |   |   |"},"timestamp":1772169873758}
+{"sessionId":"0641ca","runId":"pre-fix","hypothesisId":"H1","location":"Crown_of_Farmland/model/GameBoard.java:140","message":"render-selected-row-pre-fix","data":{"row":2,"line":"3 |   |   |   N   N   |   |   |"},"timestamp":1772169900059}
+{"sessionId":"0641ca","runId":"pre-fix","hypothesisId":"H1","location":"Crown_of_Farmland/model/GameBoard.java:140","message":"render-selected-row-pre-fix","data":{"row":2,"line":"3 |   |   |   N   N   |   |   |"},"timestamp":1772171224173}

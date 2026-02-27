@@ -1,7 +1,6 @@
 package Crown_of_Farmland.commands;
 
 import Crown_of_Farmland.exceptions.GameException;
-import Crown_of_Farmland.exceptions.InvalidFieldException;
 import Crown_of_Farmland.model.Game;
 
 import java.util.List;

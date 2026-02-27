@@ -156,7 +156,8 @@ public class ConfigLoader {
         }
     }
 
-    private static long parseLongRequired(Map<String, String> kv, String key) throws MissingArgumentException, InvalidIntegerException {
+    private static long parseLongRequired(Map<String, String> kv, String key)
+            throws MissingArgumentException, InvalidIntegerException {
         if (!kv.containsKey(key)) {
             throw new MissingArgumentException(key);
         }

@@ -4,7 +4,6 @@ import Crown_of_Farmland.exceptions.AlreadyPlacedException;
 import Crown_of_Farmland.exceptions.DuplicateHandIndexException;
 import Crown_of_Farmland.exceptions.GameException;
 import Crown_of_Farmland.exceptions.InvalidHandIndexException;
-import Crown_of_Farmland.exceptions.MustDiscardException;
 import Crown_of_Farmland.exceptions.NoFieldSelectedException;
 import Crown_of_Farmland.exceptions.PlaceFieldNotAdjacentToKingException;
 import Crown_of_Farmland.exceptions.PlaceOnEnemyFieldException;
@@ -49,9 +48,6 @@ public class PlaceCommand extends Command {
         if (game == null || game.isGameOver()) {
             return;
         }
-        if (game.getCurrentTeam().getHand().size() == 5) {
-            throw new MustDiscardException("place a card");
-        }
         List<String> argsList = new ArrayList<>(List.of(commandArguments));
         if (!argsList.isEmpty() && isFieldArg(argsList.get(argsList.size() - 1))) {
             String fieldStr = argsList.remove(argsList.size() - 1).toUpperCase();
@@ -61,7 +57,7 @@ public class PlaceCommand extends Command {
             }
         }
         var selected = game.getSelectedField();
-        if (selected == null || selected.isEmpty()) {
+        if (selected == null) {
             throw new NoFieldSelectedException();
         }
         Unit onField = selected.getUnit();

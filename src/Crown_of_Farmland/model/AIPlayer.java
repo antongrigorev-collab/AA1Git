@@ -200,7 +200,8 @@ public final class AIPlayer {
                 game.setSelectedField(game.getGameBoard().getField(ur, uc));
                 u.setBlocked(true);
                 u.setMovedThisTurn(true);
-                System.out.println(u.getName() + " (" + game.getGameBoard().getField(ur, uc).coordinate() + ") blocks!");
+                String coord = game.getGameBoard().getField(ur, uc).coordinate();
+                System.out.println(u.getName() + " (" + coord + ") blocks!");
                 anyMoved = true;
                 printBoardAndShow(game);
                 continue;
@@ -219,7 +220,8 @@ public final class AIPlayer {
             if (tr == ur && tc == uc && moveIdx == 4) {
                 u.setBlocked(true);
                 u.setMovedThisTurn(true);
-                System.out.println(u.getName() + " (" + game.getGameBoard().getField(ur, uc).coordinate() + ") blocks!");
+                String coord = game.getGameBoard().getField(ur, uc).coordinate();
+                System.out.println(u.getName() + " (" + coord + ") blocks!");
             } else {
                 executeMove(game, ur, uc, tr, tc);
             }
@@ -388,7 +390,9 @@ public final class AIPlayer {
             game.getGameBoard().placeUnit(toRow, toCol, merged);
             game.setSelectedField(toField);
             System.out.println(unit.getName() + " moves to " + toField.coordinate() + ".");
-            System.out.println(unit.getName() + " and " + defender.getName() + " on " + toField.coordinate() + " join forces!");
+            String joinMsg = unit.getName() + " and " + defender.getName() + " on " + toField.coordinate()
+                    + " join forces!";
+            System.out.println(joinMsg);
             System.out.println("Success!");
         } else {
             game.getGameBoard().getField(fromRow, fromCol).removeUnit();
@@ -397,7 +401,9 @@ public final class AIPlayer {
             unit.setMovedThisTurn(true);
             game.setSelectedField(toField);
             System.out.println(unit.getName() + " moves to " + toField.coordinate() + ".");
-            System.out.println(unit.getName() + " and " + defender.getName() + " on " + toField.coordinate() + " join forces!");
+            String joinMsg = unit.getName() + " and " + defender.getName() + " on " + toField.coordinate()
+                    + " join forces!";
+            System.out.println(joinMsg);
             System.out.println("Union failed. " + defender.getName() + " was eliminated.");
         }
     }
@@ -412,11 +418,13 @@ public final class AIPlayer {
         unit.setTeam(game.getCurrentTeam());
         Field field = game.getGameBoard().getField(row, col);
         Unit current = field.getUnit();
-        System.out.println(game.getCurrentTeam().getName() + " places " + unit.getName() + " on " + field.coordinate() + ".");
+        System.out.println(game.getCurrentTeam().getName() + " places " + unit.getName() + " on "
+                + field.coordinate() + ".");
         if (current == null) {
             game.getGameBoard().placeUnit(row, col, unit);
         } else {
-            System.out.println(unit.getName() + " and " + current.getName() + " on " + field.coordinate() + " join forces!");
+            System.out.println(unit.getName() + " and " + current.getName() + " on " + field.coordinate()
+                    + " join forces!");
             Compatibility.MergeStats stats = Compatibility.check(unit, current);
             if (stats != null) {
                 Unit merged = Game.createMergedUnit(unit, current, stats);

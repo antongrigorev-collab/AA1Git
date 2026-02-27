@@ -1,0 +1,25 @@
+hand
+select D1
+move D2
+hand
+select D3
+place 2
+hand
+move D4
+board
+yield
+hand
+select E7
+select D4
+move D5
+select D2
+move D3
+yield 1
+hand
+select E7
+state
+select D5
+select D4
+place 4
+move D5
+quit

@@ -1,11 +1,11 @@
 package Crown_of_Farmland.commands;
 
+import Crown_of_Farmland.exceptions.EmptyFieldException;
 import Crown_of_Farmland.exceptions.FieldTooFarException;
 import Crown_of_Farmland.exceptions.GameException;
 import Crown_of_Farmland.exceptions.InvalidFieldException;
 import Crown_of_Farmland.exceptions.KingCannotAttackException;
 import Crown_of_Farmland.exceptions.MoveOntoOwnKingException;
-import Crown_of_Farmland.exceptions.MustDiscardException;
 import Crown_of_Farmland.exceptions.NoFieldSelectedException;
 import Crown_of_Farmland.exceptions.NotOwnUnitException;
 import Crown_of_Farmland.exceptions.UnitAlreadyMovedException;
@@ -31,12 +31,12 @@ public class MoveCommand extends Command {
         if (game == null || game.isGameOver()) {
             return;
         }
-        if (game.getCurrentTeam().getHand().size() == 5) {
-            throw new MustDiscardException("move");
-        }
         var selected = game.getSelectedField();
-        if (selected == null || selected.isEmpty()) {
+        if (selected == null) {
             throw new NoFieldSelectedException();
+        }
+        if (selected.isEmpty()) {
+            throw new EmptyFieldException(selected.coordinate());
         }
         Unit unit = selected.getUnit();
         if (!unit.getTeam().equals(game.getCurrentTeam())) {
@@ -58,10 +58,11 @@ public class MoveCommand extends Command {
             throw new FieldTooFarException(selected.coordinate(), toStr);
         }
         var toField = game.getGameBoard().getField(toRow, toCol);
-        if (toField.getUnit() != null && toField.getUnit().isKing() && toField.getUnit().getTeam().equals(game.getCurrentTeam())) {
+        Unit toUnit = toField.getUnit();
+        if (toUnit != null && toUnit.isKing() && toUnit.getTeam().equals(game.getCurrentTeam())) {
             throw new MoveOntoOwnKingException();
         }
-        if (unit.isKing() && toField.getUnit() != null && !toField.getUnit().getTeam().equals(game.getCurrentTeam())) {
+        if (unit.isKing() && toUnit != null && !toUnit.getTeam().equals(game.getCurrentTeam())) {
             throw new KingCannotAttackException();
         }
 
@@ -120,7 +121,9 @@ public class MoveCommand extends Command {
             game.getGameBoard().placeUnit(toRow, toCol, merged);
             game.setSelectedField(toField);
             System.out.println(unit.getName() + " moves to " + toField.coordinate() + ".");
-            System.out.println(unit.getName() + " and " + defender.getName() + " on " + toField.coordinate() + " join forces!");
+            String joinMsg = unit.getName() + " and " + defender.getName() + " on " + toField.coordinate()
+                    + " join forces!";
+            System.out.println(joinMsg);
             System.out.println("Success!");
         } else {
             selected.removeUnit();
@@ -129,7 +132,9 @@ public class MoveCommand extends Command {
             unit.setMovedThisTurn(true);
             game.setSelectedField(toField);
             System.out.println(unit.getName() + " moves to " + toField.coordinate() + ".");
-            System.out.println(unit.getName() + " and " + defender.getName() + " on " + toField.coordinate() + " join forces!");
+            String joinMsg = unit.getName() + " and " + defender.getName() + " on " + toField.coordinate()
+                    + " join forces!";
+            System.out.println(joinMsg);
             System.out.println("Union failed. " + defender.getName() + " was eliminated.");
         }
         printBoardAndShow(game);

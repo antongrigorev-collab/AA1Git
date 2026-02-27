@@ -1,7 +1,6 @@
 package Crown_of_Farmland.commands;
 
 import Crown_of_Farmland.exceptions.GameException;
-import Crown_of_Farmland.exceptions.InvalidCommandArgumentsException;
 import Crown_of_Farmland.model.Game;
 
 import java.util.Arrays;
@@ -18,7 +17,8 @@ public class CommandHandler {
     private static final String COMMAND_DELIMITER_REGEX = "\\s+";
     private static final String COMMAND_DELIMITER_REPLACEMENT = " ";
     private static final String COMMAND_NOT_FOUND_ERROR = "ERROR: Command '%s' not recognised by any pattern%n";
-    private static final String HELP_MESSAGE = "Use one of the following commands: select, board, move, flip, block, hand, place, show, yield, state, quit.";
+    private static final String HELP_MESSAGE = "Use one of the following commands: select, board, move, flip, "
+            + "block, hand, place, show, yield, state, quit.";
 
     private final GameConfig config;
     private final Map<String, Command> commands;

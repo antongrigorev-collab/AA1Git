@@ -1,8 +1,8 @@
 package Crown_of_Farmland.commands;
 
+import Crown_of_Farmland.exceptions.EmptyFieldException;
 import Crown_of_Farmland.exceptions.FlipAlreadyFlippedException;
 import Crown_of_Farmland.exceptions.GameException;
-import Crown_of_Farmland.exceptions.MustDiscardException;
 import Crown_of_Farmland.exceptions.NoFieldSelectedException;
 import Crown_of_Farmland.exceptions.NotOwnUnitException;
 import Crown_of_Farmland.exceptions.UnitAlreadyMovedException;
@@ -26,12 +26,12 @@ public class FlipCommand extends Command {
         if (game == null || game.isGameOver()) {
             return;
         }
-        if (game.getCurrentTeam().getHand().size() == 5) {
-            throw new MustDiscardException("flip");
-        }
         var selected = game.getSelectedField();
-        if (selected == null || selected.isEmpty()) {
+        if (selected == null) {
             throw new NoFieldSelectedException();
+        }
+        if (selected.isEmpty()) {
+            throw new EmptyFieldException(selected.coordinate());
         }
         Unit unit = selected.getUnit();
         if (!unit.getTeam().equals(game.getCurrentTeam())) {

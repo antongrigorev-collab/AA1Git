@@ -232,6 +232,20 @@ public class Game {
         Field fromField = gameBoard.getField(fromRow, fromCol);
         Field toField = gameBoard.getField(toRow, toCol);
 
+        int atkA = attacker.getAtk();
+        int atkB = defender.getAtk();
+        int defB = defender.getDef();
+
+        if (attacker.isBlocked()) {
+            lines.add(attacker.getName() + " no longer blocks.");
+            attacker.setBlocked(false);
+        }
+
+        String defenderDisplayName = defender.isRevealed() ? defender.getName() : "???";
+        String defenderStats = defender.isRevealed() ? " (" + atkB + "/" + defB + ")" : "";
+        lines.add(attacker.getName() + " (" + atkA + "/" + attacker.getDef() + ") attacks " + defenderDisplayName
+                + defenderStats + " on " + toField.coordinate() + "!");
+
         if (!attacker.isRevealed()) {
             attacker.setRevealed(true);
             lines.add(attacker.getName() + " (" + attacker.getAtk() + "/" + attacker.getDef() + ") was flipped on "
@@ -242,17 +256,6 @@ public class Game {
             lines.add(defender.getName() + " (" + defender.getAtk() + "/" + defender.getDef() + ") was flipped on "
                     + toField.coordinate() + "!");
         }
-        if (attacker.isBlocked()) {
-            lines.add(attacker.getName() + " no longer blocks.");
-            attacker.setBlocked(false);
-        }
-
-        int atkA = attacker.getAtk();
-        int atkB = defender.getAtk();
-        int defB = defender.getDef();
-
-        lines.add(attacker.getName() + " (" + atkA + "/" + attacker.getDef() + ") attacks " + defender.getName()
-                + " (" + atkB + "/" + defB + ") on " + toField.coordinate() + "!");
 
         if (defender.isKing()) {
             defenderTeam.takeDamage(atkA);
