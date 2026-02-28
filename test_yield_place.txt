@@ -1,5 +1,0 @@
-yield
-yield
-place 3 C2
-hand
-yield 1
