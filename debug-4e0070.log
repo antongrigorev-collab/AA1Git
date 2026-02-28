@@ -1,0 +1,2 @@
+{"sessionId":"4e0070","id":"log_1772174624956_H1","timestamp":1772174624956,"location":"AIPlayer.java:kingMoveOptions","message":"AI king move options before selection","data":{"kingRow":6,"kingCol":3,"moves":[{"r":6,"c":4,"score":0},{"r":5,"c":3,"score":0},{"r":6,"c":2,"score":0},{"r":6,"c":3,"score":0}]},"runId":"initial","hypothesisId":"H1"}
+{"sessionId":"4e0070","id":"log_1772174624964_H2","timestamp":1772174624964,"location":"AIPlayer.java:kingMoveChosen","message":"AI king move chosen","data":{"index":1,"toRow":5,"toCol":3},"runId":"initial","hypothesisId":"H2"}

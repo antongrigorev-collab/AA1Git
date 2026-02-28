@@ -112,6 +112,7 @@ public class GameBoard {
         char hNorm = useStandard ? STD_H : sym[8];
         char hSel = useStandard ? STD_H_SEL : (sym.length > 23 ? sym[23] : STD_H_SEL);
         StringBuilder sb = new StringBuilder();
+        sb.append("  ");
         for (int c = 0; c < SIZE; c++) {
             boolean cornerLeftSel = (c == 0 && isSelected(r, 0, selectedField))
                     || (c > 0 && (isSelected(r, c - 1, selectedField) || isSelected(r, c, selectedField)));
