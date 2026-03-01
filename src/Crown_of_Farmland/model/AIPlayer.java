@@ -71,8 +71,8 @@ public final class AIPlayer {
                 continue;
             }
             int distance = (tr == kr && tc == kc) ? 0 : 1;
-            int fellows = countAdjacent(game, tr, tc, ai, false);
-            int enemies = countAdjacent(game, tr, tc, enemy, false);
+            int fellows = AIPlayerHelper.countAdjacent(game, tr, tc, ai, false);
+            int enemies = AIPlayerHelper.countAdjacent(game, tr, tc, enemy, false);
             int fellowPresent = (onTo != null && onTo.getTeam().equals(ai) && !onTo.isKing()) ? 1 : 0;
             int score = fellows - 2 * enemies - distance - 3 * fellowPresent;
             validKingMoves.add(to);
@@ -81,7 +81,7 @@ public final class AIPlayer {
         if (validKingMoves.isEmpty()) {
             return false;
         }
-        int idx = selectAmongMaxScore(kingScores, rnd);
+        int idx = AIPlayerHelper.selectAmongMaxScore(kingScores, rnd);
         int[] to = validKingMoves.get(idx);
         executeMove(game, kr, kc, to[0], to[1]);
         printBoardAndShow(game);
@@ -102,14 +102,14 @@ public final class AIPlayer {
             }
             placeFieldsOrdered.add(new int[] { r, c });
             int steps = Math.abs(r - ekr) + Math.abs(c - ekc);
-            int enemies = countAdjacent4(game, r, c, enemy);
-            int fellows = countAdjacent4(game, r, c, ai);
+            int enemies = AIPlayerHelper.countAdjacent4(game, r, c, enemy);
+            int fellows = AIPlayerHelper.countAdjacent4(game, r, c, ai);
             placeScores.add(-steps + 2 * enemies - fellows);
         }
         if (placeFieldsOrdered.isEmpty() || game.getCurrentTeam().getHand().size() <= 0) {
             return;
         }
-        int fieldIdx = selectAmongMaxScore(placeScores, rnd);
+        int fieldIdx = AIPlayerHelper.selectAmongMaxScore(placeScores, rnd);
         int[] pf = placeFieldsOrdered.get(fieldIdx);
         int pr = pf[0], pc = pf[1];
         List<Unit> handUnits = game.getCurrentTeam().getHand().snapshot();
@@ -117,7 +117,7 @@ public final class AIPlayer {
         for (Unit u : handUnits) {
             atkWeights.add(Math.max(0, u.getAtk()));
         }
-        int unitIdx = weightedSelect(atkWeights, rnd);
+        int unitIdx = AIPlayerHelper.weightedSelect(atkWeights, rnd);
         int handIndex = unitIdx + 1;
         game.setSelectedField(game.getGameBoard().getField(pr, pc));
         placeUnit(game, handIndex, pr, pc);
@@ -154,7 +154,7 @@ public final class AIPlayer {
                 unitOptions.add(opt.options());
                 unitOptionScores.add(opt.scores());
             }
-            int chosenUnit = selectAmongMaxScore(unitTotalScores, rnd);
+            int chosenUnit = AIPlayerHelper.selectAmongMaxScore(unitTotalScores, rnd);
             int ur = positions.get(chosenUnit)[0], uc = positions.get(chosenUnit)[1];
             game.setSelectedField(game.getGameBoard().getField(ur, uc));
 
@@ -169,7 +169,7 @@ public final class AIPlayer {
                 printBoardAndShow(game);
                 continue;
             }
-            int moveIdx = weightedSelect(optScores, rnd);
+            int moveIdx = AIPlayerHelper.weightedSelect(optScores, rnd);
             Unit u = movable.get(chosenUnit);
             List<int[]> opts = unitOptions.get(chosenUnit);
             int tr = opts.get(moveIdx)[0], tc = opts.get(moveIdx)[1];
@@ -210,7 +210,7 @@ public final class AIPlayer {
             int score = 0;
             if (target == null) {
                 int steps = Math.abs(tr - ekr) + Math.abs(tc - ekc);
-                int enemies = countAdjacent4(game, tr, tc, enemy);
+                int enemies = AIPlayerHelper.countAdjacent4(game, tr, tc, enemy);
                 score = 10 * steps - enemies;
             } else if (target.getTeam().equals(ai)) {
                 Compatibility.MergeStats stats = Compatibility.check(u, target);
@@ -233,10 +233,10 @@ public final class AIPlayer {
             options.add(d);
             scores.add(score);
         }
-        int blockScore = (int) Math.max(1, (u.getDef() - maxEnemyAtkInLine(game, ur, uc, enemy)) / 100);
+        int blockScore = (int) Math.max(1, (u.getDef() - AIPlayerHelper.maxEnemyAtkInLine(game, ur, uc, enemy)) / 100);
         options.add(new int[] { ur, uc });
         scores.add(blockScore);
-        int enPlaceScore = (int) Math.max(0, (u.getAtk() - maxEnemyAtkInLine(game, ur, uc, enemy)) / 100);
+        int enPlaceScore = (int) Math.max(0, (u.getAtk() - AIPlayerHelper.maxEnemyAtkInLine(game, ur, uc, enemy)) / 100);
         options.add(new int[] { -1, -1 });
         scores.add(enPlaceScore);
         return new UnitMoveOption(options, scores);
@@ -256,7 +256,7 @@ public final class AIPlayer {
             for (int w : weights) {
                 inv.add(Math.max(0, max - w));
             }
-            discardIdx = weightedSelect(inv, game.getRandom()) + 1;
+            discardIdx = AIPlayerHelper.weightedSelect(inv, game.getRandom()) + 1;
         }
         try {
             Game.YieldResult result = game.endTurn(discardIdx);
@@ -274,103 +274,6 @@ public final class AIPlayer {
             }
         } catch (Exception ignored) {
         }
-    }
-
-    private static int weightedSelect(List<Integer> weights, Random rnd) {
-        int sum = weights.stream().mapToInt(w -> Math.max(0, w)).sum();
-        if (sum <= 0) {
-            return rnd.nextInt(weights.size());
-        }
-        int r = rnd.nextInt(sum) + 1;
-        int acc = 0;
-        for (int i = 0; i < weights.size(); i++) {
-            acc += Math.max(0, weights.get(i));
-            if (r <= acc) {
-                return i;
-            }
-        }
-        return weights.size() - 1;
-    }
-
-    /**
-     * Selects among indices with maximum score. Bei Gleichstand: Gewichte je 1.
-     *
-     * @param scores list of scores (order preserved)
-     * @param rnd    random
-     * @return index of selected item
-     */
-    private static int selectAmongMaxScore(List<Integer> scores, Random rnd) {
-        int max = scores.stream().mapToInt(Integer::intValue).max().orElse(0);
-        List<Integer> tiedIndices = new ArrayList<>();
-        for (int i = 0; i < scores.size(); i++) {
-            if (scores.get(i) == max) {
-                tiedIndices.add(i);
-            }
-        }
-        if (tiedIndices.size() == 1) {
-            return tiedIndices.get(0);
-        }
-        List<Integer> ones = new ArrayList<>();
-        for (int i = 0; i < tiedIndices.size(); i++) {
-            ones.add(1);
-        }
-        int sel = weightedSelect(ones, rnd);
-        return tiedIndices.get(sel);
-    }
-
-    private static int countAdjacent(Game game, int row, int col, Team team, boolean includeKing) {
-        int count = 0;
-        for (int dr = -1; dr <= 1; dr++) {
-            for (int dc = -1; dc <= 1; dc++) {
-                if (dr == 0 && dc == 0) {
-                    continue;
-                }
-                int r = row + dr, c = col + dc;
-                if (r >= 0 && r < GameBoard.SIZE && c >= 0 && c < GameBoard.SIZE) {
-                    Unit u = game.getGameBoard().getField(r, c).getUnit();
-                    if (u != null && u.getTeam().equals(team) && (includeKing || !u.isKing())) {
-                        count++;
-                    }
-                }
-            }
-        }
-        return count;
-    }
-
-    private static int countAdjacent4(Game game, int row, int col, Team team) {
-        int count = 0;
-        int[][] d = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
-        for (int[] dx : d) {
-            int r = row + dx[0], c = col + dx[1];
-            if (r >= 0 && r < GameBoard.SIZE && c >= 0 && c < GameBoard.SIZE) {
-                Unit u = game.getGameBoard().getField(r, c).getUnit();
-                if (u != null && u.getTeam().equals(team)) {
-                    count++;
-                }
-            }
-        }
-        return count;
-    }
-
-    private static int maxEnemyAtkInLine(Game game, int row, int col, Team enemy) {
-        int max = 0;
-        int[][] d = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
-        for (int[] dx : d) {
-            int r = row + dx[0], c = col + dx[1];
-            while (r >= 0 && r < GameBoard.SIZE && c >= 0 && c < GameBoard.SIZE) {
-                Unit u = game.getGameBoard().getField(r, c).getUnit();
-                if (u == null) {
-                    r += dx[0];
-                    c += dx[1];
-                    continue;
-                }
-                if (u.getTeam().equals(enemy) && !u.isKing()) {
-                    max = Math.max(max, u.getAtk());
-                }
-                break;
-            }
-        }
-        return max;
     }
 
     private static void executeMove(Game game, int fromRow, int fromCol, int toRow, int toCol) {
