@@ -103,8 +103,7 @@ public class MoveCommand extends Command {
         printBoardAndShow(game);
     }
 
-    private void executeMoveToOccupied(Game game, Unit unit, Unit defender, int fromRow, int fromCol,
-                                       int toRow, int toCol, Field selected, Field toField) {
+    private void executeMoveToOccupied(Game game, Unit unit, Unit defender, int fromRow, int fromCol, int toRow, int toCol, Field selected, Field toField) {
         if (!defender.getTeam().equals(game.getCurrentTeam())) {
             DuelResult result = game.performDuel(unit, defender, defender.isBlocked(), fromRow, fromCol, toRow, toCol);
             for (String line : result.lines()) {
@@ -114,6 +113,7 @@ public class MoveCommand extends Command {
                 return;
             }
             if (toField.getUnit() == unit) {
+                unit.setMovedThisTurn(true);
                 game.setSelectedField(toField);
             }
             printBoardAndShow(game);

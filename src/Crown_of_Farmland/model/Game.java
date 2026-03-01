@@ -283,6 +283,7 @@ public class Game {
             toField.removeUnit();
             fromField.removeUnit();
             gameBoard.placeUnit(toRow, toCol, attacker);
+            attacker.setMovedThisTurn(true);
             lines.add(defender.getName() + " was eliminated!");
             lines.add(attacker.getName() + " moves to " + toField.coordinate() + ".");
         } else if (atkA < defB) {
@@ -312,6 +313,7 @@ public class Game {
             lines.add(defenderTeam.getName() + " takes " + dmg + " damage!");
             fromField.removeUnit();
             gameBoard.placeUnit(toRow, toCol, attacker);
+            attacker.setMovedThisTurn(true);
             lines.add(attacker.getName() + " moves to " + toField.coordinate() + ".");
             Team winner = checkGameOver();
             if (winner != null) {

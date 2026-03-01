@@ -155,12 +155,13 @@ public final class AIPlayer {
                 unitOptionScores.add(opt.scores());
             }
             int chosenUnit = selectAmongMaxScore(unitTotalScores, rnd);
+            int ur = positions.get(chosenUnit)[0], uc = positions.get(chosenUnit)[1];
+            game.setSelectedField(game.getGameBoard().getField(ur, uc));
+
             List<Integer> optScores = unitOptionScores.get(chosenUnit);
             boolean noPositiveMove = optScores.get(0) <= 0 && optScores.get(1) <= 0 && optScores.get(2) <= 0 && optScores.get(3) <= 0 && optScores.get(5) <= 0;
             if (noPositiveMove) {
                 Unit u = movable.get(chosenUnit);
-                int ur = positions.get(chosenUnit)[0], uc = positions.get(chosenUnit)[1];
-                game.setSelectedField(game.getGameBoard().getField(ur, uc));
                 u.setBlocked(true);
                 u.setMovedThisTurn(true);
                 System.out.println(u.getName() + " (" + game.getGameBoard().getField(ur, uc).coordinate() + ") blocks!");
@@ -170,7 +171,6 @@ public final class AIPlayer {
             }
             int moveIdx = weightedSelect(optScores, rnd);
             Unit u = movable.get(chosenUnit);
-            int ur = positions.get(chosenUnit)[0], uc = positions.get(chosenUnit)[1];
             List<int[]> opts = unitOptions.get(chosenUnit);
             int tr = opts.get(moveIdx)[0], tc = opts.get(moveIdx)[1];
             if (tr == -1 && tc == -1) {
@@ -214,7 +214,7 @@ public final class AIPlayer {
                 score = 10 * steps - enemies;
             } else if (target.getTeam().equals(ai)) {
                 Compatibility.MergeStats stats = Compatibility.check(u, target);
-                if (stats != null) {
+                if (stats != null && !target.isKing()) {
                     score = stats.atk() + stats.def() - u.getAtk() - u.getDef();
                 } else {
                     score = -target.getAtk() - target.getDef();
@@ -409,7 +409,7 @@ public final class AIPlayer {
             }
             if (toField.getUnit() == unit) {
                 game.setSelectedField(toField);
-
+                unit.setMovedThisTurn(true);
             }
             return;
         }
