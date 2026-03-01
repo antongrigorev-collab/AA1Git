@@ -46,7 +46,7 @@ public class BlockCommand extends Command {
         unit.setBlocked(true);
         unit.setMovedThisTurn(true);
         System.out.println(unit.getName() + " (" + selected.coordinate() + ") blocks!");
-        List<String> lines = game.getGameBoard().render(game.getSelectedField(), game.getCurrentTeam());
+        List<String> lines = game.getGameBoard().render(game.getSelectedField(), game.getTeam1(), game.getCurrentTeam());
         for (String line : lines) {
             System.out.println(line);
         }

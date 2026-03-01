@@ -74,11 +74,12 @@ public class GameBoard {
      * Renders the board as a list of lines (no trailing spaces).
      * Row 7 at top, row 1 at bottom; columns A..G.
      *
-     * @param selectedField the currently selected field, or null
-     * @param currentTeam   the team whose turn it is (x/X = this team, y/Y = other)
+     * @param selectedField  the currently selected field, or null
+     * @param teamShownAsX   the team whose units are displayed as x/X (e.g. the human player)
+     * @param currentTeam    the team whose turn it is (used for '*' can-move prefix)
      * @return lines to print
      */
-    public List<String> render(Field selectedField, Team currentTeam) {
+    public List<String> render(Field selectedField, Team teamShownAsX, Team currentTeam) {
         List<String> out = new ArrayList<>();
         boolean compact = verbosityMode == VerbosityMode.COMPACT;
         boolean useStandard = !symbolSet.isCustom();
@@ -89,7 +90,7 @@ public class GameBoard {
             if (!compact) {
                 out.add(buildSeparatorLine(r, true, selectedField, useStandard, sym));
             }
-            out.add(buildCellLine(r, selectedField, currentTeam, useStandard, sym));
+            out.add(buildCellLine(r, selectedField, teamShownAsX, currentTeam, useStandard, sym));
         }
         if (!compact) {
             out.add(buildSeparatorLine(-1, false, selectedField, useStandard, sym));
@@ -138,7 +139,8 @@ public class GameBoard {
         return selected && selIdx < sym.length ? sym[selIdx] : sym[idx];
     }
 
-    private String buildCellLine(int r, Field selectedField, Team currentTeam, boolean useStandard, char[] sym) {
+    private String buildCellLine(int r, Field selectedField, Team teamShownAsX, Team currentTeam,
+                                 boolean useStandard, char[] sym) {
         StringBuilder sb = new StringBuilder();
         sb.append(r + 1).append(" ");
         for (int c = 0; c < SIZE; c++) {
@@ -148,7 +150,7 @@ public class GameBoard {
                     ? (edgeSelected ? STD_V_SEL : STD_V)
                     : (edgeSelected && sym.length > 24 ? sym[24] : sym[9]);
             sb.append(vChar);
-            sb.append(cellContent(r, c, currentTeam));
+            sb.append(cellContent(r, c, teamShownAsX, currentTeam));
         }
         boolean rightEdgeSelected = isSelected(r, SIZE - 1, selectedField);
         char lastV = useStandard
@@ -171,15 +173,15 @@ public class GameBoard {
         return sb.toString();
     }
 
-    private String cellContent(int row, int col, Team currentTeam) {
+    private String cellContent(int row, int col, Team teamShownAsX, Team currentTeam) {
         Field f = grid[row][col];
         Unit u = f.getUnit();
         if (u == null) {
             return "   ";
         }
-        boolean own = u.getTeam().equals(currentTeam);
-        char letter = own ? (u.isKing() ? 'X' : 'x') : (u.isKing() ? 'Y' : 'y');
-        boolean canMove = own && !u.hasMovedThisTurn();
+        boolean ownForLetter = u.getTeam().equals(teamShownAsX);
+        char letter = ownForLetter ? (u.isKing() ? 'X' : 'x') : (u.isKing() ? 'Y' : 'y');
+        boolean canMove = u.getTeam().equals(currentTeam) && !u.hasMovedThisTurn();
         boolean block = u.isBlocked();
         char c1 = canMove ? '*' : ' ';
         char c2 = letter;

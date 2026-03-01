@@ -46,7 +46,7 @@ public class FlipCommand extends Command {
         unit.setRevealed(true);
         System.out.println(unit.getName() + " (" + unit.getAtk() + "/" + unit.getDef() + ") was flipped on "
                 + selected.coordinate() + "!");
-        List<String> lines = game.getGameBoard().render(game.getSelectedField(), game.getCurrentTeam());
+        List<String> lines = game.getGameBoard().render(game.getSelectedField(), game.getTeam1(), game.getCurrentTeam());
         for (String line : lines) {
             System.out.println(line);
         }

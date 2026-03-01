@@ -8,6 +8,7 @@ import Crown_of_Farmland.exceptions.NoFieldSelectedException;
 import Crown_of_Farmland.exceptions.PlaceFieldNotAdjacentToKingException;
 import Crown_of_Farmland.exceptions.PlaceOnEnemyFieldException;
 import Crown_of_Farmland.model.Compatibility;
+import Crown_of_Farmland.model.Field;
 import Crown_of_Farmland.model.Game;
 import Crown_of_Farmland.model.Unit;
 
@@ -49,6 +50,24 @@ public class PlaceCommand extends Command {
             return;
         }
         List<String> argsList = new ArrayList<>(List.of(commandArguments));
+        List<Integer> indices = validatePlaceCommand(game, argsList);
+        if (indices.isEmpty()) {
+            return;
+        }
+        var selected = game.getSelectedField();
+        placeUnitsOnField(game, selected, indices);
+        List<String> lines = game.getGameBoard().render(game.getSelectedField(), game.getTeam1(), game.getCurrentTeam());
+        for (String line : lines) {
+            System.out.println(line);
+        }
+        ShowCommand.printShow(game);
+    }
+
+    /**
+     * Applies optional field argument to game selection, validates, and returns list of hand indices.
+     * Throws on validation failure.
+     */
+    private List<Integer> validatePlaceCommand(Game game, List<String> argsList) throws GameException {
         if (!argsList.isEmpty() && isFieldArg(argsList.get(argsList.size() - 1))) {
             String fieldStr = argsList.remove(argsList.size() - 1).toUpperCase();
             int[] rc = Game.parseField(fieldStr);
@@ -85,9 +104,10 @@ public class PlaceCommand extends Command {
             }
             indices.add(idx);
         }
-        if (indices.isEmpty()) {
-            return;
-        }
+        return indices;
+    }
+
+    private void placeUnitsOnField(Game game, Field selected, List<Integer> indices) {
         List<Unit> toPlace = new ArrayList<>();
         for (int idx : indices) {
             toPlace.add(game.getCurrentTeam().getHand().get(idx));
@@ -96,7 +116,6 @@ public class PlaceCommand extends Command {
             game.getCurrentTeam().getHand().remove(indices.get(i));
         }
         game.getCurrentTeam().getHand().markPlacedThisTurn();
-
         int r = selected.row();
         int c = selected.col();
         for (Unit unit : toPlace) {
@@ -131,10 +150,5 @@ public class PlaceCommand extends Command {
                 System.out.println(justPlaced.getName() + " was eliminated!");
             }
         }
-        List<String> lines = game.getGameBoard().render(game.getSelectedField(), game.getCurrentTeam());
-        for (String line : lines) {
-            System.out.println(line);
-        }
-        ShowCommand.printShow(game);
     }
 }

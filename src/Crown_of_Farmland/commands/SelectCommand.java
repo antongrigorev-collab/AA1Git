@@ -24,7 +24,7 @@ public class SelectCommand extends Command {
         int col = fieldStr.charAt(0) - 'A';
         int row = Integer.parseInt(fieldStr.substring(1)) - 1;
         game.setSelectedField(game.getGameBoard().getField(row, col));
-        List<String> lines = game.getGameBoard().render(game.getSelectedField(), game.getCurrentTeam());
+        List<String> lines = game.getGameBoard().render(game.getSelectedField(), game.getTeam1(), game.getCurrentTeam());
         for (String line : lines) {
             System.out.println(line);
         }

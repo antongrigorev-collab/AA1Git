@@ -19,7 +19,7 @@ Java-Spiel „Crown of Farmland“ (Programmieren WS 2025/26, Abschlussaufgabe 1
 ## Bereits umgesetzt (Stand Wissensbasis)
 - **Programmstart:** Argument-Parsing, Config-Loading (units, deck/deck1+deck2), Validierung.
 - **Spiel-Init:** Decks aus Config, Shuffle, 4 Karten pro Hand, Kings auf D1/D7; `Game.getBoardCount(Team)`, `Game.getKingPosition(Team)`, `Game.parseField(String)`, `Game.isAdjacent`, `Game.isAdjacentToKing`.
-- **GameBoard:** `placeUnit`, `getField`, `render(Field selectedField, Team currentTeam)` mit Standard-/angepasstem Symbolsatz, Verbosity all/compact, Einheiten (x/X/y/Y, *, b).
+- **GameBoard:** `placeUnit`, `getField`, `render(Field selectedField, Team teamShownAsX, Team currentTeam)` – teamShownAsX = Team, das als x/X dargestellt wird (Aufrufer übergeben stets `game.getTeam1()`), currentTeam für *-Präfix (kann noch ziehen). Standard-/angepasster Symbolsatz, Verbosity all/compact, Einheiten (x/X/y/Y, *, b). Team 1 (Spieler) bleibt immer x/X, Team 2 (KI) immer y/Y, auch nach yield.
 - **Befehle (alle implementiert):**
   - **quit:** `QuitCommand`, `CommandHandler.requestQuit()` beendet die Eingabeschleife.
   - **hand:** 1-basierte Liste mit Name und (ATK/DEF).
@@ -28,14 +28,14 @@ Java-Spiel „Crown of Farmland“ (Programmieren WS 2025/26, Abschlussaufgabe 1
   - **board:** Ausgabe über `GameBoard.render(...)`.
   - **state:** Teamnamen, LP/8000, DC/40, BC/5 (Zeilenlänge 31), dann board, dann show bei Auswahl.
   - **yield:** `Game.endTurn(Integer discardHandIndex)` mit Validierung (Hand voll → Abwurf nötig), Teamwechsel, Nachzug, Spielende bei leerem Stapel; danach bei Team 2 Aufruf von `AIPlayer.runTurn(game)`.
-  - **move:** Validierung (Feld, Abstand, King-Regeln), leeres Feld / Duell / Zusammenschluss; Ausgaben inkl. „no longer blocks“, Duelltexte, join forces / Union failed.
-  - **place:** Feld an King angrenzend (8 Richtungen), ein oder mehrere Hand-Indizes, Zusammenschluss, 6.-Einheit-Regel; danach board + show.
+  - **move:** `MoveCommand.execute` ruft je nach Ziel: `executeMoveEnPlace`, `executeMoveToEmpty` oder `executeMoveToOccupied` (Duell bzw. Zusammenschluss); Validierung (Feld, Abstand, King-Regeln); Ausgaben inkl. „no longer blocks“, Duelltexte, join forces / Union failed.
+  - **place:** `PlaceCommand.execute` nutzt `validatePlaceCommand` (optionales Feld-Argument, Prüfungen, Hand-Indizes) und `placeUnitsOnField` (von Hand entfernen, Merge/6.-Einheit-Regel); Feld an King angrenzend (8 Richtungen); danach board + show.
   - **flip:** Einheit aufdecken (nur wenn nicht bewegt, noch verdeckt).
   - **block:** Blockade einleiten, zählt als Bewegung.
-- **Duell (A.1.4):** `Game.performDuel(attacker, defender, defenderBlocked, fromRow, fromCol, toRow, toCol)` mit Blockade-, König- und Standardfällen; Schaden, Elimination, Aufdecken; `DuelResult` mit Zeilen und Gewinner.
+- **Duell (A.1.4):** `Game.performDuel(...)` orchestriert; Hilfsmethoden: `addDuelIntroLines` (Blockade aufheben, Angriffszeile, Flips), `resolveDuelVsKing`, `resolveBlockedDuel`, `resolveStandardDuel`; Schaden, Elimination, Aufdecken; `DuelResult` mit Zeilen und Gewinner.
 - **Kompatibilität (A.1.10):** `Compatibility.check(unitA, unitB)` → `MergeStats` oder null (Symbiose, Gleichgesinntheit, Prim); `Game.createMergedUnit(unitA, unitB, stats)` für Namen und Werte.
 - **Zusammenschluss (A.1.9):** in move/place umgesetzt (Erfolg/Fehlschlag, 6. Einheit sofort entfernt).
-- **KI-Gegner (A.2):** `AIPlayer.runTurn(Game)` – Königbewegung (Score, gewichtete Zufallsauswahl), Platzierung (Feld- und Einheitenwahl), Einheitenzüge (Bewertung, gewichtete Auswahl), Abwurf (umgekehrt gewichtet); wird nach `yield` ausgeführt, wenn `currentTeam == team2`.
+- **KI-Gegner (A.2):** `AIPlayer.runTurn(Game)` orchestriert: `runKingMove` (Königbewegung, Score `fellows - 2*enemies - distance - 3*fellowPresent`, bei Gleichstand `selectAmongMaxScore`), `runPlacePhase` (leere Felder um König, Score `-steps + 2*enemies - fellows`, Einheit per ATK-Gewicht; **vor dem Platzieren** wird das Zielfeld per `setSelectedField` gewählt, analog zu select vor place), `runUnitMovesLoop` (bewegliche Einheiten, `computeUnitMoveOptions` pro Einheit, Block/Zug/`executeMove`; bei **Bewegung en place** wird `<name> moves to <field>.` vor dem Board ausgegeben), `yieldTurn`. `executeMove` nutzt für Merge auf eigenem Team `executeMergeOrEliminate`. Wird nach `yield` ausgeführt, wenn `currentTeam == team2`.
 
 ## Noch offen / geplant
 - Ggf. Feinschliff an Ausgabeformaten (z. B. Duell „???“ vor Aufdecken) und Tests gegen Beispielinteraktion aus dem Aufgaben-PDF.
@@ -46,7 +46,20 @@ Java-Spiel „Crown of Farmland“ (Programmieren WS 2025/26, Abschlussaufgabe 1
 - **place bei voller Hand:** Ausgabe `ERROR: cannot place a card, you must discard!` (MustDiscardException von „place“ auf „place a card“ geändert).
 - **place 3 C2:** Befehl akzeptiert (optionales Feldargument), danach gleiche Fehlermeldung wenn Hand voll. Eingabedateien `input/units/default.txt` und `input/decks/default.txt` für die Beispiel-Parameter angelegt.
 
+## Erledigt (Methodenlänge max. 60 Zeilen)
+- **AIPlayer:** `runTurn` → `runKingMove`, `runPlacePhase`, `runUnitMovesLoop` (+ `computeUnitMoveOptions`/`UnitMoveOption`); `executeMove` → `executeMergeOrEliminate` für Merge/Union-failed.
+- **Game:** `performDuel` → `addDuelIntroLines`, `resolveDuelVsKing`, `resolveBlockedDuel`, `resolveStandardDuel`.
+- **MoveCommand:** `execute` → `executeMoveEnPlace`, `executeMoveToEmpty`, `executeMoveToOccupied`.
+- **PlaceCommand:** `execute` → `validatePlaceCommand`, `placeUnitsOnField`.
+
+## Erledigt (KI-Platzierung)
+- **Select vor Place:** Vor dem Platzieren einer Einheit durch den KI-Gegner wird das Zielfeld per `game.setSelectedField(game.getGameBoard().getField(pr, pc))` in `runPlacePhase` gesetzt – entspricht dem Ablauf des Spielers (erst select, dann place).
+
+## Erledigt (KI Bewegung en place)
+- **Ausgabe `<name> moves to <field>.:`** Wenn der KI-Gegner eine Einheit en place bewegt (Option `tr == -1 && tc == -1` in `runUnitMovesLoop`), wird die Zeile `<name> moves to <field>.` ausgegeben – **vor** der Brett- und Show-Ausgabe – analog zu anderen KI-Bewegungen und zum Spieler-Befehl `move`.
+
 ## Konventionen & Besonderheiten
+- **Methodenlänge:** Jede Methode ist maximal 60 Zeilen lang (Refaktorierung umgesetzt). Lange Abläufe sind in Hilfsmethoden ausgelagert (z. B. AIPlayer: `runKingMove`, `runPlacePhase`, `runUnitMovesLoop`, `computeUnitMoveOptions`, `executeMergeOrEliminate`; Game: `addDuelIntroLines`, `resolveDuelVsKing`, `resolveBlockedDuel`, `resolveStandardDuel`; MoveCommand/PlaceCommand: execute-Pfade und Validierung in eigene Methoden).
 - Exceptions: `GameException` (mit `getFormattedMessage()`), `StartupException` für Startfehler, `CommandException` für Laufzeitfehler bei Befehlen.
 - Einheiten aus Config: `UnitTemplate` (qualifier, role, atk, def) → beim Befüllen der Decks `new BasicUnit(...)` pro Karte.
 - Team-Referenz auf Units: `unit.setTeam(team)` beim Ziehen in die Hand.

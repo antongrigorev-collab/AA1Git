@@ -11,6 +11,7 @@ import Crown_of_Farmland.exceptions.NotOwnUnitException;
 import Crown_of_Farmland.exceptions.UnitAlreadyMovedException;
 import Crown_of_Farmland.model.Compatibility;
 import Crown_of_Farmland.model.DuelResult;
+import Crown_of_Farmland.model.Field;
 import Crown_of_Farmland.model.Game;
 import Crown_of_Farmland.model.Unit;
 
@@ -67,31 +68,43 @@ public class MoveCommand extends Command {
         }
 
         if (fromRow == toRow && fromCol == toCol) {
-            if (unit.isBlocked()) {
-                unit.setBlocked(false);
-                System.out.println(unit.getName() + " no longer blocks.");
-            }
-            unit.setMovedThisTurn(true);
-            System.out.println(unit.getName() + " moves to " + toField.coordinate() + ".");
-            printBoardAndShow(game);
+            executeMoveEnPlace(game, unit, toField);
             return;
         }
-
         if (toField.isEmpty()) {
-            if (unit.isBlocked()) {
-                unit.setBlocked(false);
-                System.out.println(unit.getName() + " no longer blocks.");
-            }
-            selected.removeUnit();
-            game.getGameBoard().placeUnit(toRow, toCol, unit);
-            unit.setMovedThisTurn(true);
-            game.setSelectedField(toField);
-            System.out.println(unit.getName() + " moves to " + toField.coordinate() + ".");
-            printBoardAndShow(game);
+            executeMoveToEmpty(game, unit, selected, toRow, toCol, toField);
             return;
         }
-
         Unit defender = toField.getUnit();
+        executeMoveToOccupied(game, unit, defender, fromRow, fromCol, toRow, toCol, selected, toField);
+    }
+
+    private void executeMoveEnPlace(Game game, Unit unit, Field toField) {
+        if (unit.isBlocked()) {
+            unit.setBlocked(false);
+            System.out.println(unit.getName() + " no longer blocks.");
+        }
+        unit.setMovedThisTurn(true);
+        System.out.println(unit.getName() + " moves to " + toField.coordinate() + ".");
+        printBoardAndShow(game);
+    }
+
+    private void executeMoveToEmpty(Game game, Unit unit, Field selected,
+                                    int toRow, int toCol, Field toField) {
+        if (unit.isBlocked()) {
+            unit.setBlocked(false);
+            System.out.println(unit.getName() + " no longer blocks.");
+        }
+        selected.removeUnit();
+        game.getGameBoard().placeUnit(toRow, toCol, unit);
+        unit.setMovedThisTurn(true);
+        game.setSelectedField(toField);
+        System.out.println(unit.getName() + " moves to " + toField.coordinate() + ".");
+        printBoardAndShow(game);
+    }
+
+    private void executeMoveToOccupied(Game game, Unit unit, Unit defender, int fromRow, int fromCol,
+                                       int toRow, int toCol, Field selected, Field toField) {
         if (!defender.getTeam().equals(game.getCurrentTeam())) {
             DuelResult result = game.performDuel(unit, defender, defender.isBlocked(), fromRow, fromCol, toRow, toCol);
             for (String line : result.lines()) {
@@ -106,7 +119,6 @@ public class MoveCommand extends Command {
             printBoardAndShow(game);
             return;
         }
-
         Compatibility.MergeStats stats = Compatibility.check(unit, defender);
         if (unit.isBlocked()) {
             unit.setBlocked(false);
@@ -121,9 +133,8 @@ public class MoveCommand extends Command {
             game.getGameBoard().placeUnit(toRow, toCol, merged);
             game.setSelectedField(toField);
             System.out.println(unit.getName() + " moves to " + toField.coordinate() + ".");
-            String joinMsg = unit.getName() + " and " + defender.getName() + " on " + toField.coordinate()
-                    + " join forces!";
-            System.out.println(joinMsg);
+            System.out.println(unit.getName() + " and " + defender.getName() + " on " + toField.coordinate()
+                    + " join forces!");
             System.out.println("Success!");
         } else {
             selected.removeUnit();
@@ -132,16 +143,15 @@ public class MoveCommand extends Command {
             unit.setMovedThisTurn(true);
             game.setSelectedField(toField);
             System.out.println(unit.getName() + " moves to " + toField.coordinate() + ".");
-            String joinMsg = unit.getName() + " and " + defender.getName() + " on " + toField.coordinate()
-                    + " join forces!";
-            System.out.println(joinMsg);
+            System.out.println(unit.getName() + " and " + defender.getName() + " on " + toField.coordinate()
+                    + " join forces!");
             System.out.println("Union failed. " + defender.getName() + " was eliminated.");
         }
         printBoardAndShow(game);
     }
 
     private void printBoardAndShow(Game game) {
-        List<String> lines = game.getGameBoard().render(game.getSelectedField(), game.getCurrentTeam());
+        List<String> lines = game.getGameBoard().render(game.getSelectedField(), game.getTeam1(), game.getCurrentTeam());
         for (String line : lines) {
             System.out.println(line);
         }

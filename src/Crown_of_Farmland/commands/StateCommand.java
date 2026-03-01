@@ -35,7 +35,7 @@ public class StateCommand extends Command {
                 "DC: " + t2.getDeck().size() + "/" + DECK_SIZE);
         printStateLine(prefix, "BC: " + game.getBoardCount(t1) + "/" + MAX_BOARD_UNITS,
                 "BC: " + game.getBoardCount(t2) + "/" + MAX_BOARD_UNITS);
-        List<String> boardLines = game.getGameBoard().render(game.getSelectedField(), game.getCurrentTeam());
+        List<String> boardLines = game.getGameBoard().render(game.getSelectedField(), game.getTeam1(), game.getCurrentTeam());
         for (String line : boardLines) {
             System.out.println(line);
         }
