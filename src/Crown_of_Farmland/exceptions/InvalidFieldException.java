@@ -1,21 +1,16 @@
 package Crown_of_Farmland.exceptions;
 
 /**
- * Fehler: Eine ungueltige Feldbezeichnung wurde angegeben.
- *
- * Tritt auf wenn:
- * - die Feldbezeichnung nicht dem Format A1 bis G7 entspricht
- * - die Spalte nicht zwischen A und G liegt
- * - die Zeile nicht zwischen 1 und 7 liegt
+ * Thrown when a field coordinate does not match A1–G7 (column A–G, row 1–7).
  *
  * @author Programmieren-Team
  */
 public class InvalidFieldException extends CommandException {
 
     /**
-     * Erstellt eine neue InvalidFieldException.
+     * Constructs a new InvalidFieldException.
      *
-     * @param field die ungueltige Feldbezeichnung
+     * @param field the invalid field string
      */
     public InvalidFieldException(String field) {
         super("invalid field: " + field);

@@ -1,18 +1,17 @@
 package Crown_of_Farmland.exceptions;
 
 /**
- * Abstrakte Basisklasse fuer alle Fehler, die waehrend der Befehlsausfuehrung auftreten.
- * Diese Fehler fuehren nicht zum Programmabbruch, sondern geben eine Fehlermeldung aus
- * und das Programm wartet auf die naechste Eingabe.
+ * Base type for exceptions during command execution. The program prints the
+ * error message and continues waiting for the next input instead of terminating.
  *
  * @author Programmieren-Team
  */
 public abstract class CommandException extends GameException {
 
     /**
-     * Erstellt eine neue CommandException mit der gegebenen Fehlermeldung.
+     * Constructs a new command exception with the given message.
      *
-     * @param message die Fehlermeldung
+     * @param message the error message
      */
     protected CommandException(String message) {
         super(message);

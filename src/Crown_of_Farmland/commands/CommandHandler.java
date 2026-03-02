@@ -9,7 +9,10 @@ import java.util.Map;
 import java.util.Scanner;
 
 /**
- * Implement the command handler in a similar fashion as on earlier tasks.
+ * Handles user input for Crown of Farmland (Krone von Ackerland). Creates and
+ * initializes the game from configuration, then dispatches console commands
+ * (select, board, move, flip, block, hand, place, show, yield, state, quit)
+ * until the user quits or a startup error occurs.
  *
  * @author Programmieren-Team
  */
@@ -53,8 +56,9 @@ public class CommandHandler {
     }
 
     /**
-     * This method handles the input of the user.
-     * The input is taken so long, as this (command handler) was not stopped by the quit command.
+     * Initializes the game from config, prints the help message, then reads and
+     * executes commands from standard input until {@link #requestQuit()} is called.
+     * Prints formatted error messages for game exceptions without terminating.
      */
     public void handleUserInput() {
         try {

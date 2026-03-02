@@ -1,20 +1,16 @@
 package Crown_of_Farmland.exceptions;
 
 /**
- * Fehler: Ein Befehl wurde mit falschen oder ungueltigen Argumenten aufgerufen.
- *
- * Tritt auf wenn:
- * - die Anzahl der Argumente nicht zum Befehl passt
- * - ein Argument nicht das erwartete Format hat (z.B. ungueltige Feldbezeichnung)
+ * Thrown when a command is called with wrong or invalid arguments (e.g. wrong count or format).
  *
  * @author Programmieren-Team
  */
 public class InvalidCommandArgumentsException extends CommandException {
 
     /**
-     * Erstellt eine neue InvalidCommandArgumentsException.
+     * Constructs a new InvalidCommandArgumentsException.
      *
-     * @param message die Beschreibung des Fehlers
+     * @param message description of the error
      */
     public InvalidCommandArgumentsException(String message) {
         super(message);

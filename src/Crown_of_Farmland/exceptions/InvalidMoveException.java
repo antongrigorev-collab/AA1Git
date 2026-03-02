@@ -1,21 +1,16 @@
 package Crown_of_Farmland.exceptions;
 
 /**
- * Fehler: Die Bewegung einer Einheit ist unzulaessig.
- *
- * Tritt auf wenn:
- * - das Zielfeld mehr als ein Feld entfernt ist (nicht angrenzend, diagonal nicht erlaubt)
- * - eine Einheit sich auf das Feld des eigenen Bauernkoenigs bewegt
- * - ein Bauernkoenig sich auf ein Feld bewegt, das von einer gegnerischen Einheit besetzt ist
+ * Thrown when a move is not allowed (e.g. target too far, move onto own King, King onto enemy).
  *
  * @author Programmieren-Team
  */
 public class InvalidMoveException extends CommandException {
 
     /**
-     * Erstellt eine neue InvalidMoveException.
+     * Constructs a new InvalidMoveException.
      *
-     * @param message die Beschreibung der ungueltigen Bewegung
+     * @param message description of the invalid move
      */
     public InvalidMoveException(String message) {
         super(message);

@@ -1,20 +1,16 @@
 package Crown_of_Farmland.exceptions;
 
 /**
- * Fehler: Ein ungueltiger Index fuer die Hand wurde angegeben.
- *
- * Tritt auf wenn:
- * - der Index bei place oder yield keiner Einheit auf der Hand zugeordnet werden kann
- * - der Index kleiner als 1 oder groesser als die Anzahl der Einheiten auf der Hand ist
+ * Thrown when a hand index for place or yield is out of range (must be 1-based and within hand size).
  *
  * @author Programmieren-Team
  */
 public class InvalidHandIndexException extends CommandException {
 
     /**
-     * Erstellt eine neue InvalidHandIndexException.
+     * Constructs a new InvalidHandIndexException.
      *
-     * @param index der ungueltige Index
+     * @param index the invalid index
      */
     public InvalidHandIndexException(int index) {
         super("invalid hand index: " + index);

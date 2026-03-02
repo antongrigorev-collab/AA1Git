@@ -5,6 +5,10 @@ import Crown_of_Farmland.model.Game;
 
 import java.util.List;
 
+/**
+ * Command "board": prints the current game board (and selected field highlight)
+ * using the configured symbol set and verbosity mode.
+ */
 public class BoardCommand extends Command {
 
     private static final String COMMAND_NAME = "board";

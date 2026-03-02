@@ -1,20 +1,17 @@
 package Crown_of_Farmland.exceptions;
 
 /**
- * Fehler: Das ausgewaehlte Feld ist leer, obwohl eine Einheit erwartet wird.
- *
- * Tritt auf wenn:
- * - move, flip oder block auf einem leeren Feld ausgefuehrt wird
- * - eine Einheit auf dem ausgewaehlten Feld vorausgesetzt wird, das Feld aber leer ist
+ * Thrown when move, flip or block is used on an empty field, or when a command
+ * expects a unit on the selected field but it is empty.
  *
  * @author Programmieren-Team
  */
 public class EmptyFieldException extends CommandException {
 
     /**
-     * Erstellt eine neue EmptyFieldException.
+     * Constructs a new EmptyFieldException.
      *
-     * @param field die Feldbezeichnung des leeren Feldes
+     * @param field the coordinate of the empty field
      */
     public EmptyFieldException(String field) {
         super("no unit on field " + field);

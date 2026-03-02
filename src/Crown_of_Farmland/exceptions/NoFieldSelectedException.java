@@ -1,18 +1,15 @@
 package Crown_of_Farmland.exceptions;
 
 /**
- * Fehler: Es wurde kein Feld ausgewaehlt, obwohl ein Befehl eine Auswahl voraussetzt.
- *
- * Tritt auf wenn:
- * - move, flip, block, show oder place ausgefuehrt wird, ohne dass zuvor
- *   ein Feld mit select ausgewaehlt wurde
+ * Thrown when a command requires a selected field but none is selected (e.g. move,
+ * flip, block, show, place without a prior select).
  *
  * @author Programmieren-Team
  */
 public class NoFieldSelectedException extends CommandException {
 
     /**
-     * Erstellt eine neue NoFieldSelectedException.
+     * Constructs a new NoFieldSelectedException.
      */
     public NoFieldSelectedException() {
         super("no field selected");

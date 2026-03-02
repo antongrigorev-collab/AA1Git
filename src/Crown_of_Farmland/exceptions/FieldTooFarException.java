@@ -1,21 +1,17 @@
 package Crown_of_Farmland.exceptions;
 
 /**
- * Fehler: Das Zielfeld ist zu weit entfernt fuer eine Bewegung.
- *
- * Tritt auf wenn:
- * - das Zielfeld bei move entlang der Zeilen und Spalten (nicht diagonal)
- *   mehr als ein Feld entfernt ist
+ * Thrown when the move target is more than one step away (only cardinal moves allowed).
  *
  * @author Programmieren-Team
  */
 public class FieldTooFarException extends CommandException {
 
     /**
-     * Erstellt eine neue FieldTooFarException.
+     * Constructs a new FieldTooFarException.
      *
-     * @param from das Ausgangsfeld
-     * @param to das Zielfeld
+     * @param from the source field coordinate
+     * @param to   the target field coordinate
      */
     public FieldTooFarException(String from, String to) {
         super("cannot move from " + from + " to " + to + ": too far away");

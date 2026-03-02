@@ -3,10 +3,13 @@ package Crown_of_Farmland.commands;
 import Crown_of_Farmland.exceptions.GameException;
 
 
+/**
+ * Base class for console commands in Crown of Farmland. Each command has a name,
+ * a regex pattern for matching user input, and an execute method that receives
+ * pre-split arguments.
+ */
 public abstract class Command {
-    /**
-     * This is the command handler.
-     */
+    /** The command handler that owns this command and provides game access. */
     protected final CommandHandler commandHandler;
 
 
@@ -14,11 +17,11 @@ public abstract class Command {
     private final String commandRegex;
 
     /**
-     * Commands that have the same name name as regex, for example quit, do not have a seperate regex.
+     * Constructs a command with the given name, regex, and handler.
      *
-     * @param commandName The name of the command
-     * @param commandRegex The regex to match the command against
-     * @param commandHandler The command handler
+     * @param commandName   the command name (e.g. "quit")
+     * @param commandRegex  the regex the user input must match (may equal the name)
+     * @param commandHandler the command handler
      */
     protected Command(String commandName, String commandRegex, CommandHandler commandHandler) {
         this.commandName = commandName;
@@ -27,28 +30,28 @@ public abstract class Command {
     }
 
     /**
-     * This returns the command name.
+     * Returns the command name.
      *
-     * @return The name of the command.
+     * @return the command name
      */
     public final String getCommandName() {
         return commandName;
     }
 
     /**
-     * This returns the regex that the input has to match against for the command to be executed.
+     * Returns the regex pattern used to match user input for this command.
      *
-     * @return The pattern of the command.
+     * @return the command regex pattern
      */
     public final String getCommandRegex() {
         return commandRegex;
     }
 
     /**
-     * Executes a given command. The arguments are already split by the command handler.
+     * Executes this command with the given pre-split arguments.
      *
-     * @param commandArguments The arguments the command needs to run. Can contain optional arguments
-     * @throws GameException If the command fails (invalid arguments, invalid state, etc.)
+     * @param commandArguments the arguments for the command (may include optional parts)
+     * @throws GameException if the command fails (invalid arguments or invalid game state)
      */
     public abstract void execute(String[] commandArguments) throws GameException;
 

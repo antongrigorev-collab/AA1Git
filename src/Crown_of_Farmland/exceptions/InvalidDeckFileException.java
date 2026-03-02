@@ -1,21 +1,16 @@
 package Crown_of_Farmland.exceptions;
 
 /**
- * Fehler: Die Stapelzusammensetzungs-Datei hat einen ungueltigen Inhalt.
- *
- * Tritt auf wenn:
- * - die Anzahl der Zeilen nicht mit der Anzahl der definierten Einheiten uebereinstimmt
- * - die Gesamtanzahl der Einheiten im Stapel nicht 40 betraegt
- * - eine Zeile keine gueltige nichtnegative Ganzzahl enthaelt
+ * Thrown when the deck file has invalid content (e.g. wrong line count, total not 40, invalid numbers).
  *
  * @author Programmieren-Team
  */
 public class InvalidDeckFileException extends StartupException {
 
     /**
-     * Erstellt eine neue InvalidDeckFileException.
+     * Constructs a new InvalidDeckFileException.
      *
-     * @param message die Beschreibung des Fehlers
+     * @param message description of the error
      */
     public InvalidDeckFileException(String message) {
         super(message);

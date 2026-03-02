@@ -11,6 +11,11 @@ import Crown_of_Farmland.model.Unit;
 
 import java.util.List;
 
+/**
+ * Command "flip": reveals the selected unit (shows name and ATK/DEF to both teams).
+ * The unit must belong to the current team, must not have moved this turn, and must
+ * not already be revealed. Does not count as a move.
+ */
 public class FlipCommand extends Command {
 
     private static final String COMMAND_NAME = "flip";

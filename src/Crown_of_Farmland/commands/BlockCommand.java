@@ -11,6 +11,10 @@ import Crown_of_Farmland.model.Unit;
 
 import java.util.List;
 
+/**
+ * Command "block": the selected unit starts blocking (counts as a move). The unit
+ * must belong to the current team, must not be the King, and must not have moved yet this turn.
+ */
 public class BlockCommand extends Command {
 
     private static final String COMMAND_NAME = "block";

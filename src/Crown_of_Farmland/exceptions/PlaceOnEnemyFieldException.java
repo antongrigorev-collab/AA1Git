@@ -1,21 +1,16 @@
 package Crown_of_Farmland.exceptions;
 
 /**
- * Fehler: Eine Einheit soll auf einem Feld platziert werden, das durch eine gegnerische
- * Einheit oder den gegnerischen Bauernkoenig besetzt ist.
- *
- * Tritt auf wenn:
- * - das Zielfeld fuer place durch eine gegnerische Einheit besetzt ist
- * - das Zielfeld fuer place durch den gegnerischen Bauernkoenig besetzt ist
+ * Thrown when place targets a field occupied by an enemy unit or the enemy Farmer King.
  *
  * @author Programmieren-Team
  */
 public class PlaceOnEnemyFieldException extends CommandException {
 
     /**
-     * Erstellt eine neue PlaceOnEnemyFieldException.
+     * Constructs a new PlaceOnEnemyFieldException.
      *
-     * @param field das besetzte Feld
+     * @param field the occupied field coordinate
      */
     public PlaceOnEnemyFieldException(String field) {
         super("cannot place on " + field + ": occupied by enemy");

@@ -1,12 +1,7 @@
 package Crown_of_Farmland.exceptions;
 
 /**
- * Fehler: Eine ungueltige Ganzzahl wurde angegeben.
- *
- * Tritt auf wenn:
- * - der Wert fuer seed keine gueltige Ganzzahl ist
- * - eine Zeile in der Deck-Datei keine gueltige nichtnegative Ganzzahl ist
- * - ATK oder DEF in der Units-Datei keine gueltige nichtnegative Ganzzahl ist
+ * Thrown when an invalid integer is given (e.g. seed, deck count, or ATK/DEF in units file).
  *
  * @author Programmieren-Team
  */
@@ -15,9 +10,9 @@ public class InvalidIntegerException extends StartupException {
     private static final String INVALID_INTEGER_PREFIX = "invalid integer: ";
 
     /**
-     * Erstellt eine neue InvalidIntegerException.
+     * Constructs a new InvalidIntegerException.
      *
-     * @param value der ungueltige Wert
+     * @param value the invalid value string
      */
     public InvalidIntegerException(String value) {
         super(INVALID_INTEGER_PREFIX + value);

@@ -4,6 +4,10 @@ import Crown_of_Farmland.exceptions.GameException;
 import Crown_of_Farmland.model.Game;
 import Crown_of_Farmland.model.Unit;
 
+/**
+ * Command "show": prints information about the currently selected field (unit name,
+ * team, ATK/DEF, or "&lt;no unit&gt;" / Farmer King / ??? for hidden opponent units).
+ */
 public class ShowCommand extends Command {
 
     private static final String COMMAND_NAME = "show";
@@ -39,7 +43,8 @@ public class ShowCommand extends Command {
     }
 
     /**
-     * Prints the show output for the current selection. Used by show and select commands.
+     * Prints the show output for the current selection. Displays unit name, team,
+     * ATK and DEF, or placeholder for empty/hidden/King. Reused by show and select.
      *
      * @param game the game (must not be null)
      */

@@ -1,12 +1,7 @@
 package Crown_of_Farmland.exceptions;
 
 /**
- * Fehler: Die Einheit wurde in diesem Zug bereits bewegt.
- *
- * Tritt auf wenn:
- * - move auf eine Einheit angewendet wird, die sich in diesem Zug bereits bewegt hat
- * - flip auf eine Einheit angewendet wird, die sich in diesem Zug bereits bewegt hat
- * - block auf eine Einheit angewendet wird, die sich in diesem Zug bereits bewegt hat
+ * Thrown when move, flip or block is used on a unit that has already moved this turn.
  *
  * @author Programmieren-Team
  */
@@ -15,9 +10,9 @@ public class UnitAlreadyMovedException extends CommandException {
     private static final String ALREADY_MOVED_SUFFIX = " has already moved this turn";
 
     /**
-     * Erstellt eine neue UnitAlreadyMovedException.
+     * Constructs a new UnitAlreadyMovedException.
      *
-     * @param unitName der Name der bereits bewegten Einheit
+     * @param unitName the name of the unit that already moved
      */
     public UnitAlreadyMovedException(String unitName) {
         super(unitName + ALREADY_MOVED_SUFFIX);

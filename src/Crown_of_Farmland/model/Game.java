@@ -4,6 +4,7 @@ import Crown_of_Farmland.commands.GameConfig;
 import Crown_of_Farmland.commands.UnitTemplate;
 import Crown_of_Farmland.exceptions.CannotDiscardException;
 import Crown_of_Farmland.exceptions.HandFullMustDiscardException;
+import Crown_of_Farmland.exceptions.InitializationException;
 import Crown_of_Farmland.exceptions.InvalidArgumentException;
 import Crown_of_Farmland.exceptions.InvalidHandIndexException;
 
@@ -12,6 +13,12 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Random;
 
+/**
+ * Holds the core game state for Crown of Farmland (Krone von Ackerland): board,
+ * teams, current turn, selection, and duel/merge logic. Initializes from
+ * {@link Crown_of_Farmland.commands.GameConfig} and provides methods for commands
+ * and the AI opponent.
+ */
 public class Game {
 
     /** Maximum non-King units per team on the board (6th unit is eliminated, A.1.5). */
@@ -47,6 +54,14 @@ public class Game {
     private boolean gameOver;
 
 
+    /**
+     * Constructs a new game from the given configuration. Creates the board, both
+     * teams, and sets the current team to team 1. Does not fill decks or place units;
+     * call {@link #initFromConfig()} to complete initialization.
+     *
+     * @param config the game configuration (seed, team names, units, decks, etc.)
+     * @throws InvalidArgumentException if config is invalid
+     */
     public Game(GameConfig config) throws InvalidArgumentException {
         this.config = Objects.requireNonNull(config);
         this.random = new Random(config.seed());
@@ -64,8 +79,10 @@ public class Game {
     /**
      * Initializes decks from config (fill, shuffle), draws 4 cards into each hand,
      * and places both kings on the board (D1 and D7).
+     *
+     * @throws InitializationException if hand is unexpectedly full during init
      */
-    public void initFromConfig() {
+    public void initFromConfig() throws InitializationException, HandFullMustDiscardException {
         fillDeck(team1, config.deckCountsTeam1());
         fillDeck(team2, config.deckCountsTeam2());
 
@@ -95,48 +112,88 @@ public class Game {
         }
     }
 
-    private void drawToHand(Team team, int count) {
+    private void drawToHand(Team team, int count)
+            throws InitializationException, HandFullMustDiscardException {
         for (int i = 0; i < count; i++) {
             Unit unit = team.getDeck().draw();
             if (unit != null) {
                 unit.setTeam(team);
-                try {
-                    team.getHand().add(unit, team.getName());
-                } catch (Exception e) {
-                    throw new IllegalStateException("Initial hand draw failed", e);
+                if (team.getHand().isFull()) {
+                    throw new InitializationException("Initial hand draw failed");
                 }
+                team.getHand().add(unit, team.getName());
             }
         }
     }
 
+    /**
+     * Returns the game board.
+     *
+     * @return the game board
+     */
     public GameBoard getGameBoard() {
         return gameBoard;
     }
 
+    /**
+     * Returns team 1 (the player team).
+     *
+     * @return team 1
+     */
     public Team getTeam1() {
         return team1;
     }
 
+    /**
+     * Returns team 2 (the opponent team).
+     *
+     * @return team 2
+     */
     public Team getTeam2() {
         return team2;
     }
 
+    /**
+     * Returns the team that is currently allowed to act.
+     *
+     * @return the current team
+     */
     public Team getCurrentTeam() {
         return currentTeam;
     }
 
+    /**
+     * Returns the shared random number generator used for shuffling and AI decisions.
+     *
+     * @return the random instance
+     */
     public Random getRandom() {
         return random;
     }
 
+    /**
+     * Returns the currently selected field (for move, place, flip, block, show).
+     *
+     * @return the selected field, or null if none
+     */
     public Field getSelectedField() {
         return selectedField;
     }
 
+    /**
+     * Sets the currently selected field.
+     *
+     * @param selectedField the field to select, or null to clear selection
+     */
     public void setSelectedField(Field selectedField) {
         this.selectedField = selectedField;
     }
 
+    /**
+     * Returns whether the game has ended (one team has won).
+     *
+     * @return true if the game is over
+     */
     public boolean isGameOver() {
         return gameOver;
     }
@@ -166,12 +223,13 @@ public class Game {
      *
      * @param discardHandIndex 1-based index of card to discard, or null if not discarding
      * @return result for command output (discarded unit, yielding team, deck empty, winner)
-     * @throws HandFullMustDiscardException if hand has 5 cards and no index given
+     * @throws HandFullMustDiscardException if hand has 5 cards and no index given, or if draw fails because hand full
      * @throws CannotDiscardException      if index given but hand has fewer than 5 cards
      * @throws InvalidHandIndexException   if index is out of range
      */
     public YieldResult endTurn(Integer discardHandIndex)
-            throws HandFullMustDiscardException, CannotDiscardException, InvalidHandIndexException {
+            throws HandFullMustDiscardException, CannotDiscardException, InvalidHandIndexException,
+            InitializationException {
         Team yieldingTeam = currentTeam;
         int handSize = yieldingTeam.getHand().size();
 
@@ -229,123 +287,12 @@ public class Game {
      */
     public DuelResult performDuel(Unit attacker, Unit defender, boolean defenderBlocked,
                                   int fromRow, int fromCol, int toRow, int toCol) {
-        List<String> lines = new ArrayList<>();
-        Field fromField = gameBoard.getField(fromRow, fromCol);
-        Field toField = gameBoard.getField(toRow, toCol);
-        addDuelIntroLines(attacker, defender, fromField, toField, lines);
-        if (defender.isKing()) {
-            return resolveDuelVsKing(defender.getTeam(), attacker.getAtk(), lines);
-        }
-        if (defenderBlocked) {
-            return resolveBlockedDuel(attacker, defender, fromField, toField, toRow, toCol, lines);
-        }
-        return resolveStandardDuel(attacker, defender, fromField, toField, toRow, toCol, lines);
+        return DuelResolver.performDuel(this, attacker, defender, defenderBlocked,
+                fromRow, fromCol, toRow, toCol);
     }
 
-    private void addDuelIntroLines(Unit attacker, Unit defender, Field fromField, Field toField, List<String> lines) {
-        if (attacker.isBlocked()) {
-            lines.add(attacker.getName() + " no longer blocks.");
-            attacker.setBlocked(false);
-        }
-        int atkA = attacker.getAtk();
-        int atkB = defender.getAtk();
-        int defB = defender.getDef();
-        String defenderDisplayName = defender.isRevealed() ? defender.getName() : HIDDEN_UNIT_DISPLAY_PLACEHOLDER;
-        String defenderStats = defender.isRevealed() ? " (" + atkB + "/" + defB + ")" : "";
-        lines.add(attacker.getName() + " (" + atkA + "/" + attacker.getDef() + ") attacks " + defenderDisplayName
-                + defenderStats + " on " + toField.coordinate() + "!");
-        if (!attacker.isRevealed()) {
-            attacker.setRevealed(true);
-            lines.add(attacker.getName() + " (" + attacker.getAtk() + "/" + attacker.getDef() + ") was flipped on "
-                    + fromField.coordinate() + "!");
-        }
-        if (!defender.isRevealed()) {
-            defender.setRevealed(true);
-            lines.add(defender.getName() + " (" + defender.getAtk() + "/" + defender.getDef() + ") was flipped on "
-                    + toField.coordinate() + "!");
-        }
-    }
-
-    private DuelResult resolveDuelVsKing(Team defenderTeam, int atkA, List<String> lines) {
-        defenderTeam.takeDamage(atkA);
-        lines.add(defenderTeam.getName() + " takes " + atkA + " damage!");
-        Team winner = checkGameOver();
-        if (winner != null) {
-            lines.add(defenderTeam.getName() + "'s life points dropped to 0!");
-            lines.add(winner.getName() + " wins!");
-        }
-        return new DuelResult(lines, winner);
-    }
-
-    private DuelResult resolveBlockedDuel(Unit attacker, Unit defender, Field fromField, Field toField,
-                                          int toRow, int toCol, List<String> lines) {
-        Team attackerTeam = attacker.getTeam();
-        int atkA = attacker.getAtk();
-        int defB = defender.getDef();
-        if (atkA > defB) {
-            toField.removeUnit();
-            fromField.removeUnit();
-            gameBoard.placeUnit(toRow, toCol, attacker);
-            attacker.setMovedThisTurn(true);
-            lines.add(defender.getName() + " was eliminated!");
-            lines.add(attacker.getName() + " moves to " + toField.coordinate() + ".");
-        } else if (atkA < defB) {
-            int dmg = defB - atkA;
-            attackerTeam.takeDamage(dmg);
-            lines.add(attackerTeam.getName() + " takes " + dmg + " damage!");
-            Team winner = checkGameOver();
-            if (winner != null) {
-                lines.add(attackerTeam.getName() + "'s life points dropped to 0!");
-                lines.add(winner.getName() + " wins!");
-            }
-            return new DuelResult(lines, winner);
-        }
-        return new DuelResult(lines, null);
-    }
-
-    private DuelResult resolveStandardDuel(Unit attacker, Unit defender, Field fromField, Field toField,
-                                            int toRow, int toCol, List<String> lines) {
-        Team attackerTeam = attacker.getTeam();
-        Team defenderTeam = defender.getTeam();
-        int atkA = attacker.getAtk();
-        int atkB = defender.getAtk();
-        if (atkA > atkB) {
-            int dmg = atkA - atkB;
-            defenderTeam.takeDamage(dmg);
-            lines.add(defender.getName() + " was eliminated!");
-            lines.add(defenderTeam.getName() + " takes " + dmg + " damage!");
-            fromField.removeUnit();
-            gameBoard.placeUnit(toRow, toCol, attacker);
-            attacker.setMovedThisTurn(true);
-            lines.add(attacker.getName() + " moves to " + toField.coordinate() + ".");
-            Team winner = checkGameOver();
-            if (winner != null) {
-                lines.add(defenderTeam.getName() + "'s life points dropped to 0!");
-                lines.add(winner.getName() + " wins!");
-            }
-            return new DuelResult(lines, winner);
-        }
-        if (atkA < atkB) {
-            int dmg = atkB - atkA;
-            attackerTeam.takeDamage(dmg);
-            lines.add(attacker.getName() + " was eliminated!");
-            lines.add(attackerTeam.getName() + " takes " + dmg + " damage!");
-            fromField.removeUnit();
-            Team winner = checkGameOver();
-            if (winner != null) {
-                lines.add(attackerTeam.getName() + "'s life points dropped to 0!");
-                lines.add(winner.getName() + " wins!");
-            }
-            return new DuelResult(lines, winner);
-        }
-        lines.add(defender.getName() + " was eliminated!");
-        lines.add(attacker.getName() + " was eliminated!");
-        fromField.removeUnit();
-        toField.removeUnit();
-        return new DuelResult(lines, null);
-    }
-
-    private Team checkGameOver() {
+    /** Called by {@link DuelResolver} after damage; sets gameOver and returns winner if a team is dead. */
+    Team checkGameOver() {
         if (team1.isDead()) {
             gameOver = true;
             return team2;
@@ -359,9 +306,6 @@ public class Game {
 
     /** Separator between name parts in merged unit (A.1.9). */
     private static final String MERGED_NAME_PART_SEPARATOR = " ";
-
-    /** Placeholder for unrevealed unit name in duel output (A.5.6). */
-    private static final String HIDDEN_UNIT_DISPLAY_PLACEHOLDER = "???";
 
     /**
      * Creates a merged unit from A (moving/placing) and B (on field). Stats from MergeStats.

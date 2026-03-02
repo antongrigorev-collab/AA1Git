@@ -1,19 +1,16 @@
 package Crown_of_Farmland.exceptions;
 
 /**
- * Fehler: Ein Schluessel wurde beim Programmstart mehrfach angegeben.
- *
- * Tritt auf wenn:
- * - ein Schluessel (z.B. seed, units, deck) mehr als einmal als Argument uebergeben wird
+ * Thrown when a startup key is given more than once (e.g. seed, units, deck).
  *
  * @author Programmieren-Team
  */
 public class DuplicateArgumentException extends StartupException {
 
     /**
-     * Erstellt eine neue DuplicateArgumentException.
+     * Constructs a new DuplicateArgumentException.
      *
-     * @param key der doppelt angegebene Schluessel
+     * @param key the duplicate key
      */
     public DuplicateArgumentException(String key) {
         super("duplicate argument: " + key);

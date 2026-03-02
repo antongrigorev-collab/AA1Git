@@ -1,10 +1,7 @@
 package Crown_of_Farmland.exceptions;
+
 /**
- * Fehler: Die Einheit ist bereits aufgedeckt und kann nicht erneut aufgedeckt werden.
- *
- * Tritt auf wenn:
- * - flip auf eine Einheit angewendet wird, die bereits aufgedeckt ist
- * - aufgedeckte Einheiten koennen nicht wieder verdeckt werden
+ * Thrown when flip is used on a unit that is already revealed (revealed units cannot be flipped).
  *
  * @author Programmieren-Team
  */
@@ -13,9 +10,9 @@ public class FlipAlreadyFlippedException extends CommandException {
     private static final String ALREADY_FLIPPED_SUFFIX = " is already revealed";
 
     /**
-     * Erstellt eine neue FlipAlreadyFlippedException.
+     * Constructs a new FlipAlreadyFlippedException.
      *
-     * @param unitName der Name der bereits aufgedeckten Einheit
+     * @param unitName the name of the already revealed unit
      */
     public FlipAlreadyFlippedException(String unitName) {
         super(unitName + ALREADY_FLIPPED_SUFFIX);

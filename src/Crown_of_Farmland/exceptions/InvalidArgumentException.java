@@ -1,21 +1,17 @@
 package Crown_of_Farmland.exceptions;
 
 /**
- * Fehler: Ein ungueltiger Schluessel oder ein ungueltiges Argument wurde beim Programmstart angegeben.
- *
- * Tritt auf wenn:
- * - ein unbekannter Schluessel verwendet wird (nicht in Tabelle A.1)
- * - ein Argument kein '=' enthaelt oder leer ist
- * - ein ungueltiger Wert fuer verbosity angegeben wird (nicht "all" oder "compact")
+ * Thrown when an invalid key or value is given at startup (e.g. unknown key,
+ * argument without '=', invalid verbosity other than "all" or "compact").
  *
  * @author Programmieren-Team
  */
 public class InvalidArgumentException extends StartupException {
 
     /**
-     * Erstellt eine neue InvalidArgumentException.
+     * Constructs a new InvalidArgumentException.
      *
-     * @param message die Beschreibung des ungueltigen Arguments
+     * @param message description of the invalid argument
      */
     public InvalidArgumentException(String message) {
         super(message);

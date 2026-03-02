@@ -17,6 +17,11 @@ import Crown_of_Farmland.model.Unit;
 
 import java.util.List;
 
+/**
+ * Command "move &lt;field&gt;": moves the selected unit to the given adjacent field (A1–G7).
+ * May trigger a duel (vs enemy or King), a merge (vs own unit), or a simple move.
+ * The unit must belong to the current team and must not have moved this turn.
+ */
 public class MoveCommand extends Command {
 
     private static final String COMMAND_NAME = "move";

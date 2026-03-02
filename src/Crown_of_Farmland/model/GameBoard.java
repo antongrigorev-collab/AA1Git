@@ -6,8 +6,17 @@ import Crown_of_Farmland.commands.VerbosityMode;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * The 7x7 game board for Crown of Farmland. Holds a grid of {@link Field}s and
+ * renders the board (with optional selected field highlight) using the configured
+ * symbol set and verbosity mode. Row 0 = bottom (spec row 1), column 0 = A.
+ */
 public class GameBoard {
+    /** Board dimension (7x7). */
     public static final int SIZE = 7;
+
+    /** Separator between row number and cell content. */
+    private static final String ROW_NUMBER_SEPARATOR = " ";
 
     /** Indent for board row labels and separator lines. */
     private static final String BOARD_ROW_INDENT = "  ";
@@ -89,10 +98,20 @@ public class GameBoard {
         return this.grid[row][col];
     }
 
+    /**
+     * Returns the symbol set used for rendering.
+     *
+     * @return the symbol set
+     */
     public SymbolSet getSymbolSet() {
         return symbolSet;
     }
 
+    /**
+     * Returns the verbosity mode (full or compact).
+     *
+     * @return the verbosity mode
+     */
     public VerbosityMode getVerbosityMode() {
         return verbosityMode;
     }
@@ -172,9 +191,6 @@ public class GameBoard {
         return selected && selIdx < sym.length ? sym[selIdx] : sym[idx];
     }
 
-    /** Separator between row number and cell content. */
-    private static final String ROW_NUMBER_SEPARATOR = " ";
-
     private String buildCellLine(int r, Field selectedField, Team teamShownAsX, Team currentTeam,
                                  boolean useStandard, char[] sym) {
         StringBuilder sb = new StringBuilder();
@@ -199,10 +215,10 @@ public class GameBoard {
     /** Builds the column label line (A..G) with each letter centered under its column. */
     private String buildColumnLabelLine() {
         StringBuilder sb = new StringBuilder();
-        sb.append("    ");
+        sb.append(COLUMN_LABEL_LEFT_PADDING);
         for (int c = 0; c < SIZE; c++) {
             if (c > 0) {
-                sb.append("   ");
+                sb.append(COLUMN_LABEL_SPACING);
             }
             sb.append((char) ('A' + c));
         }

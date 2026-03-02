@@ -7,6 +7,12 @@ import Crown_of_Farmland.exceptions.StartupException;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Parses command-line arguments into key-value pairs. Each argument must be of
+ * the form key=value; duplicate keys are rejected.
+ *
+ * @author Programmieren-Team
+ */
 public class ArgumentParser {
 
     /** Key-value separator in program arguments (e.g. seed=123). */
@@ -14,6 +20,15 @@ public class ArgumentParser {
 
     private ArgumentParser() { }
 
+    /**
+     * Parses the given argument strings into a map. Each element must contain
+     * exactly one '=' with non-empty key and value.
+     *
+     * @param args the raw command-line arguments
+     * @return a map from key to value (no duplicates)
+     * @throws InvalidArgumentException   if an argument has invalid format
+     * @throws DuplicateArgumentException if a key appears more than once
+     */
     public static Map<String, String> parse(String[] args) throws StartupException {
         Map<String, String> kv = new HashMap<>();
         for (String arg : args) {

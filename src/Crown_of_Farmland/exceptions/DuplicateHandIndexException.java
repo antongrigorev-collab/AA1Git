@@ -1,19 +1,16 @@
 package Crown_of_Farmland.exceptions;
 
 /**
- * Fehler: Ein Index wurde bei einem place-Befehl mehrfach angegeben.
- *
- * Tritt auf wenn:
- * - ein Index im place-Befehl doppelt aufgefuehrt ist
+ * Thrown when a hand index is given more than once in a single place command.
  *
  * @author Programmieren-Team
  */
 public class DuplicateHandIndexException extends CommandException {
 
     /**
-     * Erstellt eine neue DuplicateHandIndexException.
+     * Constructs a new DuplicateHandIndexException.
      *
-     * @param index der doppelt angegebene Index
+     * @param index the duplicate index
      */
     public DuplicateHandIndexException(int index) {
         super("duplicate hand index: " + index);

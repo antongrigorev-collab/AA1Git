@@ -1,6 +1,10 @@
 package Crown_of_Farmland.model;
 
 import Crown_of_Farmland.commands.ShowCommand;
+import Crown_of_Farmland.exceptions.CannotDiscardException;
+import Crown_of_Farmland.exceptions.HandFullMustDiscardException;
+import Crown_of_Farmland.exceptions.InitializationException;
+import Crown_of_Farmland.exceptions.InvalidHandIndexException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,18 +23,6 @@ public final class AIPlayer {
 
     /** Place phase score: weight for adjacent enemies (A.2). */
     private static final int PLACE_SCORE_ENEMY_WEIGHT = 2;
-
-    /** Unit move advance score: multiplier for steps toward enemy king (A.2). */
-    private static final int ADVANCE_SCORE_STEPS_MULTIPLIER = 10;
-
-    /** Penalty for attacking a hidden (unrevealed) unit (A.2). */
-    private static final int PENALTY_ATTACKING_HIDDEN_UNIT = 500;
-
-    /** Standard duel score: multiplier for attack difference (A.2). */
-    private static final int ATTACK_DIFFERENCE_MULTIPLIER = 2;
-
-    /** Divisor for block/en-place score scaling from status values (A.2). */
-    private static final int AI_SCORE_STATUS_DIVISOR = 100;
 
     /** Index of block option in move options list (after 4 cardinal directions). */
     private static final int BLOCK_OPTION_INDEX = 4;
@@ -178,7 +170,7 @@ public final class AIPlayer {
             for (int i = 0; i < movable.size(); i++) {
                 Unit u = movable.get(i);
                 int ur = positions.get(i)[0], uc = positions.get(i)[1];
-                UnitMoveOption opt = computeUnitMoveOptions(game, u, ur, uc, ai, enemy, ekr, ekc);
+                AIPlayerHelper.UnitMoveOption opt = AIPlayerHelper.computeUnitMoveOptions(game, u, ur, uc, ai, enemy, ekr, ekc);
                 int total = opt.scores().stream().mapToInt(Integer::intValue).sum();
                 unitTotalScores.add(total);
                 unitOptions.add(opt.options());
@@ -222,60 +214,10 @@ public final class AIPlayer {
         }
     }
 
-    private record UnitMoveOption(List<int[]> options, List<Integer> scores) { }
-
-    private static UnitMoveOption computeUnitMoveOptions(Game game, Unit u, int ur, int uc, Team ai, Team enemy, int ekr, int ekc) {
-        List<int[]> options = new ArrayList<>();
-        List<Integer> scores = new ArrayList<>();
-        int[][] dirs = {{ur + 1, uc}, {ur, uc + 1}, {ur - 1, uc}, {ur, uc - 1}};
-        for (int[] d : dirs) {
-            int tr = d[0], tc = d[1];
-            if (tr < 0 || tr >= GameBoard.SIZE || tc < 0 || tc >= GameBoard.SIZE) {
-                options.add(d);
-                scores.add(0);
-                continue;
-            }
-            Field toField = game.getGameBoard().getField(tr, tc);
-            Unit target = toField.getUnit();
-            int score = 0;
-            if (target == null) {
-                int steps = Math.abs(tr - ekr) + Math.abs(tc - ekc);
-                int enemies = AIPlayerHelper.countAdjacent4(game, tr, tc, enemy);
-                score = 10 * steps - enemies;
-            } else if (target.getTeam().equals(ai)) {
-                Compatibility.MergeStats stats = Compatibility.check(u, target);
-                if (stats != null && !target.isKing()) {
-                    score = stats.atk() + stats.def() - u.getAtk() - u.getDef();
-                } else {
-                    score = -target.getAtk() - target.getDef();
-                }
-            } else {
-                if (target.isKing()) {
-                    score = u.getAtk();
-                } else if (!target.isRevealed()) {
-                    score = u.getAtk() - PENALTY_ATTACKING_HIDDEN_UNIT;
-                } else if (target.isBlocked()) {
-                    score = u.getAtk() - target.getDef();
-                } else {
-                    score = 2 * (u.getAtk() - target.getAtk());
-                }
-            }
-            options.add(d);
-            scores.add(score);
-        }
-        int blockScore = (int) Math.max(1, (u.getDef() - AIPlayerHelper.maxEnemyAtkInLine(game, ur, uc, enemy)) / AI_SCORE_STATUS_DIVISOR);
-        options.add(new int[] { ur, uc });
-        scores.add(blockScore);
-        int enPlaceScore = (int) Math.max(0, (u.getAtk() - AIPlayerHelper.maxEnemyAtkInLine(game, ur, uc, enemy)) / AI_SCORE_STATUS_DIVISOR);
-        options.add(new int[] { -1, -1 });
-        scores.add(enPlaceScore);
-        return new UnitMoveOption(options, scores);
-    }
-
     private static void yieldTurn(Game game) {
         int handSize = game.getCurrentTeam().getHand().size();
         Integer discardIdx = null;
-        if (handSize == 5) {
+        if (handSize == MAX_HAND_SIZE_BEFORE_DISCARD) {
             List<Unit> hand = game.getCurrentTeam().getHand().snapshot();
             List<Integer> weights = new ArrayList<>();
             for (Unit u : hand) {
@@ -302,7 +244,9 @@ public final class AIPlayer {
             if (result.winner() != null) {
                 System.out.println(result.winner().getName() + " wins!");
             }
-        } catch (Exception ignored) {
+        } catch (HandFullMustDiscardException | CannotDiscardException | InvalidHandIndexException
+                | InitializationException e) {
+            System.out.println(e.getFormattedMessage());
         }
     }
 

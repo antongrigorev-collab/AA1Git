@@ -1,21 +1,17 @@
 package Crown_of_Farmland.exceptions;
 
 /**
- * Fehler: Ein erforderliches Argument (z.B. seed, units, deck) fehlt beim Programmstart.
- *
- * Tritt auf wenn:
- * - seed nicht angegeben wurde
- * - units nicht angegeben wurde
- * - weder deck noch deck1+deck2 angegeben wurden
+ * Thrown when a required startup argument is missing (e.g. seed, units, or
+ * deck/deck1+deck2).
  *
  * @author Programmieren-Team
  */
 public class MissingArgumentException extends StartupException {
 
     /**
-     * Erstellt eine neue MissingArgumentException.
+     * Constructs a new MissingArgumentException.
      *
-     * @param argumentName der Name des fehlenden Arguments
+     * @param argumentName the name of the missing argument
      */
     public MissingArgumentException(String argumentName) {
         super("missing required argument: " + argumentName);

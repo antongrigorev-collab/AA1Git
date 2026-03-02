@@ -24,8 +24,13 @@ public final class Compatibility {
 
 
     /**
-     * Returns merge stats if A and B are compatible, null otherwise.
-     * A is the unit that moved/placed onto B's field.
+     * Returns merge stats if A and B are compatible (symbiosis, conspirative, or
+     * prime compatibility per A.1.10), null otherwise. A is the unit that moved
+     * or was placed onto B's field.
+     *
+     * @param unitA the moving/placing unit
+     * @param unitB the unit on the target field
+     * @return ATK/DEF for the merged unit, or null if incompatible or same name
      */
     public static MergeStats check(Unit unitA, Unit unitB) {
         if (unitA.getName().equals(unitB.getName())) {

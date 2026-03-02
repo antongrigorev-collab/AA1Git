@@ -6,6 +6,10 @@ import Crown_of_Farmland.model.Unit;
 
 import java.util.List;
 
+/**
+ * Command "hand": prints a 1-based numbered list of the current team's hand
+ * with unit name and ATK/DEF for each card.
+ */
 public class HandCommand extends Command {
 
     private static final String COMMAND_NAME = "hand";

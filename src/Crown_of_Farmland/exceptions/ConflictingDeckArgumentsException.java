@@ -1,20 +1,16 @@
 package Crown_of_Farmland.exceptions;
 
 /**
- * Fehler: Sowohl deck als auch deck1/deck2 wurden beim Programmstart angegeben.
- *
- * Tritt auf wenn:
- * - deck zusammen mit deck1 und/oder deck2 verwendet wird
- * - nur deck1 oder nur deck2 (aber nicht beide) angegeben wird
+ * Thrown when deck is used together with deck1/deck2, or only one of deck1/deck2 is given.
  *
  * @author Programmieren-Team
  */
 public class ConflictingDeckArgumentsException extends StartupException {
 
     /**
-     * Erstellt eine neue ConflictingDeckArgumentsException.
+     * Constructs a new ConflictingDeckArgumentsException.
      *
-     * @param message die Beschreibung des Konflikts
+     * @param message description of the conflict
      */
     public ConflictingDeckArgumentsException(String message) {
         super(message);

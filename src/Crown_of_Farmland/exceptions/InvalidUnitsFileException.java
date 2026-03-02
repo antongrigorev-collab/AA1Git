@@ -1,22 +1,17 @@
 package Crown_of_Farmland.exceptions;
 
 /**
- * Fehler: Die Einheiten-Datei hat einen ungueltigen Inhalt.
- *
- * Tritt auf wenn:
- * - eine Zeile nicht genau 4 durch Semikolon getrennte Felder enthaelt (Qualifikator;Rolle;ATK;DEF)
- * - ATK oder DEF keine gueltige nichtnegative Ganzzahl ist
- * - die Datei mehr als 80 Einheiten enthaelt
- * - die Zeile mit einem Semikolon endet oder zusaetzliche Leerzeichen enthaelt
+ * Thrown when the units file has invalid content (e.g. not exactly 4 semicolon-separated fields per line,
+ * invalid ATK/DEF, more than 80 units, or trailing semicolon/extra spaces).
  *
  * @author Programmieren-Team
  */
 public class InvalidUnitsFileException extends StartupException {
 
     /**
-     * Erstellt eine neue InvalidUnitsFileException.
+     * Constructs a new InvalidUnitsFileException.
      *
-     * @param message die Beschreibung des Fehlers
+     * @param message description of the error
      */
     public InvalidUnitsFileException(String message) {
         super(message);

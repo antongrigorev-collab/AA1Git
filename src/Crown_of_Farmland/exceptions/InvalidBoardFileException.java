@@ -1,19 +1,16 @@
 package Crown_of_Farmland.exceptions;
 
 /**
- * Fehler: Die Spielbrettsymbole-Datei hat einen ungueltigen Inhalt.
- *
- * Tritt auf wenn:
- * - die Datei nicht genau 29 Zeichen in einer einzigen Zeile enthaelt
+ * Thrown when the board symbol file has invalid content (e.g. not exactly 29 characters in one line).
  *
  * @author Programmieren-Team
  */
 public class InvalidBoardFileException extends StartupException {
 
     /**
-     * Erstellt eine neue InvalidBoardFileException.
+     * Constructs a new InvalidBoardFileException.
      *
-     * @param message die Beschreibung des Fehlers
+     * @param message description of the error
      */
     public InvalidBoardFileException(String message) {
         super(message);

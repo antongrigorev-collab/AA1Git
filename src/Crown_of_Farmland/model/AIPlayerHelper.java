@@ -6,9 +6,27 @@ import java.util.Random;
 
 /**
  * Helper for {@link AIPlayer} (AI opponent, A.2). Provides weighted random selection,
- * score-based selection and board counting utilities.
+ * score-based selection, board counting and unit move option scoring.
  */
 final class AIPlayerHelper {
+
+    /** Unit move advance score: multiplier for steps toward enemy king (A.2). */
+    private static final int ADVANCE_SCORE_STEPS_MULTIPLIER = 10;
+
+    /** Penalty for attacking a hidden (unrevealed) unit (A.2). */
+    private static final int PENALTY_ATTACKING_HIDDEN_UNIT = 500;
+
+    /** Standard duel score: multiplier for attack difference (A.2). */
+    private static final int ATTACK_DIFFERENCE_MULTIPLIER = 2;
+
+    /** Divisor for block/en-place score scaling from status values (A.2). */
+    private static final int AI_SCORE_STATUS_DIVISOR = 100;
+
+    /**
+     * Options (target coordinates) and scores for one unit's possible moves (A.2).
+     * Order: up, right, down, left, block (same cell), en place (special -1,-1).
+     */
+    static record UnitMoveOption(List<int[]> options, List<Integer> scores) { }
 
     private AIPlayerHelper() { }
 
@@ -142,5 +160,69 @@ final class AIPlayerHelper {
             }
         }
         return max;
+    }
+
+    /**
+     * Computes move options and scores for one unit (A.2): 4 directions, block, en place.
+     *
+     * @param game  game state
+     * @param u     unit
+     * @param ur    unit row
+     * @param uc    unit col
+     * @param ai    AI team
+     * @param enemy enemy team
+     * @param ekr   enemy king row
+     * @param ekc   enemy king col
+     * @return options and scores in standard order
+     */
+    static UnitMoveOption computeUnitMoveOptions(Game game, Unit u, int ur, int uc,
+                                                  Team ai, Team enemy, int ekr, int ekc) {
+        List<int[]> options = new ArrayList<>();
+        List<Integer> scores = new ArrayList<>();
+        int[][] dirs = {{ur + 1, uc}, {ur, uc + 1}, {ur - 1, uc}, {ur, uc - 1}};
+        for (int[] d : dirs) {
+            int tr = d[0], tc = d[1];
+            if (tr < 0 || tr >= GameBoard.SIZE || tc < 0 || tc >= GameBoard.SIZE) {
+                options.add(d);
+                scores.add(0);
+                continue;
+            }
+            Field toField = game.getGameBoard().getField(tr, tc);
+            Unit target = toField.getUnit();
+            int score = 0;
+            if (target == null) {
+                int steps = Math.abs(tr - ekr) + Math.abs(tc - ekc);
+                int enemies = countAdjacent4(game, tr, tc, enemy);
+                score = ADVANCE_SCORE_STEPS_MULTIPLIER * steps - enemies;
+            } else if (target.getTeam().equals(ai)) {
+                Compatibility.MergeStats stats = Compatibility.check(u, target);
+                if (stats != null && !target.isKing()) {
+                    score = stats.atk() + stats.def() - u.getAtk() - u.getDef();
+                } else {
+                    score = -target.getAtk() - target.getDef();
+                }
+            } else {
+                if (target.isKing()) {
+                    score = u.getAtk();
+                } else if (!target.isRevealed()) {
+                    score = u.getAtk() - PENALTY_ATTACKING_HIDDEN_UNIT;
+                } else if (target.isBlocked()) {
+                    score = u.getAtk() - target.getDef();
+                } else {
+                    score = ATTACK_DIFFERENCE_MULTIPLIER * (u.getAtk() - target.getAtk());
+                }
+            }
+            options.add(d);
+            scores.add(score);
+        }
+        int blockScore = (int) Math.max(1, (u.getDef() - maxEnemyAtkInLine(game, ur, uc, enemy))
+                / AI_SCORE_STATUS_DIVISOR);
+        options.add(new int[] { ur, uc });
+        scores.add(blockScore);
+        int enPlaceScore = (int) Math.max(0, (u.getAtk() - maxEnemyAtkInLine(game, ur, uc, enemy))
+                / AI_SCORE_STATUS_DIVISOR);
+        options.add(new int[] { -1, -1 });
+        scores.add(enPlaceScore);
+        return new UnitMoveOption(options, scores);
     }
 }

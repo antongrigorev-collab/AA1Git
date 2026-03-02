@@ -6,6 +6,10 @@ import Crown_of_Farmland.model.Team;
 
 import java.util.List;
 
+/**
+ * Command "state": prints team names, life points, deck count, board count, the
+ * board, and (if a field is selected) the show output for that field.
+ */
 public class StateCommand extends Command {
 
     private static final String COMMAND_NAME = "state";

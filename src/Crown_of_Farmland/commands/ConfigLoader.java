@@ -10,12 +10,20 @@ import Crown_of_Farmland.exceptions.InvalidUnitsFileException;
 import Crown_of_Farmland.exceptions.MissingArgumentException;
 import Crown_of_Farmland.exceptions.StartupException;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Loads and validates game configuration from key-value pairs (e.g. from command line).
+ * Reads units file, deck file(s), optional board symbols, and builds a {@link GameConfig}.
+ * File contents are printed to stdout before validation as specified.
+ *
+ * @author Programmieren-Team
+ */
 public class ConfigLoader {
 
     /** Maximum number of unit types in units file (A.3.2). */
@@ -45,6 +53,16 @@ public class ConfigLoader {
     /** Invalid content in units file (double space). */
     private static final String INVALID_DOUBLE_SPACE = "  ";
 
+    /**
+     * Builds a game configuration from the given key-value map. Requires seed and
+     * units; either deck or both deck1 and deck2; optional board, team1, team2, verbosity.
+     * Validates deck keys and file formats; throws on first error.
+     *
+     * @param kv key-value pairs (e.g. seed=123, units=units.txt, deck=deck.txt)
+     * @return the validated game configuration
+     * @throws StartupException if a required key is missing, a file is invalid, or
+     *                          deck arguments are conflicting
+     */
     public static GameConfig load(Map<String, String> kv) throws StartupException {
         long seed = parseLongRequired(kv, "seed");
 
@@ -136,7 +154,7 @@ public class ConfigLoader {
         List<String> lines;
         try {
             lines = Files.readAllLines(path);
-        } catch (Exception e) {
+        } catch (IOException e) {
             throw new FileNotFoundException(path.toString());
         }
         for (String line : lines) {
@@ -167,18 +185,20 @@ public class ConfigLoader {
     }
 
     private static SymbolSet readBoardSymbols(Path path) throws InvalidBoardFileException, FileNotFoundException {
+        List<String> lines;
         try {
-            // Spec: one line, 29 characters, UTF-8
-            String line = Files.readAllLines(path).get(0);
-            if (line.length() != EXPECTED_BOARD_SYMBOL_COUNT) {
-                throw new InvalidBoardFileException("Board symbols must have 29 characters.");
-            }
-            return new SymbolSet(line.toCharArray());
-        } catch (InvalidBoardFileException e) {
-            throw e;
-        } catch (Exception ex) {
+            lines = Files.readAllLines(path);
+        } catch (IOException e) {
             throw new FileNotFoundException(path.toString());
         }
+        if (lines.isEmpty()) {
+            throw new InvalidBoardFileException("Board file must not be empty");
+        }
+        String line = lines.get(0);
+        if (line.length() != EXPECTED_BOARD_SYMBOL_COUNT) {
+            throw new InvalidBoardFileException("Board symbols must have 29 characters.");
+        }
+        return new SymbolSet(line.toCharArray());
     }
 
     private static long parseLongRequired(Map<String, String> kv, String key)

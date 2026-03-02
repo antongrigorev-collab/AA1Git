@@ -1,20 +1,17 @@
 package Crown_of_Farmland.exceptions;
 
 /**
- * Fehler: Die Hand ist voll (5 Einheiten) und es muss eine Einheit abgeworfen werden.
- *
- * Tritt auf wenn:
- * - yield ohne Index ausgefuehrt wird, aber das Team 5 Einheiten auf der Hand haelt
- * - in der Beispielinteraktion: "Player's hand is full!"
+ * Thrown when yield is called without a discard index but the current team's
+ * hand has 5 cards (a card must be discarded before ending the turn).
  *
  * @author Programmieren-Team
  */
 public class HandFullMustDiscardException extends CommandException {
 
     /**
-     * Erstellt eine neue HandFullMustDiscardException.
+     * Constructs a new HandFullMustDiscardException.
      *
-     * @param teamName der Name des betroffenen Teams
+     * @param teamName the name of the team whose hand is full
      */
     public HandFullMustDiscardException(String teamName) {
         super(teamName + "'s hand is full!");

@@ -1,21 +1,17 @@
 package Crown_of_Farmland.exceptions;
 
 /**
- * Fehler: Das Team muss zuerst eine Einheit abwerfen, bevor es andere Aktionen ausfuehren kann.
- *
- * Tritt auf wenn:
- * - nach einem fehlgeschlagenen yield-Befehl (Hand voll, kein Index) versucht wird,
- *   einen anderen Befehl als hand oder yield auszufuehren
- * - in der Beispielinteraktion: "cannot place a card, you must discard!"
+ * Thrown when the team must discard first (hand full) but attempts another command
+ * such as place (e.g. "cannot place a card, you must discard!").
  *
  * @author Programmieren-Team
  */
 public class MustDiscardException extends CommandException {
 
     /**
-     * Erstellt eine neue MustDiscardException.
+     * Constructs a new MustDiscardException.
      *
-     * @param attemptedCommand der versuchte Befehl
+     * @param attemptedCommand the command that was attempted (e.g. "place a card")
      */
     public MustDiscardException(String attemptedCommand) {
         super("cannot " + attemptedCommand + ", you must discard!");

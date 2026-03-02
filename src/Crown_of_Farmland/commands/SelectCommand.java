@@ -5,6 +5,10 @@ import Crown_of_Farmland.model.Game;
 
 import java.util.List;
 
+/**
+ * Command "select &lt;field&gt;": selects the given field (A1–G7) and prints the board
+ * and show output for that selection.
+ */
 public class SelectCommand extends Command {
 
     private static final String COMMAND_NAME = "select";

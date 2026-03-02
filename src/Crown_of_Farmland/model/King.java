@@ -1,5 +1,10 @@
 package Crown_of_Farmland.model;
 
+/**
+ * The Farmer King unit. Represents the team on the board (D1 for team 1, D7 for
+ * team 2). Has no ATK/DEF, cannot initiate duels or block; moving onto an own unit
+ * eliminates that unit.
+ */
 public class King extends Unit {
 
     /** Display qualifier for Farmer King (A.1.3). */
@@ -12,10 +17,20 @@ public class King extends Unit {
         super();
     }
 
+    /**
+     * Creates the King instance for team 1.
+     *
+     * @return the team 1 king
+     */
     public static King forTeam1() {
         return new King();
     }
 
+    /**
+     * Creates the King instance for team 2.
+     *
+     * @return the team 2 king
+     */
     public static King forTeam2() {
         return new King();
     }
