@@ -11,9 +11,10 @@ public class StateCommand extends Command {
     private static final String COMMAND_NAME = "state";
     private static final String COMMAND_REGEX = "(?i)^state$";
     private static final int STATE_LINE_LENGTH = 31;
-    private static final int INITIAL_LP = 8000;
     private static final int DECK_SIZE = 40;
-    private static final int MAX_BOARD_UNITS = 5;
+
+    /** Indent for state output lines. */
+    private static final String STATE_OUTPUT_INDENT = "  ";
 
     protected StateCommand(CommandHandler commandHandler) {
         super(COMMAND_NAME, COMMAND_REGEX, commandHandler);
@@ -27,14 +28,14 @@ public class StateCommand extends Command {
         }
         Team t1 = game.getTeam1();
         Team t2 = game.getTeam2();
-        String prefix = "  ";
+        String prefix = STATE_OUTPUT_INDENT;
         printStateLine(prefix, t1.getName(), t2.getName());
-        printStateLine(prefix, t1.getLifePoints() + "/" + INITIAL_LP + " LP",
-                t2.getLifePoints() + "/" + INITIAL_LP + " LP");
+        printStateLine(prefix, t1.getLifePoints() + "/" + Team.INITIAL_LIFE_POINTS + " LP",
+                t2.getLifePoints() + "/" + Team.INITIAL_LIFE_POINTS + " LP");
         printStateLine(prefix, "DC: " + t1.getDeck().size() + "/" + DECK_SIZE,
                 "DC: " + t2.getDeck().size() + "/" + DECK_SIZE);
-        printStateLine(prefix, "BC: " + game.getBoardCount(t1) + "/" + MAX_BOARD_UNITS,
-                "BC: " + game.getBoardCount(t2) + "/" + MAX_BOARD_UNITS);
+        printStateLine(prefix, "BC: " + game.getBoardCount(t1) + "/" + Game.MAX_NON_KING_UNITS_ON_BOARD,
+                "BC: " + game.getBoardCount(t2) + "/" + Game.MAX_NON_KING_UNITS_ON_BOARD);
         List<String> boardLines = game.getGameBoard().render(game.getSelectedField(), game.getTeam1(), game.getCurrentTeam());
         for (String line : boardLines) {
             System.out.println(line);

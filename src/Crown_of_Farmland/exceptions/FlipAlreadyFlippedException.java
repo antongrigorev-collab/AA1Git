@@ -10,12 +10,14 @@ package Crown_of_Farmland.exceptions;
  */
 public class FlipAlreadyFlippedException extends CommandException {
 
+    private static final String ALREADY_FLIPPED_SUFFIX = " is already revealed";
+
     /**
      * Erstellt eine neue FlipAlreadyFlippedException.
      *
      * @param unitName der Name der bereits aufgedeckten Einheit
      */
     public FlipAlreadyFlippedException(String unitName) {
-        super(unitName + " is already flipped");
+        super(unitName + ALREADY_FLIPPED_SUFFIX);
     }
 }

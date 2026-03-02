@@ -28,7 +28,6 @@ public class PlaceCommand extends Command {
     private static final String COMMAND_NAME = "place";
     /** place &lt;idx&gt; [&lt;idx&gt; ...] [&lt;field&gt;] e.g. place 3 or place 3 C2 */
     private static final String COMMAND_REGEX = "(?i)^place\\s+\\d+(\\s+(\\d+|[A-Ga-g][1-7]))*$";
-    private static final int MAX_BOARD_UNITS = 5;
 
     protected PlaceCommand(CommandHandler commandHandler) {
         super(COMMAND_NAME, COMMAND_REGEX, commandHandler);
@@ -144,7 +143,7 @@ public class PlaceCommand extends Command {
                     System.out.println("Union failed. " + currentOnField.getName() + " was eliminated.");
                 }
             }
-            if (game.getBoardCount(game.getCurrentTeam()) > MAX_BOARD_UNITS) {
+            if (game.getBoardCount(game.getCurrentTeam()) > Game.MAX_NON_KING_UNITS_ON_BOARD) {
                 Unit justPlaced = game.getGameBoard().getField(r, c).getUnit();
                 game.getGameBoard().getField(r, c).removeUnit();
                 System.out.println(justPlaced.getName() + " was eliminated!");

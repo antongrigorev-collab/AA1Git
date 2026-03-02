@@ -8,12 +8,16 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ArgumentParser {
+
+    /** Key-value separator in program arguments (e.g. seed=123). */
+    private static final char ARGUMENT_KEY_VALUE_SEPARATOR = '=';
+
     private ArgumentParser() { }
 
     public static Map<String, String> parse(String[] args) throws StartupException {
         Map<String, String> kv = new HashMap<>();
         for (String arg : args) {
-            int eq = arg.indexOf('=');
+            int eq = arg.indexOf(ARGUMENT_KEY_VALUE_SEPARATOR);
             if (eq <= 0 || eq == arg.length() - 1) {
                 throw new InvalidArgumentException("Invalid argument: " + arg);
             }

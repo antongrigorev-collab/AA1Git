@@ -13,6 +13,13 @@ public class YieldCommand extends Command {
 
     private static final String COMMAND_NAME = "yield";
     private static final String COMMAND_REGEX = "(?i)^yield(\\s+\\d+)?$";
+    private static final String INVALID_HAND_INDEX_PREFIX = "invalid hand index: ";
+    private static final String DISCARDED_SUFFIX = " discarded ";
+    private static final String STATS_SUFFIX = ").";
+    private static final String IT_IS_TURN = "It is ";
+    private static final String TURN_SUFFIX = "'s turn!";
+    private static final String NO_CARDS_IN_DECK = " has no cards left in the deck!";
+    private static final String WINS = " wins!";
 
     protected YieldCommand(CommandHandler commandHandler) {
         super(COMMAND_NAME, COMMAND_REGEX, commandHandler);
@@ -33,7 +40,7 @@ public class YieldCommand extends Command {
             try {
                 discardIndex = Integer.parseInt(commandArguments[0]);
             } catch (NumberFormatException e) {
-                throw new InvalidCommandArgumentsException("invalid hand index: " + commandArguments[0]);
+                throw new InvalidCommandArgumentsException(INVALID_HAND_INDEX_PREFIX + commandArguments[0]);
             }
         }
 
@@ -42,15 +49,15 @@ public class YieldCommand extends Command {
 
             if (result.discarded() != null) {
                 Unit u = result.discarded();
-                System.out.println(result.yieldingTeam().getName() + " discarded "
-                        + u.getName() + " (" + u.getAtk() + "/" + u.getDef() + ").");
+                System.out.println(result.yieldingTeam().getName() + DISCARDED_SUFFIX
+                        + u.getName() + " (" + u.getAtk() + "/" + u.getDef() + STATS_SUFFIX);
             }
-            System.out.println("It is " + game.getCurrentTeam().getName() + "'s turn!");
+            System.out.println(IT_IS_TURN + game.getCurrentTeam().getName() + TURN_SUFFIX);
             if (result.newTeamDeckEmpty()) {
-                System.out.println(game.getCurrentTeam().getName() + " has no cards left in the deck!");
+                System.out.println(game.getCurrentTeam().getName() + NO_CARDS_IN_DECK);
             }
             if (result.winner() != null) {
-                System.out.println(result.winner().getName() + " wins!");
+                System.out.println(result.winner().getName() + WINS);
             }
         } catch (HandFullMustDiscardException | CannotDiscardException | InvalidHandIndexException e) {
             System.out.println(e.getFormattedMessage());

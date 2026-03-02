@@ -11,6 +11,36 @@ import java.util.Random;
  */
 public final class AIPlayer {
 
+    /** King move score: weight for enemy-adjacent penalty (A.2). */
+    private static final int KING_SCORE_ENEMY_WEIGHT = 2;
+
+    /** King move score: weight for fellow-on-field penalty (A.2). */
+    private static final int KING_SCORE_FELLOW_PRESENT_WEIGHT = 3;
+
+    /** Place phase score: weight for adjacent enemies (A.2). */
+    private static final int PLACE_SCORE_ENEMY_WEIGHT = 2;
+
+    /** Unit move advance score: multiplier for steps toward enemy king (A.2). */
+    private static final int ADVANCE_SCORE_STEPS_MULTIPLIER = 10;
+
+    /** Penalty for attacking a hidden (unrevealed) unit (A.2). */
+    private static final int PENALTY_ATTACKING_HIDDEN_UNIT = 500;
+
+    /** Standard duel score: multiplier for attack difference (A.2). */
+    private static final int ATTACK_DIFFERENCE_MULTIPLIER = 2;
+
+    /** Divisor for block/en-place score scaling from status values (A.2). */
+    private static final int AI_SCORE_STATUS_DIVISOR = 100;
+
+    /** Index of block option in move options list (after 4 cardinal directions). */
+    private static final int BLOCK_OPTION_INDEX = 4;
+
+    /** Index of en-place option in move options list. */
+    private static final int EN_PLACE_OPTION_INDEX = 5;
+
+    /** Hand size at which discard is required before yield (A.1.5). */
+    private static final int MAX_HAND_SIZE_BEFORE_DISCARD = 5;
+
     private AIPlayer() { }
 
     /**
@@ -74,7 +104,7 @@ public final class AIPlayer {
             int fellows = AIPlayerHelper.countAdjacent(game, tr, tc, ai, false);
             int enemies = AIPlayerHelper.countAdjacent(game, tr, tc, enemy, false);
             int fellowPresent = (onTo != null && onTo.getTeam().equals(ai) && !onTo.isKing()) ? 1 : 0;
-            int score = fellows - 2 * enemies - distance - 3 * fellowPresent;
+            int score = fellows - KING_SCORE_ENEMY_WEIGHT * enemies - distance - KING_SCORE_FELLOW_PRESENT_WEIGHT * fellowPresent;
             validKingMoves.add(to);
             kingScores.add(score);
         }
@@ -104,7 +134,7 @@ public final class AIPlayer {
             int steps = Math.abs(r - ekr) + Math.abs(c - ekc);
             int enemies = AIPlayerHelper.countAdjacent4(game, r, c, enemy);
             int fellows = AIPlayerHelper.countAdjacent4(game, r, c, ai);
-            placeScores.add(-steps + 2 * enemies - fellows);
+            placeScores.add(-steps + PLACE_SCORE_ENEMY_WEIGHT * enemies - fellows);
         }
         if (placeFieldsOrdered.isEmpty() || game.getCurrentTeam().getHand().size() <= 0) {
             return;
@@ -159,7 +189,7 @@ public final class AIPlayer {
             game.setSelectedField(game.getGameBoard().getField(ur, uc));
 
             List<Integer> optScores = unitOptionScores.get(chosenUnit);
-            boolean noPositiveMove = optScores.get(0) <= 0 && optScores.get(1) <= 0 && optScores.get(2) <= 0 && optScores.get(3) <= 0 && optScores.get(5) <= 0;
+            boolean noPositiveMove = optScores.get(0) <= 0 && optScores.get(1) <= 0 && optScores.get(2) <= 0 && optScores.get(3) <= 0 && optScores.get(EN_PLACE_OPTION_INDEX) <= 0;
             if (noPositiveMove) {
                 Unit u = movable.get(chosenUnit);
                 u.setBlocked(true);
@@ -180,7 +210,7 @@ public final class AIPlayer {
                 printBoardAndShow(game);
                 continue;
             }
-            if (tr == ur && tc == uc && moveIdx == 4) {
+            if (tr == ur && tc == uc && moveIdx == BLOCK_OPTION_INDEX) {
                 u.setBlocked(true);
                 u.setMovedThisTurn(true);
                 System.out.println(u.getName() + " (" + game.getGameBoard().getField(ur, uc).coordinate() + ") blocks!");
@@ -223,7 +253,7 @@ public final class AIPlayer {
                 if (target.isKing()) {
                     score = u.getAtk();
                 } else if (!target.isRevealed()) {
-                    score = u.getAtk() - 500;
+                    score = u.getAtk() - PENALTY_ATTACKING_HIDDEN_UNIT;
                 } else if (target.isBlocked()) {
                     score = u.getAtk() - target.getDef();
                 } else {
@@ -233,10 +263,10 @@ public final class AIPlayer {
             options.add(d);
             scores.add(score);
         }
-        int blockScore = (int) Math.max(1, (u.getDef() - AIPlayerHelper.maxEnemyAtkInLine(game, ur, uc, enemy)) / 100);
+        int blockScore = (int) Math.max(1, (u.getDef() - AIPlayerHelper.maxEnemyAtkInLine(game, ur, uc, enemy)) / AI_SCORE_STATUS_DIVISOR);
         options.add(new int[] { ur, uc });
         scores.add(blockScore);
-        int enPlaceScore = (int) Math.max(0, (u.getAtk() - AIPlayerHelper.maxEnemyAtkInLine(game, ur, uc, enemy)) / 100);
+        int enPlaceScore = (int) Math.max(0, (u.getAtk() - AIPlayerHelper.maxEnemyAtkInLine(game, ur, uc, enemy)) / AI_SCORE_STATUS_DIVISOR);
         options.add(new int[] { -1, -1 });
         scores.add(enPlaceScore);
         return new UnitMoveOption(options, scores);
@@ -382,7 +412,7 @@ public final class AIPlayer {
                 System.out.println("Union failed. " + current.getName() + " was eliminated.");
             }
         }
-        if (game.getBoardCount(game.getCurrentTeam()) > 5) {
+        if (game.getBoardCount(game.getCurrentTeam()) > Game.MAX_NON_KING_UNITS_ON_BOARD) {
             Unit justPlaced = game.getGameBoard().getField(row, col).getUnit();
             game.getGameBoard().getField(row, col).removeUnit();
             System.out.println(justPlaced.getName() + " was eliminated!");

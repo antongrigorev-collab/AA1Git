@@ -1,6 +1,13 @@
 package Crown_of_Farmland.model;
 
 public class King extends Unit {
+
+    /** Display qualifier for Farmer King (A.1.3). */
+    private static final String KING_QUALIFIER = "Farmer";
+
+    /** Display role for Farmer King (A.1.3). */
+    private static final String KING_ROLE = "King";
+
     private King() {
         super();
     }
@@ -20,12 +27,12 @@ public class King extends Unit {
 
     @Override
     public String getQualifier() {
-        return "Farmer";
+        return KING_QUALIFIER;
     }
 
     @Override
     public String getRole() {
-        return "King";
+        return KING_ROLE;
     }
 
     @Override

@@ -17,8 +17,33 @@ import java.util.List;
 import java.util.Map;
 
 public class ConfigLoader {
+
+    /** Maximum number of unit types in units file (A.3.2). */
     private static final int MAX_UNITS = 80;
+
+    /** Total number of units per deck (A.1.6). */
     private static final int DECK_SIZE = 40;
+
+    /** Default team 1 name when not specified (A.3). */
+    private static final String DEFAULT_TEAM1_NAME = "Player";
+
+    /** Default team 2 name when not specified (A.3). */
+    private static final String DEFAULT_TEAM2_NAME = "Enemy";
+
+    /** Default verbosity when not specified (A.3). */
+    private static final String DEFAULT_VERBOSITY = "all";
+
+    /** Expected number of symbols in custom board file (A.3.1). */
+    private static final int EXPECTED_BOARD_SYMBOL_COUNT = 29;
+
+    /** Expected number of semicolon-separated fields per unit line (qualifier;role;atk;def). */
+    private static final int EXPECTED_UNIT_FIELDS_COUNT = 4;
+
+    /** Delimiter for unit fields in units file. */
+    private static final String UNIT_FIELD_DELIMITER = ";";
+
+    /** Invalid content in units file (double space). */
+    private static final String INVALID_DOUBLE_SPACE = "  ";
 
     public static GameConfig load(Map<String, String> kv) throws StartupException {
         long seed = parseLongRequired(kv, "seed");
@@ -28,10 +53,10 @@ public class ConfigLoader {
         }
         validateDeckKeys(kv);
 
-        String team1 = kv.getOrDefault("team1", "Player");
-        String team2 = kv.getOrDefault("team2", "Enemy");
+        String team1 = kv.getOrDefault("team1", DEFAULT_TEAM1_NAME);
+        String team2 = kv.getOrDefault("team2", DEFAULT_TEAM2_NAME);
 
-        VerbosityMode mode = parseVerbosity(kv.getOrDefault("verbosity", "all"));
+        VerbosityMode mode = parseVerbosity(kv.getOrDefault("verbosity", DEFAULT_VERBOSITY));
 
         SymbolSet symbolSet = SymbolSet.standard();
         if (kv.containsKey("board")) {
@@ -73,11 +98,11 @@ public class ConfigLoader {
         List<UnitTemplate> units = new ArrayList<>();
         for (String line : lines) {
             String trimmed = line.strip();
-            if (trimmed.endsWith(";") || trimmed.contains("  ")) {
+            if (trimmed.endsWith(UNIT_FIELD_DELIMITER) || trimmed.contains(INVALID_DOUBLE_SPACE)) {
                 throw new InvalidUnitsFileException("line must not end with semicolon or contain extra spaces");
             }
-            String[] parts = trimmed.split(";", -1);
-            if (parts.length != 4) {
+            String[] parts = trimmed.split(UNIT_FIELD_DELIMITER, -1);
+            if (parts.length != EXPECTED_UNIT_FIELDS_COUNT) {
                 throw new InvalidUnitsFileException("each line must have exactly 4 semicolon-separated fields");
             }
             String qualifier = parts[0].strip();
@@ -145,7 +170,7 @@ public class ConfigLoader {
         try {
             // Spec: one line, 29 characters, UTF-8
             String line = Files.readAllLines(path).get(0);
-            if (line.length() != 29) {
+            if (line.length() != EXPECTED_BOARD_SYMBOL_COUNT) {
                 throw new InvalidBoardFileException("Board symbols must have 29 characters.");
             }
             return new SymbolSet(line.toCharArray());

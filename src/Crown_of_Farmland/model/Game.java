@@ -14,6 +14,9 @@ import java.util.Random;
 
 public class Game {
 
+    /** Maximum non-King units per team on the board (6th unit is eliminated, A.1.5). */
+    public static final int MAX_NON_KING_UNITS_ON_BOARD = 5;
+
     /**
      * Result of ending the current turn (yield). Used for command output.
      *
@@ -247,7 +250,7 @@ public class Game {
         int atkA = attacker.getAtk();
         int atkB = defender.getAtk();
         int defB = defender.getDef();
-        String defenderDisplayName = defender.isRevealed() ? defender.getName() : "???";
+        String defenderDisplayName = defender.isRevealed() ? defender.getName() : HIDDEN_UNIT_DISPLAY_PLACEHOLDER;
         String defenderStats = defender.isRevealed() ? " (" + atkB + "/" + defB + ")" : "";
         lines.add(attacker.getName() + " (" + atkA + "/" + attacker.getDef() + ") attacks " + defenderDisplayName
                 + defenderStats + " on " + toField.coordinate() + "!");
@@ -354,12 +357,18 @@ public class Game {
         return null;
     }
 
+    /** Separator between name parts in merged unit (A.1.9). */
+    private static final String MERGED_NAME_PART_SEPARATOR = " ";
+
+    /** Placeholder for unrevealed unit name in duel output (A.5.6). */
+    private static final String HIDDEN_UNIT_DISPLAY_PLACEHOLDER = "???";
+
     /**
      * Creates a merged unit from A (moving/placing) and B (on field). Stats from MergeStats.
      * Name: Qualifier_B Qualifier_A Role_B. Revealed if both were revealed.
      */
     public static Unit createMergedUnit(Unit unitA, Unit unitB, Compatibility.MergeStats stats) {
-        String qualifier = unitB.getQualifier() + " " + unitA.getQualifier();
+        String qualifier = unitB.getQualifier() + MERGED_NAME_PART_SEPARATOR + unitA.getQualifier();
         String role = unitB.getRole();
         BasicUnit merged = new BasicUnit(qualifier, role, stats.atk(), stats.def());
         merged.setRevealed(unitA.isRevealed() && unitB.isRevealed());

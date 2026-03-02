@@ -12,12 +12,14 @@ package Crown_of_Farmland.exceptions;
  */
 public class UnitAlreadyMovedException extends CommandException {
 
+    private static final String ALREADY_MOVED_SUFFIX = " has already moved this turn";
+
     /**
      * Erstellt eine neue UnitAlreadyMovedException.
      *
      * @param unitName der Name der bereits bewegten Einheit
      */
     public UnitAlreadyMovedException(String unitName) {
-        super(unitName + " has already moved this turn");
+        super(unitName + ALREADY_MOVED_SUFFIX);
     }
 }

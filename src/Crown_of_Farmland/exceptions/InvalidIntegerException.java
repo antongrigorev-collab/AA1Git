@@ -12,12 +12,14 @@ package Crown_of_Farmland.exceptions;
  */
 public class InvalidIntegerException extends StartupException {
 
+    private static final String INVALID_INTEGER_PREFIX = "invalid integer: ";
+
     /**
      * Erstellt eine neue InvalidIntegerException.
      *
      * @param value der ungueltige Wert
      */
     public InvalidIntegerException(String value) {
-        super("invalid integer: " + value);
+        super(INVALID_INTEGER_PREFIX + value);
     }
 }

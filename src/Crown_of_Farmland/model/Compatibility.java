@@ -6,6 +6,12 @@ package Crown_of_Farmland.model;
  */
 public final class Compatibility {
 
+    /** GGT threshold above which Gleichgesinntheit applies (ggt > 100). */
+    private static final int CONSPIRATIVE_GGT_THRESHOLD = 100;
+
+    /** Divisor for converting status values to prime-check index (A.1.10 Primkompatibilität). */
+    private static final int STATUS_VALUE_SCALE = 100;
+
     private Compatibility() { }
 
     /**
@@ -36,14 +42,14 @@ public final class Compatibility {
         int ggtAtk = gcd(atkA, atkB);
         int ggtDef = gcd(defA, defB);
         int ggt = Math.max(ggtAtk, ggtDef);
-        if (ggt > 100) {
+        if (ggt > CONSPIRATIVE_GGT_THRESHOLD) {
             return new MergeStats(atkA + atkB - ggt, defA + defB - ggt);
         }
-        if (ggt == 100) {
-            boolean atkPrime = atkA % 100 == 0 && atkB % 100 == 0
-                    && isPrime(atkA / 100) && isPrime(atkB / 100);
-            boolean defPrime = defA % 100 == 0 && defB % 100 == 0
-                    && isPrime(defA / 100) && isPrime(defB / 100);
+        if (ggt == CONSPIRATIVE_GGT_THRESHOLD) {
+            boolean atkPrime = atkA % STATUS_VALUE_SCALE == 0 && atkB % STATUS_VALUE_SCALE == 0
+                    && isPrime(atkA / STATUS_VALUE_SCALE) && isPrime(atkB / STATUS_VALUE_SCALE);
+            boolean defPrime = defA % STATUS_VALUE_SCALE == 0 && defB % STATUS_VALUE_SCALE == 0
+                    && isPrime(defA / STATUS_VALUE_SCALE) && isPrime(defB / STATUS_VALUE_SCALE);
             if (atkPrime || defPrime) {
                 return new MergeStats(atkA + atkB, defA + defB);
             }

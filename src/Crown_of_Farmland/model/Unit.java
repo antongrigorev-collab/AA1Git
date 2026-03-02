@@ -1,6 +1,9 @@
 package Crown_of_Farmland.model;
 
 public abstract class Unit {
+    /** Separator between qualifier and role in unit name (A.1.2). */
+    private static final String QUALIFIER_ROLE_SEPARATOR = " ";
+
     private Team team;
 
     private boolean revealed;
@@ -20,7 +23,7 @@ public abstract class Unit {
     public abstract int getDef();
 
     public String getName() {
-        return getQualifier() + " " + getRole();
+        return getQualifier() + QUALIFIER_ROLE_SEPARATOR + getRole();
     }
 
     public boolean isKing() {

@@ -10,6 +10,21 @@ public class ShowCommand extends Command {
     private static final String COMMAND_REGEX = "(?i)^show$";
     private static final String NO_UNIT = "<no unit>";
 
+    /** Placeholder for hidden unit name/stats when not revealed to current player (A.5.6). */
+    private static final String HIDDEN_UNIT_PLACEHOLDER = "???";
+
+    /** Suffix for Farmer King display (e.g. "Player's Farmer King"). */
+    private static final String FARMER_KING_DISPLAY_SUFFIX = "'s Farmer King";
+
+    /** Prefix for unit team display. */
+    private static final String TEAM_DISPLAY_PREFIX = " (Team ";
+
+    /** Prefix for ATK display line. */
+    private static final String ATK_PREFIX = "ATK: ";
+
+    /** Prefix for DEF display line. */
+    private static final String DEF_PREFIX = "DEF: ";
+
     protected ShowCommand(CommandHandler commandHandler) {
         super(COMMAND_NAME, COMMAND_REGEX, commandHandler);
     }
@@ -36,17 +51,17 @@ public class ShowCommand extends Command {
         }
         Unit u = selected.getUnit();
         if (u.isKing()) {
-            System.out.println(u.getTeam().getName() + "'s Farmer King");
+            System.out.println(u.getTeam().getName() + FARMER_KING_DISPLAY_SUFFIX);
             return;
         }
         if (!u.isRevealed() && !u.getTeam().equals(game.getCurrentTeam())) {
-            System.out.println("??? (Team " + u.getTeam().getName() + ")");
-            System.out.println("ATK: ???");
-            System.out.println("DEF: ???");
+            System.out.println(HIDDEN_UNIT_PLACEHOLDER + TEAM_DISPLAY_PREFIX + u.getTeam().getName() + ")");
+            System.out.println(ATK_PREFIX + HIDDEN_UNIT_PLACEHOLDER);
+            System.out.println(DEF_PREFIX + HIDDEN_UNIT_PLACEHOLDER);
             return;
         }
-        System.out.println(u.getName() + " (Team " + u.getTeam().getName() + ")");
-        System.out.println("ATK: " + u.getAtk());
-        System.out.println("DEF: " + u.getDef());
+        System.out.println(u.getName() + TEAM_DISPLAY_PREFIX + u.getTeam().getName() + ")");
+        System.out.println(ATK_PREFIX + u.getAtk());
+        System.out.println(DEF_PREFIX + u.getDef());
     }
 }

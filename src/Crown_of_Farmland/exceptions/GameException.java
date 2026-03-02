@@ -8,6 +8,9 @@ package Crown_of_Farmland.exceptions;
  */
 public abstract class GameException extends Exception {
 
+    /** Prefix for all error messages (A.5). */
+    private static final String ERROR_MESSAGE_PREFIX = "ERROR: ";
+
     /**
      * Erstellt eine neue GameException mit der gegebenen Fehlermeldung.
      *
@@ -23,6 +26,6 @@ public abstract class GameException extends Exception {
      * @return die formatierte Fehlermeldung
      */
     public String getFormattedMessage() {
-        return "ERROR: " + getMessage();
+        return ERROR_MESSAGE_PREFIX + getMessage();
     }
 }

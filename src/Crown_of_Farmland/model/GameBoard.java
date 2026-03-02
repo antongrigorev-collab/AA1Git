@@ -9,6 +9,33 @@ import java.util.List;
 public class GameBoard {
     public static final int SIZE = 7;
 
+    /** Indent for board row labels and separator lines. */
+    private static final String BOARD_ROW_INDENT = "  ";
+
+    /** Padding before column labels (A..G). */
+    private static final String COLUMN_LABEL_LEFT_PADDING = "    ";
+
+    /** Spacing between column labels. */
+    private static final String COLUMN_LABEL_SPACING = "   ";
+
+    /** Content for empty cell (3 spaces). */
+    private static final String EMPTY_CELL_CONTENT = "   ";
+
+    /** Custom symbol set: index for horizontal line (a-z order). */
+    private static final int CUSTOM_SYMBOL_INDEX_HORIZONTAL = 8;
+
+    /** Custom symbol set: index for vertical line. */
+    private static final int CUSTOM_SYMBOL_INDEX_VERTICAL = 9;
+
+    /** Custom symbol set: index for horizontal line when selected. */
+    private static final int CUSTOM_SYMBOL_INDEX_HORIZONTAL_SELECTED = 23;
+
+    /** Custom symbol set: index for vertical line when selected. */
+    private static final int CUSTOM_SYMBOL_INDEX_VERTICAL_SELECTED = 24;
+
+    /** Custom symbol set: offset from base corner index to selected variant. */
+    private static final int CUSTOM_CORNER_SELECTED_OFFSET = 11;
+
     /** Standard symbols: corner, horizontal, vertical, then selected variants. */
     private static final char STD_CORNER = '+';
     private static final char STD_H = '-';
@@ -85,7 +112,7 @@ public class GameBoard {
         boolean useStandard = !symbolSet.isCustom();
         char[] sym = symbolSet.raw();
 
-        // Display from top (row 6 = spec row 7) down to bottom (row 0 = spec row 1)
+
         for (int r = SIZE - 1; r >= 0; r--) {
             if (!compact) {
                 out.add(buildSeparatorLine(r, true, selectedField, useStandard, sym));
@@ -106,24 +133,30 @@ public class GameBoard {
         return selectedField.row() == row && selectedField.col() == col;
     }
 
-    private String buildSeparatorLine(int row, boolean unused, Field selectedField,
-                                      boolean useStandard, char[] sym) {
-        // Draw the top edge of the given row. row 6 = top of grid, row 0 = top of bottom row. row=-1: bottom of row 0.
+    private String buildSeparatorLine(int row, boolean unused, Field selectedField, boolean useStandard, char[] sym) {
+        // Draw the top edge of the given row. This same line is the BOTTOM edge of row r+1 (display).
+        // So we must show selection for both row r (top of r) and row r+1 (bottom of r+1).
+        // row=-1: bottom of row 0 only.
         int r = row >= 0 ? row : 0;
-        char hNorm = useStandard ? STD_H : sym[8];
-        char hSel = useStandard ? STD_H_SEL : (sym.length > 23 ? sym[23] : STD_H_SEL);
+        int rAbove = (row >= 0 && row < SIZE - 1) ? row + 1 : -1; // row above in grid (display), or -1
+        char hNorm = useStandard ? STD_H : sym[CUSTOM_SYMBOL_INDEX_HORIZONTAL];
+        char hSel = useStandard ? STD_H_SEL : (sym.length > CUSTOM_SYMBOL_INDEX_HORIZONTAL_SELECTED ? sym[CUSTOM_SYMBOL_INDEX_HORIZONTAL_SELECTED] : STD_H_SEL);
         StringBuilder sb = new StringBuilder();
-        sb.append("  ");
+        sb.append(BOARD_ROW_INDENT);
         for (int c = 0; c < SIZE; c++) {
-            boolean cornerLeftSel = (c == 0 && isSelected(r, 0, selectedField))
-                    || (c > 0 && (isSelected(r, c - 1, selectedField) || isSelected(r, c, selectedField)));
+            boolean selR = isSelected(r, c, selectedField);
+            boolean selRAbove = rAbove >= 0 && isSelected(rAbove, c, selectedField);
+            boolean cornerLeftSel = (c == 0 && (selR || (rAbove >= 0 && isSelected(rAbove, 0, selectedField))))
+                    || (c > 0 && (isSelected(r, c - 1, selectedField) || selR
+                    || (rAbove >= 0 && (isSelected(rAbove, c - 1, selectedField) || isSelected(rAbove, c, selectedField)))));
             boolean cornerRightSel = (c < SIZE - 1
-                    && (isSelected(r, c, selectedField) || isSelected(r, c + 1, selectedField)))
-                    || (c == SIZE - 1 && isSelected(r, SIZE - 1, selectedField));
+                    && (isSelected(r, c, selectedField) || isSelected(r, c + 1, selectedField)
+                    || (rAbove >= 0 && (isSelected(rAbove, c, selectedField) || isSelected(rAbove, c + 1, selectedField)))))
+                    || (c == SIZE - 1 && (selR || (rAbove >= 0 && isSelected(rAbove, SIZE - 1, selectedField))));
             if (c == 0) {
-                sb.append(cornerChar(true, true, isSelected(r, 0, selectedField), useStandard, sym));
+                sb.append(cornerChar(true, true, isSelected(r, 0, selectedField) || (rAbove >= 0 && isSelected(rAbove, 0, selectedField)), useStandard, sym));
             }
-            boolean segSel = isSelected(r, c, selectedField);
+            boolean segSel = selR || selRAbove;
             sb.append(segSel ? hSel : hNorm).append(segSel ? hSel : hNorm).append(segSel ? hSel : hNorm);
             sb.append(cornerChar(true, false, cornerRightSel, useStandard, sym));
         }
@@ -135,27 +168,30 @@ public class GameBoard {
             return selected ? STD_CORNER_SEL : STD_CORNER;
         }
         int idx = top ? (left ? 0 : 1) : (left ? 2 : 3);
-        int selIdx = idx + 11;
+        int selIdx = idx + CUSTOM_CORNER_SELECTED_OFFSET;
         return selected && selIdx < sym.length ? sym[selIdx] : sym[idx];
     }
+
+    /** Separator between row number and cell content. */
+    private static final String ROW_NUMBER_SEPARATOR = " ";
 
     private String buildCellLine(int r, Field selectedField, Team teamShownAsX, Team currentTeam,
                                  boolean useStandard, char[] sym) {
         StringBuilder sb = new StringBuilder();
-        sb.append(r + 1).append(" ");
+        sb.append(r + 1).append(ROW_NUMBER_SEPARATOR);
         for (int c = 0; c < SIZE; c++) {
             boolean edgeSelected = isSelected(r, c, selectedField)
                     || (c > 0 && isSelected(r, c - 1, selectedField));
             char vChar = useStandard
                     ? (edgeSelected ? STD_V_SEL : STD_V)
-                    : (edgeSelected && sym.length > 24 ? sym[24] : sym[9]);
+                    : (edgeSelected && sym.length > CUSTOM_SYMBOL_INDEX_VERTICAL_SELECTED ? sym[CUSTOM_SYMBOL_INDEX_VERTICAL_SELECTED] : sym[CUSTOM_SYMBOL_INDEX_VERTICAL]);
             sb.append(vChar);
             sb.append(cellContent(r, c, teamShownAsX, currentTeam));
         }
         boolean rightEdgeSelected = isSelected(r, SIZE - 1, selectedField);
         char lastV = useStandard
                 ? (rightEdgeSelected ? STD_V_SEL : STD_V)
-                : (rightEdgeSelected && sym.length > 24 ? sym[24] : sym[9]);
+                : (rightEdgeSelected && sym.length > CUSTOM_SYMBOL_INDEX_VERTICAL_SELECTED ? sym[CUSTOM_SYMBOL_INDEX_VERTICAL_SELECTED] : sym[CUSTOM_SYMBOL_INDEX_VERTICAL]);
         sb.append(lastV);
         return sb.toString();
     }
@@ -177,7 +213,7 @@ public class GameBoard {
         Field f = grid[row][col];
         Unit u = f.getUnit();
         if (u == null) {
-            return "   ";
+            return EMPTY_CELL_CONTENT;
         }
         boolean ownForLetter = u.getTeam().equals(teamShownAsX);
         char letter = ownForLetter ? (u.isKing() ? 'X' : 'x') : (u.isKing() ? 'Y' : 'y');

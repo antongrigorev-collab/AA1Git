@@ -3,6 +3,9 @@ package Crown_of_Farmland.model;
 import Crown_of_Farmland.exceptions.InvalidArgumentException;
 
 public class Team {
+    /** Initial life points for each team at game start (A.1.7). */
+    public static final int INITIAL_LIFE_POINTS = 8000;
+
     private final String name;
     private int lifePoints;
 
@@ -13,7 +16,7 @@ public class Team {
 
     private Team(String name, King king) {
         this.name = name;
-        this.lifePoints = 8000;
+        this.lifePoints = INITIAL_LIFE_POINTS;
 
         this.deck = new Deck();
         this.hand = new Hand();
