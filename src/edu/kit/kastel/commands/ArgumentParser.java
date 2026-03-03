@@ -11,7 +11,7 @@ import java.util.Map;
  * Parses command-line arguments into key-value pairs. Each argument must be of
  * the form key=value; duplicate keys are rejected.
  *
- * @author Programmieren-Team
+ * @author usylb
  */
 public final class ArgumentParser {
 

@@ -3,7 +3,7 @@ package edu.kit.kastel.exceptions;
 /**
  * Thrown when place is used but the team has already placed this turn (at most one place per turn).
  *
- * @author Programmieren-Team
+ * @author usylb
  */
 public class AlreadyPlacedException extends CommandException {
 

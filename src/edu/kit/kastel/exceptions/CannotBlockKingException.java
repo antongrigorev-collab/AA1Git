@@ -3,7 +3,7 @@ package edu.kit.kastel.exceptions;
 /**
  * Thrown when block is used on the Farmer King (the King cannot block).
  *
- * @author Programmieren-Team
+ * @author usylb
  */
 public class CannotBlockKingException extends CommandException {
 

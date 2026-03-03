@@ -3,7 +3,7 @@ package edu.kit.kastel.exceptions;
 /**
  * Thrown when the deck file has invalid content (e.g. wrong line count, total not 40, invalid numbers).
  *
- * @author Programmieren-Team
+ * @author usylb
  */
 public class InvalidDeckFileException extends StartupException {
 

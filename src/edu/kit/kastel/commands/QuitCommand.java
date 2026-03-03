@@ -5,7 +5,7 @@ import edu.kit.kastel.exceptions.GameException;
 /**
  * Quit command. Ends the program via normal control flow.
  *
- * @author Programmieren-Team
+ * @author usylb
  */
 public class QuitCommand extends Command {
 

@@ -3,7 +3,7 @@ package edu.kit.kastel.exceptions;
 /**
  * Thrown when place targets a field occupied by an enemy unit or the enemy Farmer King.
  *
- * @author Programmieren-Team
+ * @author usylb
  */
 public class PlaceOnEnemyFieldException extends CommandException {
 

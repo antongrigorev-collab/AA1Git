@@ -4,7 +4,7 @@ package edu.kit.kastel.exceptions;
  * Thrown when a command requires a selected field but none is selected (e.g. move,
  * flip, block, show, place without a prior select).
  *
- * @author Programmieren-Team
+ * @author usylb
  */
 public class NoFieldSelectedException extends CommandException {
 

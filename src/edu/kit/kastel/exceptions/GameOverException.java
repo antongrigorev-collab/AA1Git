@@ -3,7 +3,7 @@ package edu.kit.kastel.exceptions;
 /**
  * Thrown when a command is used after the game has ended (e.g. a team has won or a deck is empty).
  *
- * @author Programmieren-Team
+ * @author usylb
  */
 public class GameOverException extends CommandException {
 

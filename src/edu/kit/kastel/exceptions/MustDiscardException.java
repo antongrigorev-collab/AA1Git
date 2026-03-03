@@ -4,7 +4,7 @@ package edu.kit.kastel.exceptions;
  * Thrown when the team must discard first (hand full) but attempts another command
  * such as place (e.g. "cannot place a card, you must discard!").
  *
- * @author Programmieren-Team
+ * @author usylb
  */
 public class MustDiscardException extends CommandException {
 

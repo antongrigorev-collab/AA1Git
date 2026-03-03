@@ -21,7 +21,7 @@ import java.util.Set;
  * Place command: place one or more units from hand onto the selected field.
  * Optional last argument can be a field (e.g. C2) to select that field before placing.
  *
- * @author Programmieren-Team
+ * @author usylb
  */
 public class PlaceCommand extends Command {
 

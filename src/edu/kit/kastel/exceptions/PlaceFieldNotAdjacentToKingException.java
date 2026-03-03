@@ -3,7 +3,7 @@ package edu.kit.kastel.exceptions;
 /**
  * Thrown when the place target is not adjacent to the own Farmer King (up to 8 fields including diagonals).
  *
- * @author Programmieren-Team
+ * @author usylb
  */
 public class PlaceFieldNotAdjacentToKingException extends CommandException {
 

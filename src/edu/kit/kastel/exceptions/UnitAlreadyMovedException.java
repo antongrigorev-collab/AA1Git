@@ -3,7 +3,7 @@ package edu.kit.kastel.exceptions;
 /**
  * Thrown when move, flip or block is used on a unit that has already moved this turn.
  *
- * @author Programmieren-Team
+ * @author usylb
  */
 public class UnitAlreadyMovedException extends CommandException {
 

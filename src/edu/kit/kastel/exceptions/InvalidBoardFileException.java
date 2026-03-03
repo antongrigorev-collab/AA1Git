@@ -3,7 +3,7 @@ package edu.kit.kastel.exceptions;
 /**
  * Thrown when the board symbol file has invalid content (e.g. not exactly 29 characters in one line).
  *
- * @author Programmieren-Team
+ * @author usylb
  */
 public class InvalidBoardFileException extends StartupException {
 

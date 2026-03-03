@@ -53,7 +53,10 @@ public final class AIPlayer {
                 && optScores.get(3) <= 0 && optScores.get(EN_PLACE_OPTION_INDEX) <= 0;
     }
 
-    /** Runs one full turn for the current team (AI / team 2). Prints output and ends the turn. @param game the game */
+    /**
+     * Runs one full turn for the current team (AI / team 2). Prints output and ends the turn.
+     * @param game the game instance (current team must be team 2)
+     */
     public static void runTurn(Game game) {
         if (game.isGameOver()) {
             return;

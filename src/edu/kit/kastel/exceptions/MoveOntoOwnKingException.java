@@ -3,7 +3,7 @@ package edu.kit.kastel.exceptions;
 /**
  * Thrown when a unit (not the King) tries to move onto the own Farmer King's field.
  *
- * @author Programmieren-Team
+ * @author usylb
  */
 public class MoveOntoOwnKingException extends CommandException {
 

@@ -3,7 +3,7 @@ package edu.kit.kastel.exceptions;
 /**
  * Thrown when the user input does not match any known command (select, board, move, flip, block, hand, place, show, yield, state, quit).
  *
- * @author Programmieren-Team
+ * @author usylb
  */
 public class UnknownCommandException extends CommandException {
 

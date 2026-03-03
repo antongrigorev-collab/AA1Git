@@ -3,7 +3,7 @@ package edu.kit.kastel.exceptions;
 /**
  * Thrown when a move is not allowed (e.g. target too far, move onto own King, King onto enemy).
  *
- * @author Programmieren-Team
+ * @author usylb
  */
 public class InvalidMoveException extends CommandException {
 

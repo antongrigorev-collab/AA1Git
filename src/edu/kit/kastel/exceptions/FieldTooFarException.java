@@ -3,7 +3,7 @@ package edu.kit.kastel.exceptions;
 /**
  * Thrown when the move target is more than one step away (only cardinal moves allowed).
  *
- * @author Programmieren-Team
+ * @author usylb
  */
 public class FieldTooFarException extends CommandException {
 

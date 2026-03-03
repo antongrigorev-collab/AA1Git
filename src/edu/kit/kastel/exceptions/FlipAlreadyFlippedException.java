@@ -3,7 +3,7 @@ package edu.kit.kastel.exceptions;
 /**
  * Thrown when flip is used on a unit that is already revealed (revealed units cannot be flipped).
  *
- * @author Programmieren-Team
+ * @author usylb
  */
 public class FlipAlreadyFlippedException extends CommandException {
 

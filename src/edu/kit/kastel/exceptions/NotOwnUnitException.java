@@ -3,7 +3,7 @@ package edu.kit.kastel.exceptions;
 /**
  * Thrown when move, flip or block is used on an enemy unit (only own units can be controlled).
  *
- * @author Programmieren-Team
+ * @author usylb
  */
 public class NotOwnUnitException extends CommandException {
 

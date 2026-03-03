@@ -4,7 +4,7 @@ package edu.kit.kastel.exceptions;
  * Thrown when game initialization fails (e.g. hand unexpectedly full during
  * initial draw).
  *
- * @author Programmieren-Team
+ * @author usylb
  */
 public class InitializationException extends StartupException {
 

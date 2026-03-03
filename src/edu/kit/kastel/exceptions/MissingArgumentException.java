@@ -4,7 +4,7 @@ package edu.kit.kastel.exceptions;
  * Thrown when a required startup argument is missing (e.g. seed, units, or
  * deck/deck1+deck2).
  *
- * @author Programmieren-Team
+ * @author usylb
  */
 public class MissingArgumentException extends StartupException {
 

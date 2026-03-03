@@ -3,7 +3,7 @@ package edu.kit.kastel.exceptions;
 /**
  * Thrown when a command is called with wrong or invalid arguments (e.g. wrong count or format).
  *
- * @author Programmieren-Team
+ * @author usylb
  */
 public class InvalidCommandArgumentsException extends CommandException {
 

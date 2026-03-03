@@ -3,7 +3,7 @@ package edu.kit.kastel.exceptions;
 /**
  * Thrown when deck is used together with deck1/deck2, or only one of deck1/deck2 is given.
  *
- * @author Programmieren-Team
+ * @author usylb
  */
 public class ConflictingDeckArgumentsException extends StartupException {
 

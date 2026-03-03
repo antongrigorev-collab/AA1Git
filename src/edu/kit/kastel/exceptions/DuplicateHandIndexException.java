@@ -3,7 +3,7 @@ package edu.kit.kastel.exceptions;
 /**
  * Thrown when a hand index is given more than once in a single place command.
  *
- * @author Programmieren-Team
+ * @author usylb
  */
 public class DuplicateHandIndexException extends CommandException {
 

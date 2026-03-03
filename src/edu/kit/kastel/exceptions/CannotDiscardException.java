@@ -3,7 +3,7 @@ package edu.kit.kastel.exceptions;
 /**
  * Thrown when yield is called with a discard index but the hand has fewer than 5 cards (discard only when full).
  *
- * @author Programmieren-Team
+ * @author usylb
  */
 public class CannotDiscardException extends CommandException {
 

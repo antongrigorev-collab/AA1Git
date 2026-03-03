@@ -16,15 +16,16 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Loads and validates game configuration from key-value pairs (e.g. from command line).
  * Reads units file, deck file(s), optional board symbols, and builds a {@link GameConfig}.
  * File contents are printed to stdout before validation as specified.
  *
- * @author Programmieren-Team
+ * @author usylb
  */
-public class ConfigLoader {
+public final class ConfigLoader {
 
     /** Maximum number of unit types in units file (A.3.2). */
     private static final int MAX_UNITS = 80;
@@ -53,12 +54,27 @@ public class ConfigLoader {
     /** Invalid content in units file (double space). */
     private static final String INVALID_DOUBLE_SPACE = "  ";
 
+    /**
+     * Allowed configuration keys as specified in A.3 (for unknown-parameter detection).
+     */
+    private static final Set<String> ALLOWED_KEYS = Set.of(
+            "seed",
+            "board",
+            "units",
+            "deck",
+            "deck1",
+            "deck2",
+            "team1",
+            "team2",
+            "verbosity"
+    );
+
     private ConfigLoader() { }
 
     /**
      * Builds a game configuration from the given key-value map. Requires seed and
      * units; either deck or both deck1 and deck2; optional board, team1, team2, verbosity.
-     * Validates deck keys and file formats; throws on first error.
+     * Validates keys, deck keys and file formats; throws on first error.
      *
      * @param kv key-value pairs (e.g. seed=123, units=units.txt, deck=deck.txt)
      * @return the validated game configuration
@@ -67,6 +83,8 @@ public class ConfigLoader {
      *                          deck arguments are conflicting
      */
     public static GameConfig load(Map<String, String> kv) throws StartupException {
+        validateKnownKeys(kv);
+
         long seed = parseLongRequired(kv, "seed");
 
         if (!kv.containsKey("units")) {
@@ -97,6 +115,14 @@ public class ConfigLoader {
         }
 
         return new GameConfig(seed, team1, team2, mode, symbolSet, units, deckCountsTeam1, deckCountsTeam2);
+    }
+
+    private static void validateKnownKeys(Map<String, String> kv) throws InvalidArgumentException {
+        for (String key : kv.keySet()) {
+            if (!ALLOWED_KEYS.contains(key)) {
+                throw new InvalidArgumentException("Unknown parameter: " + key);
+            }
+        }
     }
 
     private static void validateDeckKeys(Map<String, String> kv) throws ConflictingDeckArgumentsException {
@@ -188,12 +214,7 @@ public class ConfigLoader {
     }
 
     private static SymbolSet readBoardSymbols(Path path) throws InvalidBoardFileException, FileNotFoundException {
-        List<String> lines;
-        try {
-            lines = Files.readAllLines(path);
-        } catch (IOException e) {
-            throw new FileNotFoundException(path.toString());
-        }
+        List<String> lines = readAndOutputFile(path);
         if (lines.isEmpty()) {
             throw new InvalidBoardFileException("Board file must not be empty");
         }

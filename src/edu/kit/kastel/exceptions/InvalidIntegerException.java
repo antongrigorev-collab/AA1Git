@@ -3,7 +3,7 @@ package edu.kit.kastel.exceptions;
 /**
  * Thrown when an invalid integer is given (e.g. seed, deck count, or ATK/DEF in units file).
  *
- * @author Programmieren-Team
+ * @author usylb
  */
 public class InvalidIntegerException extends StartupException {
 

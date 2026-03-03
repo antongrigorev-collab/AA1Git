@@ -3,7 +3,7 @@ package edu.kit.kastel.exceptions;
 /**
  * Thrown when flip is used on the Farmer King (the King is always revealed).
  *
- * @author Programmieren-Team
+ * @author usylb
  */
 public class CannotFlipKingException extends CommandException {
 

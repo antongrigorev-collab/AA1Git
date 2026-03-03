@@ -3,7 +3,7 @@ package edu.kit.kastel.exceptions;
 /**
  * Thrown when the Farmer King tries to move onto a field occupied by an enemy unit (Kings cannot initiate duels).
  *
- * @author Programmieren-Team
+ * @author usylb
  */
 public class KingCannotAttackException extends CommandException {
 

@@ -13,7 +13,7 @@ import java.util.Map;
  * Initializes configuration from command-line arguments, loads the game, and runs
  * the command loop until the user quits or the game ends.
  *
- * @author Programmieren-Team
+ * @author usylb
  */
 public final class Main {
     private Main() {

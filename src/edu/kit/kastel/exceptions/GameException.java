@@ -4,7 +4,7 @@ package edu.kit.kastel.exceptions;
  * Base type for all exceptions in Crown of Farmland (Krone von Ackerland).
  * Formatted messages start with "ERROR: " followed by a descriptive message (A.5).
  *
- * @author Programmieren-Team
+ * @author usylb
  */
 public abstract class GameException extends Exception {
 

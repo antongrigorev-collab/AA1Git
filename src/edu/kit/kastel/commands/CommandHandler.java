@@ -14,7 +14,7 @@ import java.util.Scanner;
  * (select, board, move, flip, block, hand, place, show, yield, state, quit)
  * until the user quits or a startup error occurs.
  *
- * @author Programmieren-Team
+ * @author usylb
  */
 public class CommandHandler {
     private static final String COMMAND_DELIMITER_REGEX = "\\s+";

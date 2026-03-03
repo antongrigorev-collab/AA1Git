@@ -4,7 +4,7 @@ package edu.kit.kastel.exceptions;
  * Thrown when yield is called without a discard index but the current team's
  * hand has 5 cards (a card must be discarded before ending the turn).
  *
- * @author Programmieren-Team
+ * @author usylb
  */
 public class HandFullMustDiscardException extends CommandException {
 

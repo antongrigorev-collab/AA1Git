@@ -128,22 +128,34 @@ public class Game {
         }
     }
 
-    /** Returns the game board. @return the game board */
+    /**
+     * Returns the game board.
+     * @return the game board
+     */
     public GameBoard getGameBoard() {
         return gameBoard;
     }
 
-    /** Returns team 1 (the player team). @return team 1 */
+    /**
+     * Returns team 1 (the player team).
+     * @return team 1
+     */
     public Team getTeam1() {
         return team1;
     }
 
-    /** Returns team 2 (the opponent team). @return team 2 */
+    /**
+     * Returns team 2 (the opponent team).
+     * @return team 2
+     */
     public Team getTeam2() {
         return team2;
     }
 
-    /** Returns the team that is currently allowed to act. @return the current team */
+    /**
+     * Returns the team that is currently allowed to act.
+     * @return the current team
+     */
     public Team getCurrentTeam() {
         return currentTeam;
     }
