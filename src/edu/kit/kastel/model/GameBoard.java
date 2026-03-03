@@ -10,6 +10,8 @@ import java.util.List;
  * The 7x7 game board for Crown of Farmland. Holds a grid of {@link Field}s and
  * renders the board (with optional selected field highlight) using the configured
  * symbol set and verbosity mode. Row 0 = bottom (spec row 1), column 0 = A.
+ *
+ * @author usylb
  */
 public class GameBoard {
     /** Board dimension (7x7). */
@@ -152,6 +154,32 @@ public class GameBoard {
         return selectedField.row() == row && selectedField.col() == col;
     }
 
+    private boolean isCornerLeftSelected(int r, int c, int rAbove, Field selectedField) {
+        if (c == 0) {
+            boolean selR = isSelected(r, 0, selectedField);
+            boolean selAbove = rAbove >= 0 && isSelected(rAbove, 0, selectedField);
+            return selR || selAbove;
+        }
+        boolean leftSel = isSelected(r, c - 1, selectedField);
+        boolean curSel = isSelected(r, c, selectedField);
+        boolean aboveLeft = rAbove >= 0 && isSelected(rAbove, c - 1, selectedField);
+        boolean aboveCur = rAbove >= 0 && isSelected(rAbove, c, selectedField);
+        return leftSel || curSel || aboveLeft || aboveCur;
+    }
+
+    private boolean isCornerRightSelected(int r, int c, int rAbove, Field selectedField) {
+        if (c == SIZE - 1) {
+            boolean selR = isSelected(r, SIZE - 1, selectedField);
+            boolean selAbove = rAbove >= 0 && isSelected(rAbove, SIZE - 1, selectedField);
+            return selR || selAbove;
+        }
+        boolean curSel = isSelected(r, c, selectedField);
+        boolean rightSel = isSelected(r, c + 1, selectedField);
+        boolean aboveCur = rAbove >= 0 && isSelected(rAbove, c, selectedField);
+        boolean aboveRight = rAbove >= 0 && isSelected(rAbove, c + 1, selectedField);
+        return curSel || rightSel || aboveCur || aboveRight;
+    }
+
     private String buildSeparatorLine(int row, boolean unused, Field selectedField, boolean useStandard, char[] sym) {
         // Draw the top edge of the given row. This same line is the BOTTOM edge of row r+1 (display).
         // So we must show selection for both row r (top of r) and row r+1 (bottom of r+1).
@@ -159,21 +187,18 @@ public class GameBoard {
         int r = row >= 0 ? row : 0;
         int rAbove = (row >= 0 && row < SIZE - 1) ? row + 1 : -1; // row above in grid (display), or -1
         char hNorm = useStandard ? STD_H : sym[CUSTOM_SYMBOL_INDEX_HORIZONTAL];
-        char hSel = useStandard ? STD_H_SEL : (sym.length > CUSTOM_SYMBOL_INDEX_HORIZONTAL_SELECTED ? sym[CUSTOM_SYMBOL_INDEX_HORIZONTAL_SELECTED] : STD_H_SEL);
+        char customHSel = sym.length > CUSTOM_SYMBOL_INDEX_HORIZONTAL_SELECTED
+                ? sym[CUSTOM_SYMBOL_INDEX_HORIZONTAL_SELECTED] : STD_H_SEL;
+        char hSel = useStandard ? STD_H_SEL : customHSel;
         StringBuilder sb = new StringBuilder();
         sb.append(BOARD_ROW_INDENT);
         for (int c = 0; c < SIZE; c++) {
             boolean selR = isSelected(r, c, selectedField);
             boolean selRAbove = rAbove >= 0 && isSelected(rAbove, c, selectedField);
-            boolean cornerLeftSel = (c == 0 && (selR || (rAbove >= 0 && isSelected(rAbove, 0, selectedField))))
-                    || (c > 0 && (isSelected(r, c - 1, selectedField) || selR
-                    || (rAbove >= 0 && (isSelected(rAbove, c - 1, selectedField) || isSelected(rAbove, c, selectedField)))));
-            boolean cornerRightSel = (c < SIZE - 1
-                    && (isSelected(r, c, selectedField) || isSelected(r, c + 1, selectedField)
-                    || (rAbove >= 0 && (isSelected(rAbove, c, selectedField) || isSelected(rAbove, c + 1, selectedField)))))
-                    || (c == SIZE - 1 && (selR || (rAbove >= 0 && isSelected(rAbove, SIZE - 1, selectedField))));
+            boolean cornerLeftSel = isCornerLeftSelected(r, c, rAbove, selectedField);
+            boolean cornerRightSel = isCornerRightSelected(r, c, rAbove, selectedField);
             if (c == 0) {
-                sb.append(cornerChar(true, true, isSelected(r, 0, selectedField) || (rAbove >= 0 && isSelected(rAbove, 0, selectedField)), useStandard, sym));
+                sb.append(cornerChar(true, true, cornerLeftSel, useStandard, sym));
             }
             boolean segSel = selR || selRAbove;
             sb.append(segSel ? hSel : hNorm).append(segSel ? hSel : hNorm).append(segSel ? hSel : hNorm);
@@ -198,16 +223,24 @@ public class GameBoard {
         for (int c = 0; c < SIZE; c++) {
             boolean edgeSelected = isSelected(r, c, selectedField)
                     || (c > 0 && isSelected(r, c - 1, selectedField));
-            char vChar = useStandard
-                    ? (edgeSelected ? STD_V_SEL : STD_V)
-                    : (edgeSelected && sym.length > CUSTOM_SYMBOL_INDEX_VERTICAL_SELECTED ? sym[CUSTOM_SYMBOL_INDEX_VERTICAL_SELECTED] : sym[CUSTOM_SYMBOL_INDEX_VERTICAL]);
+            char vChar;
+            if (useStandard) {
+                vChar = edgeSelected ? STD_V_SEL : STD_V;
+            } else {
+                vChar = edgeSelected && sym.length > CUSTOM_SYMBOL_INDEX_VERTICAL_SELECTED
+                        ? sym[CUSTOM_SYMBOL_INDEX_VERTICAL_SELECTED] : sym[CUSTOM_SYMBOL_INDEX_VERTICAL];
+            }
             sb.append(vChar);
             sb.append(cellContent(r, c, teamShownAsX, currentTeam));
         }
         boolean rightEdgeSelected = isSelected(r, SIZE - 1, selectedField);
-        char lastV = useStandard
-                ? (rightEdgeSelected ? STD_V_SEL : STD_V)
-                : (rightEdgeSelected && sym.length > CUSTOM_SYMBOL_INDEX_VERTICAL_SELECTED ? sym[CUSTOM_SYMBOL_INDEX_VERTICAL_SELECTED] : sym[CUSTOM_SYMBOL_INDEX_VERTICAL]);
+        char lastV;
+        if (useStandard) {
+            lastV = rightEdgeSelected ? STD_V_SEL : STD_V;
+        } else {
+            lastV = rightEdgeSelected && sym.length > CUSTOM_SYMBOL_INDEX_VERTICAL_SELECTED
+                    ? sym[CUSTOM_SYMBOL_INDEX_VERTICAL_SELECTED] : sym[CUSTOM_SYMBOL_INDEX_VERTICAL];
+        }
         sb.append(lastV);
         return sb.toString();
     }

@@ -17,6 +17,8 @@ import java.util.Random;
  * teams, current turn, selection, and duel/merge logic. Initializes from
  * {@link edu.kit.kastel.commands.GameConfig} and provides methods for commands
  * and the AI opponent.
+ *
+ * @author usylb
  */
 public class Game {
 
@@ -40,6 +42,9 @@ public class Game {
     private static final int KING_TEAM1_ROW = 0;
     private static final int KING_TEAM2_ROW = 6;
     private static final int KING_COL = 3;
+
+    /** Separator between name parts in merged unit (A.1.9). */
+    private static final String MERGED_NAME_PART_SEPARATOR = " ";
 
     private final GameConfig config;
     private final Random random;
@@ -79,7 +84,8 @@ public class Game {
      * Initializes decks from config (fill, shuffle), draws 4 cards into each hand,
      * and places both kings on the board (D1 and D7).
      *
-     * @throws InitializationException if hand is unexpectedly full during init
+     * @throws InitializationException      if hand is unexpectedly full during init
+     * @throws HandFullMustDiscardException if hand would be full when drawing
      */
     public void initFromConfig() throws InitializationException, HandFullMustDiscardException {
         fillDeck(team1, config.deckCountsTeam1());
@@ -225,6 +231,7 @@ public class Game {
      * @throws HandFullMustDiscardException if hand has 5 cards and no index given, or if draw fails because hand full
      * @throws CannotDiscardException      if index given but hand has fewer than 5 cards
      * @throws InvalidHandIndexException   if index is out of range
+     * @throws InitializationException     if draw after turn switch fails
      */
     public YieldResult endTurn(Integer discardHandIndex)
             throws HandFullMustDiscardException, CannotDiscardException, InvalidHandIndexException,
@@ -282,6 +289,13 @@ public class Game {
      * Performs a duel between attacker (on fromField) and defender (on toField).
      * Reveals both, applies damage/removals, moves attacker if it wins.
      *
+     * @param attacker        the attacking unit
+     * @param defender       the defending unit or king
+     * @param defenderBlocked whether the defender is in block state
+     * @param fromRow        row of the attacker
+     * @param fromCol        column of the attacker
+     * @param toRow          row of the defender (target field)
+     * @param toCol          column of the defender (target field)
      * @return duel result with lines to print and winner if game over
      */
     public DuelResult performDuel(Unit attacker, Unit defender, boolean defenderBlocked,
@@ -304,12 +318,14 @@ public class Game {
         return null;
     }
 
-    /** Separator between name parts in merged unit (A.1.9). */
-    private static final String MERGED_NAME_PART_SEPARATOR = " ";
-
     /**
      * Creates a merged unit from A (moving/placing) and B (on field). Stats from MergeStats.
      * Name: Qualifier_B Qualifier_A Role_B. Revealed if both were revealed.
+     *
+     * @param unitA  the unit that is moving or being placed
+     * @param unitB  the unit already on the field
+     * @param stats  merge stats (ATK/DEF) from compatibility check
+     * @return the new merged unit
      */
     public static Unit createMergedUnit(Unit unitA, Unit unitB, Compatibility.MergeStats stats) {
         String qualifier = unitB.getQualifier() + MERGED_NAME_PART_SEPARATOR + unitA.getQualifier();
@@ -319,12 +335,27 @@ public class Game {
         return merged;
     }
 
-    /** Manhattan distance 1 (including en place). */
+    /**
+     * Manhattan distance 1 (including en place).
+     *
+     * @param fromRow row of source field
+     * @param fromCol column of source field
+     * @param toRow   row of target field
+     * @param toCol   column of target field
+     * @return true if the two fields are adjacent or the same
+     */
     public static boolean isAdjacent(int fromRow, int fromCol, int toRow, int toCol) {
         return Math.abs(fromRow - toRow) + Math.abs(fromCol - toCol) <= 1;
     }
 
-    /** True if (row, col) is adjacent to the given team's king (8 directions). */
+    /**
+     * True if (row, col) is adjacent to the given team's king (8 directions).
+     *
+     * @param team the team whose king position is used
+     * @param row  row index of the field
+     * @param col  column index of the field
+     * @return true if the field is adjacent to that team's king
+     */
     public boolean isAdjacentToKing(Team team, int row, int col) {
         int[] kingPos = getKingPosition(team);
         if (kingPos == null) {

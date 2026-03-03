@@ -8,6 +8,8 @@ import java.util.Random;
 /**
  * A team's draw pile. Holds up to 40 units; cards are drawn from the top (index 0).
  * Shuffling uses the game's shared {@link java.util.Random} for reproducibility.
+ *
+ * @author usylb
  */
 public class Deck {
     private final List<Unit> cards = new ArrayList<>();

@@ -3,6 +3,8 @@ package edu.kit.kastel.model;
 /**
  * A single cell on the 7x7 board. Has fixed row/column (0-based) and may hold
  * one unit. Row 0 = spec row 1 (bottom), col 0 = A.
+ *
+ * @author usylb
  */
 public final class Field {
 

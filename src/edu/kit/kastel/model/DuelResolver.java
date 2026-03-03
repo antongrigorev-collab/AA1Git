@@ -16,6 +16,15 @@ final class DuelResolver {
 
     /**
      * Context for a single duel: game state, both units, blocked flag, and coordinates.
+     *
+     * @param game           the game state
+     * @param attacker       the attacking unit
+     * @param defender       the defending unit
+     * @param defenderBlocked whether the defender is blocked
+     * @param fromRow        row of the source field
+     * @param fromCol        column of the source field
+     * @param toRow          row of the target field
+     * @param toCol          column of the target field
      */
     record DuelContext(Game game, Unit attacker, Unit defender, boolean defenderBlocked,
                        int fromRow, int fromCol, int toRow, int toCol) { }

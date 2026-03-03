@@ -180,6 +180,15 @@ final class AIPlayerHelper {
 
     /**
      * Context for computing one unit's move options (A.2).
+     *
+     * @param game         the game state
+     * @param unit         the unit for which options are computed
+     * @param unitRow      row of the unit
+     * @param unitCol      column of the unit
+     * @param ai           the AI team
+     * @param enemy        the enemy team
+     * @param enemyKingRow row of the enemy king
+     * @param enemyKingCol column of the enemy king
      */
     record UnitMoveContext(Game game, Unit unit, int unitRow, int unitCol,
                            Team ai, Team enemy, int enemyKingRow, int enemyKingCol) { }
