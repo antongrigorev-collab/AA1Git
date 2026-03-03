@@ -3,7 +3,7 @@ package edu.kit.kastel.commands;
 import edu.kit.kastel.exceptions.GameException;
 
 /**
- * Quit command. Ends the program via normal control flow (no System.exit()).
+ * Quit command. Ends the program via normal control flow.
  *
  * @author Programmieren-Team
  */

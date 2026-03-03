@@ -69,7 +69,7 @@ final class AIPlayerHelper {
      * @return index of selected item
      */
     static int selectAmongMaxScore(List<Integer> scores, Random rnd) {
-        int max = 0;
+        int max = Integer.MIN_VALUE;
         for (Integer s : scores) {
             if (s > max) {
                 max = s;
