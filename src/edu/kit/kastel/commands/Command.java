@@ -7,6 +7,8 @@ import edu.kit.kastel.exceptions.GameException;
  * Base class for console commands in Crown of Farmland. Each command has a name,
  * a regex pattern for matching user input, and an execute method that receives
  * pre-split arguments.
+ *
+ * @author usylb
  */
 public abstract class Command {
     /** The command handler that owns this command and provides game access. */

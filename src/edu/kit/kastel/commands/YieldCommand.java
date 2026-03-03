@@ -15,6 +15,8 @@ import edu.kit.kastel.model.Unit;
  * hand index must be given to discard one card. Switches to the other team, draws one
  * card for the new team (or ends the game if deck empty), then runs the AI turn if
  * the new team is team 2.
+ *
+ * @author usylb
  */
 public class YieldCommand extends Command {
 
@@ -29,6 +31,11 @@ public class YieldCommand extends Command {
     private static final String NO_CARDS_IN_DECK = " has no cards left in the deck!";
     private static final String WINS = " wins!";
 
+    /**
+     * Creates the yield command with the given handler.
+     *
+     * @param commandHandler the command handler
+     */
     protected YieldCommand(CommandHandler commandHandler) {
         super(COMMAND_NAME, COMMAND_REGEX, commandHandler);
     }

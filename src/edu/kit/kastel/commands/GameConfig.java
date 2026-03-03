@@ -6,6 +6,7 @@ import java.util.List;
  * Immutable configuration for Crown of Farmland loaded at startup. Contains seed,
  * team names, verbosity and symbol set, unit templates, and deck counts for both teams.
  *
+ * @author usylb
  * @param seed               start value for the random number generator
  * @param team1Name          display name for team 1 (e.g. "Player")
  * @param team2Name          display name for team 2 (e.g. "Enemy")

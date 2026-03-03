@@ -53,6 +53,8 @@ public class ConfigLoader {
     /** Invalid content in units file (double space). */
     private static final String INVALID_DOUBLE_SPACE = "  ";
 
+    private ConfigLoader() { }
+
     /**
      * Builds a game configuration from the given key-value map. Requires seed and
      * units; either deck or both deck1 and deck2; optional board, team1, team2, verbosity.
@@ -60,6 +62,7 @@ public class ConfigLoader {
      *
      * @param kv key-value pairs (e.g. seed=123, units=units.txt, deck=deck.txt)
      * @return the validated game configuration
+     * @throws MissingArgumentException if the "units" key is missing
      * @throws StartupException if a required key is missing, a file is invalid, or
      *                          deck arguments are conflicting
      */

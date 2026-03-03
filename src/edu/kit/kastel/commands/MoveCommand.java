@@ -15,18 +15,28 @@ import edu.kit.kastel.model.Field;
 import edu.kit.kastel.model.Game;
 import edu.kit.kastel.model.Unit;
 
-import java.util.List;
-
 /**
  * Command "move &lt;field&gt;": moves the selected unit to the given adjacent field (A1–G7).
  * May trigger a duel (vs enemy or King), a merge (vs own unit), or a simple move.
  * The unit must belong to the current team and must not have moved this turn.
+ *
+ * @author usylb
  */
 public class MoveCommand extends Command {
+
+    /** Context for moving to an occupied field (duel or merge). */
+    private record MoveToOccupiedContext(Game game, Unit unit, Unit defender,
+                                        int fromRow, int fromCol, int toRow, int toCol,
+                                        Field selected, Field toField) { }
 
     private static final String COMMAND_NAME = "move";
     private static final String COMMAND_REGEX = "(?i)^move\\s+[A-Ga-g][1-7]$";
 
+    /**
+     * Creates the move command with the given handler.
+     *
+     * @param commandHandler the command handler
+     */
     protected MoveCommand(CommandHandler commandHandler) {
         super(COMMAND_NAME, COMMAND_REGEX, commandHandler);
     }
@@ -81,7 +91,8 @@ public class MoveCommand extends Command {
             return;
         }
         Unit defender = toField.getUnit();
-        executeMoveToOccupied(game, unit, defender, fromRow, fromCol, toRow, toCol, selected, toField);
+        executeMoveToOccupied(new MoveToOccupiedContext(
+                game, unit, defender, fromRow, fromCol, toRow, toCol, selected, toField));
     }
 
     private void executeMoveEnPlace(Game game, Unit unit, Field toField) {
@@ -91,7 +102,7 @@ public class MoveCommand extends Command {
         }
         unit.setMovedThisTurn(true);
         System.out.println(unit.getName() + " moves to " + toField.coordinate() + ".");
-        printBoardAndShow(game);
+        ShowCommand.printBoardAndShow(game);
     }
 
     private void executeMoveToEmpty(Game game, Unit unit, Field selected,
@@ -105,12 +116,20 @@ public class MoveCommand extends Command {
         unit.setMovedThisTurn(true);
         game.setSelectedField(toField);
         System.out.println(unit.getName() + " moves to " + toField.coordinate() + ".");
-        printBoardAndShow(game);
+        ShowCommand.printBoardAndShow(game);
     }
 
-    private void executeMoveToOccupied(Game game, Unit unit, Unit defender, int fromRow, int fromCol, int toRow, int toCol, Field selected, Field toField) {
+    private void executeMoveToOccupied(MoveToOccupiedContext ctx) {
+        Game game = ctx.game();
+        Unit unit = ctx.unit();
+        Unit defender = ctx.defender();
+        Field selected = ctx.selected();
+        Field toField = ctx.toField();
+        int toRow = ctx.toRow();
+        int toCol = ctx.toCol();
         if (!defender.getTeam().equals(game.getCurrentTeam())) {
-            DuelResult result = game.performDuel(unit, defender, defender.isBlocked(), fromRow, fromCol, toRow, toCol);
+            DuelResult result = game.performDuel(unit, defender, defender.isBlocked(),
+                    ctx.fromRow(), ctx.fromCol(), toRow, toCol);
             for (String line : result.lines()) {
                 System.out.println(line);
             }
@@ -121,7 +140,7 @@ public class MoveCommand extends Command {
                 unit.setMovedThisTurn(true);
                 game.setSelectedField(toField);
             }
-            printBoardAndShow(game);
+            ShowCommand.printBoardAndShow(game);
             return;
         }
         Compatibility.MergeStats stats = Compatibility.check(unit, defender);
@@ -152,14 +171,6 @@ public class MoveCommand extends Command {
                     + " join forces!");
             System.out.println("Union failed. " + defender.getName() + " was eliminated.");
         }
-        printBoardAndShow(game);
-    }
-
-    private void printBoardAndShow(Game game) {
-        List<String> lines = game.getGameBoard().render(game.getSelectedField(), game.getTeam1(), game.getCurrentTeam());
-        for (String line : lines) {
-            System.out.println(line);
-        }
-        ShowCommand.printShow(game);
+        ShowCommand.printBoardAndShow(game);
     }
 }

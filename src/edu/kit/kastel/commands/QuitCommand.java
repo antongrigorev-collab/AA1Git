@@ -10,8 +10,14 @@ import edu.kit.kastel.exceptions.GameException;
 public class QuitCommand extends Command {
 
     private static final String COMMAND_NAME = "quit";
+    /** Regex for matching the quit command (case-insensitive). */
     private static final String COMMAND_REGEX = "(?i)^quit$";
 
+    /**
+     * Creates the quit command with the given handler.
+     *
+     * @param commandHandler the command handler
+     */
     protected QuitCommand(CommandHandler commandHandler) {
         super(COMMAND_NAME, COMMAND_REGEX, commandHandler);
     }

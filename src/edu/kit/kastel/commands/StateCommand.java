@@ -9,6 +9,8 @@ import java.util.List;
 /**
  * Command "state": prints team names, life points, deck count, board count, the
  * board, and (if a field is selected) the show output for that field.
+ *
+ * @author usylb
  */
 public class StateCommand extends Command {
 
@@ -20,6 +22,11 @@ public class StateCommand extends Command {
     /** Indent for state output lines. */
     private static final String STATE_OUTPUT_INDENT = "  ";
 
+    /**
+     * Creates the state command with the given handler.
+     *
+     * @param commandHandler the command handler
+     */
     protected StateCommand(CommandHandler commandHandler) {
         super(COMMAND_NAME, COMMAND_REGEX, commandHandler);
     }

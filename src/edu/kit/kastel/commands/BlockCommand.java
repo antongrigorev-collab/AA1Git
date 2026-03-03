@@ -14,12 +14,19 @@ import java.util.List;
 /**
  * Command "block": the selected unit starts blocking (counts as a move). The unit
  * must belong to the current team, must not be the King, and must not have moved yet this turn.
+ *
+ * @author usylb
  */
 public class BlockCommand extends Command {
 
     private static final String COMMAND_NAME = "block";
     private static final String COMMAND_REGEX = "(?i)^block$";
 
+    /**
+     * Creates the block command with the given handler.
+     *
+     * @param commandHandler the command handler
+     */
     protected BlockCommand(CommandHandler commandHandler) {
         super(COMMAND_NAME, COMMAND_REGEX, commandHandler);
     }

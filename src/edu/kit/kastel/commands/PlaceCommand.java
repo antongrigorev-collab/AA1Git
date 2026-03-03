@@ -29,6 +29,11 @@ public class PlaceCommand extends Command {
     /** place &lt;idx&gt; [&lt;idx&gt; ...] [&lt;field&gt;] e.g. place 3 or place 3 C2 */
     private static final String COMMAND_REGEX = "(?i)^place\\s+\\d+(\\s+(\\d+|[A-Ga-g][1-7]))*$";
 
+    /**
+     * Creates the place command with the given handler.
+     *
+     * @param commandHandler the command handler
+     */
     protected PlaceCommand(CommandHandler commandHandler) {
         super(COMMAND_NAME, COMMAND_REGEX, commandHandler);
     }

@@ -8,12 +8,19 @@ import java.util.List;
 /**
  * Command "select &lt;field&gt;": selects the given field (A1–G7) and prints the board
  * and show output for that selection.
+ *
+ * @author usylb
  */
 public class SelectCommand extends Command {
 
     private static final String COMMAND_NAME = "select";
     private static final String COMMAND_REGEX = "(?i)^select\\s+[A-Ga-g][1-7]$";
 
+    /**
+     * Creates the select command with the given handler.
+     *
+     * @param commandHandler the command handler
+     */
     protected SelectCommand(CommandHandler commandHandler) {
         super(COMMAND_NAME, COMMAND_REGEX, commandHandler);
     }

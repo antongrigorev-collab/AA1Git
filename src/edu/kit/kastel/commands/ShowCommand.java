@@ -4,9 +4,13 @@ import edu.kit.kastel.exceptions.GameException;
 import edu.kit.kastel.model.Game;
 import edu.kit.kastel.model.Unit;
 
+import java.util.List;
+
 /**
  * Command "show": prints information about the currently selected field (unit name,
  * team, ATK/DEF, or "&lt;no unit&gt;" / Farmer King / ??? for hidden opponent units).
+ *
+ * @author usylb
  */
 public class ShowCommand extends Command {
 
@@ -29,6 +33,11 @@ public class ShowCommand extends Command {
     /** Prefix for DEF display line. */
     private static final String DEF_PREFIX = "DEF: ";
 
+    /**
+     * Creates the show command with the given handler.
+     *
+     * @param commandHandler the command handler
+     */
     protected ShowCommand(CommandHandler commandHandler) {
         super(COMMAND_NAME, COMMAND_REGEX, commandHandler);
     }
@@ -38,6 +47,21 @@ public class ShowCommand extends Command {
         Game game = commandHandler.getGame();
         if (game == null) {
             return;
+        }
+        printShow(game);
+    }
+
+    /**
+     * Prints the game board and then the show output for the current selection.
+     * Reused after move/place and by the AI opponent.
+     *
+     * @param game the game (must not be null)
+     */
+    public static void printBoardAndShow(Game game) {
+        List<String> lines = game.getGameBoard().render(
+                game.getSelectedField(), game.getTeam1(), game.getCurrentTeam());
+        for (String line : lines) {
+            System.out.println(line);
         }
         printShow(game);
     }

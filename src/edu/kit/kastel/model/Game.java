@@ -35,7 +35,6 @@ public class Game {
      */
     public record YieldResult(Unit discarded, Team yieldingTeam,
                              boolean newTeamDeckEmpty, Team winner) { }
-
     private static final int INITIAL_HAND_SIZE = 4;
     private static final int MAX_HAND_SIZE = 5;
     private static final int CARDS_DRAWN_PER_TURN = 1;
@@ -57,7 +56,6 @@ public class Game {
     private Field selectedField;
     private boolean gameOver;
 
-
     /**
      * Constructs a new game from the given configuration. Creates the board, both
      * teams, and sets the current team to team 1. Does not fill decks or place units;
@@ -77,7 +75,6 @@ public class Game {
         this.currentTeam = team1;
         this.selectedField = null;
         this.gameOver = false;
-
     }
 
     /**
@@ -131,38 +128,22 @@ public class Game {
         }
     }
 
-    /**
-     * Returns the game board.
-     *
-     * @return the game board
-     */
+    /** Returns the game board. @return the game board */
     public GameBoard getGameBoard() {
         return gameBoard;
     }
 
-    /**
-     * Returns team 1 (the player team).
-     *
-     * @return team 1
-     */
+    /** Returns team 1 (the player team). @return team 1 */
     public Team getTeam1() {
         return team1;
     }
 
-    /**
-     * Returns team 2 (the opponent team).
-     *
-     * @return team 2
-     */
+    /** Returns team 2 (the opponent team). @return team 2 */
     public Team getTeam2() {
         return team2;
     }
 
-    /**
-     * Returns the team that is currently allowed to act.
-     *
-     * @return the current team
-     */
+    /** Returns the team that is currently allowed to act. @return the current team */
     public Team getCurrentTeam() {
         return currentTeam;
     }
