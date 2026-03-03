@@ -9,6 +9,8 @@ import java.util.List;
 /**
  * Command "hand": prints a 1-based numbered list of the current team's hand
  * with unit name and ATK/DEF for each card.
+ *
+ * @author usylb
  */
 public class HandCommand extends Command {
 
@@ -22,6 +24,11 @@ public class HandCommand extends Command {
     private static final String UNIT_STATS_SEPARATOR = "/";
     private static final String UNIT_STATS_SUFFIX = ")";
 
+    /**
+     * Creates the hand command and binds it to the given handler.
+     *
+     * @param commandHandler the command handler
+     */
     protected HandCommand(CommandHandler commandHandler) {
         super(COMMAND_NAME, COMMAND_REGEX, commandHandler);
     }

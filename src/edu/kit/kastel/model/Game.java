@@ -305,7 +305,11 @@ public class Game {
         return DuelResolver.performDuel(ctx);
     }
 
-    /** Called by {@link DuelResolver} after damage; sets gameOver and returns winner if a team is dead. */
+    /**
+     * Called by {@link DuelResolver} after damage; sets gameOver and returns winner if a team is dead.
+     *
+     * @return the winning team if a team has 0 LP, otherwise null
+     */
     Team checkGameOver() {
         if (team1.isDead()) {
             gameOver = true;
@@ -366,7 +370,12 @@ public class Game {
         return Math.abs(row - kr) <= 1 && Math.abs(col - kc) <= 1;
     }
 
-    /** Parses "A1"-"G7" to row,col. Row 1 = index 0. */
+    /**
+     * Parses "A1"-"G7" to row,col. Row 1 = index 0.
+     *
+     * @param coord field identifier A1 to G7
+     * @return int array [row, col] or null if invalid
+     */
     public static int[] parseField(String coord) {
         String u = coord.strip().toUpperCase();
         if (u.length() != 2 || u.charAt(0) < 'A' || u.charAt(0) > 'G' || u.charAt(1) < '1' || u.charAt(1) > '7') {
@@ -377,7 +386,12 @@ public class Game {
         return new int[] { row, col };
     }
 
-    /** Returns current [row, col] of the given team's king, or null if not found. */
+    /**
+     * Returns current [row, col] of the given team's king, or null if not found.
+     *
+     * @param team the team whose king position is returned
+     * @return int array [row, col] or null if not found
+     */
     public int[] getKingPosition(Team team) {
         Unit king = team.getKing();
         for (int r = 0; r < GameBoard.SIZE; r++) {

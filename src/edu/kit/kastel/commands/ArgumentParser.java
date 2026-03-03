@@ -13,7 +13,7 @@ import java.util.Map;
  *
  * @author Programmieren-Team
  */
-public class ArgumentParser {
+public final class ArgumentParser {
 
     /** Key-value separator in program arguments (e.g. seed=123). */
     private static final char ARGUMENT_KEY_VALUE_SEPARATOR = '=';
@@ -26,6 +26,7 @@ public class ArgumentParser {
      *
      * @param args the raw command-line arguments
      * @return a map from key to value (no duplicates)
+     * @throws StartupException            if argument format is invalid or a key is duplicated
      * @throws InvalidArgumentException   if an argument has invalid format
      * @throws DuplicateArgumentException if a key appears more than once
      */

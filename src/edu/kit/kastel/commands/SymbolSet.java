@@ -3,6 +3,8 @@ package edu.kit.kastel.commands;
 /**
  * Holds the set of characters used to render the game board. Supports either
  * the standard set (+, -, |) or a custom set of 29 symbols read from a file.
+ *
+ * @author usylb
  */
 public class SymbolSet {
 

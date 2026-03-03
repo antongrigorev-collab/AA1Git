@@ -15,12 +15,19 @@ import java.util.List;
  * Command "flip": reveals the selected unit (shows name and ATK/DEF to both teams).
  * The unit must belong to the current team, must not have moved this turn, and must
  * not already be revealed. Does not count as a move.
+ *
+ * @author usylb
  */
 public class FlipCommand extends Command {
 
     private static final String COMMAND_NAME = "flip";
     private static final String COMMAND_REGEX = "(?i)^flip$";
 
+    /**
+     * Creates the flip command and binds it to the given handler.
+     *
+     * @param commandHandler the command handler
+     */
     protected FlipCommand(CommandHandler commandHandler) {
         super(COMMAND_NAME, COMMAND_REGEX, commandHandler);
     }

@@ -3,6 +3,8 @@ package edu.kit.kastel.commands;
 /**
  * Controls how the board is printed: full grid with separator lines (ALL) or
  * compact lines without separator lines (COMPACT).
+ *
+ * @author usylb
  */
 public enum VerbosityMode {
     /** Full board output with all connector lines. */
