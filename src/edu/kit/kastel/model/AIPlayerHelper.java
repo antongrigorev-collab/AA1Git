@@ -12,6 +12,9 @@ import java.util.Random;
  */
 final class AIPlayerHelper {
 
+    static final int EN_PLACE_SENTINEL_ROW = -1;
+    static final int EN_PLACE_SENTINEL_COL = -1;
+
     private static final int ADVANCE_SCORE_STEPS_MULTIPLIER = 10;
     private static final int PENALTY_ATTACKING_HIDDEN_UNIT = 500;
     private static final int ATTACK_DIFFERENCE_MULTIPLIER = 2;
@@ -29,8 +32,6 @@ final class AIPlayerHelper {
     private static final int SCORE_ZERO = 0;
     private static final int MIN_BLOCK_SCORE = 1;
     private static final int MIN_EN_PLACE_SCORE = 0;
-    static final int EN_PLACE_SENTINEL_ROW = -1;
-    static final int EN_PLACE_SENTINEL_COL = -1;
 
     /**
      * Context for merge/eliminate action (game, units, coordinates, target field).
