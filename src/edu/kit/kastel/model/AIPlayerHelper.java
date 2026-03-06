@@ -24,6 +24,33 @@ final class AIPlayerHelper {
     /** Divisor for block/en-place score scaling from status values (A.2). */
     private static final int AI_SCORE_STATUS_DIVISOR = 100;
 
+    /** Message format when a unit no longer blocks. */
+    private static final String NO_LONGER_BLOCKS_MESSAGE_FORMAT = "%s no longer blocks.";
+
+    /** Message format when a unit moves to a field. */
+    private static final String MOVES_TO_MESSAGE_FORMAT = "%s moves to %s.";
+
+    /** Message format when two units join forces on a field. */
+    private static final String JOIN_FORCES_MESSAGE_FORMAT = "%s and %s on %s join forces!";
+
+    /** Message printed when a merge was successful. */
+    private static final String SUCCESS_MESSAGE = "Success!";
+
+    /** Message format when a merge failed and one unit was eliminated. */
+    private static final String UNION_FAILED_MESSAGE_FORMAT = "Union failed. %s was eliminated.";
+
+    /** Message format when a team places a unit on a field. */
+    private static final String PLACES_ON_MESSAGE_FORMAT = "%s places %s on %s.";
+
+    /** Message format when a just placed unit is eliminated due to board limit. */
+    private static final String JUST_PLACED_ELIMINATED_MESSAGE_FORMAT = "%s was eliminated!";
+
+    /**
+     * Context for merge/eliminate action (game, units, coordinates, target field).
+     */
+    record MergeActionContext(Game game, Unit unit, Unit defender,
+                             int fromRow, int fromCol, int toRow, int toCol, Field toField) { }
+
     /**
      * Options (target coordinates) and scores for one unit's possible moves (A.2).
      * Order: up, right, down, left, block (same cell), en place (special -1,-1).
@@ -256,5 +283,89 @@ final class AIPlayerHelper {
         options.add(new int[] { -1, -1 });
         scores.add(enPlaceScore);
         return new UnitMoveOption(options, scores);
+    }
+
+    /**
+     * Executes merge (if compatible) or eliminate defender on same-team field.
+     *
+     * @param ctx context (game, unit, defender, coordinates, target field)
+     */
+    static void executeMergeOrEliminate(MergeActionContext ctx) {
+        if (ctx.unit().isBlocked()) {
+            ctx.unit().setBlocked(false);
+            System.out.println(String.format(NO_LONGER_BLOCKS_MESSAGE_FORMAT, ctx.unit().getName()));
+        }
+        Compatibility.MergeStats stats = Compatibility.check(ctx.unit(), ctx.defender());
+        if (stats != null) {
+            Unit merged = Game.createMergedUnit(ctx.unit(), ctx.defender(), stats);
+            merged.setTeam(ctx.game().getCurrentTeam());
+            merged.setMovedThisTurn(false);
+            ctx.game().getGameBoard().getField(ctx.fromRow(), ctx.fromCol()).removeUnit();
+            ctx.toField().removeUnit();
+            ctx.game().getGameBoard().placeUnit(ctx.toRow(), ctx.toCol(), merged);
+            ctx.game().setSelectedField(ctx.toField());
+            System.out.println(String.format(MOVES_TO_MESSAGE_FORMAT, ctx.unit().getName(),
+                    ctx.toField().coordinate()));
+            System.out.println(String.format(JOIN_FORCES_MESSAGE_FORMAT, ctx.unit().getName(),
+                    ctx.defender().getName(), ctx.toField().coordinate()));
+            System.out.println(SUCCESS_MESSAGE);
+        } else {
+            ctx.game().getGameBoard().getField(ctx.fromRow(), ctx.fromCol()).removeUnit();
+            ctx.toField().removeUnit();
+            ctx.game().getGameBoard().placeUnit(ctx.toRow(), ctx.toCol(), ctx.unit());
+            ctx.unit().setMovedThisTurn(true);
+            ctx.game().setSelectedField(ctx.toField());
+            System.out.println(String.format(MOVES_TO_MESSAGE_FORMAT, ctx.unit().getName(),
+                    ctx.toField().coordinate()));
+            System.out.println(String.format(JOIN_FORCES_MESSAGE_FORMAT, ctx.unit().getName(),
+                    ctx.defender().getName(), ctx.toField().coordinate()));
+            System.out.println(String.format(UNION_FAILED_MESSAGE_FORMAT, ctx.defender().getName()));
+        }
+    }
+
+    /**
+     * Places one unit from the current team's hand onto the given field (merge or eliminate as per A.2).
+     *
+     * @param game      game state
+     * @param handIndex 1-based hand index
+     * @param row       row
+     * @param col       column
+     */
+    static void placeUnit(Game game, int handIndex, int row, int col) {
+        Unit unit = game.getCurrentTeam().getHand().get(handIndex);
+        if (unit == null) {
+            return;
+        }
+        game.getCurrentTeam().getHand().remove(handIndex);
+        game.getCurrentTeam().getHand().markPlacedThisTurn();
+        unit.setTeam(game.getCurrentTeam());
+        Field field = game.getGameBoard().getField(row, col);
+        Unit current = field.getUnit();
+        System.out.println(String.format(PLACES_ON_MESSAGE_FORMAT,
+                game.getCurrentTeam().getName(), unit.getName(), field.coordinate()));
+        if (current == null) {
+            game.getGameBoard().placeUnit(row, col, unit);
+        } else {
+            System.out.println(String.format(JOIN_FORCES_MESSAGE_FORMAT, unit.getName(),
+                    current.getName(), field.coordinate()));
+            Compatibility.MergeStats stats = Compatibility.check(unit, current);
+            if (stats != null) {
+                Unit merged = Game.createMergedUnit(unit, current, stats);
+                merged.setTeam(game.getCurrentTeam());
+                merged.setMovedThisTurn(false);
+                field.removeUnit();
+                game.getGameBoard().placeUnit(row, col, merged);
+                System.out.println(SUCCESS_MESSAGE);
+            } else {
+                field.removeUnit();
+                game.getGameBoard().placeUnit(row, col, unit);
+                System.out.println(String.format(UNION_FAILED_MESSAGE_FORMAT, current.getName()));
+            }
+        }
+        if (game.getBoardCount(game.getCurrentTeam()) > Game.MAX_NON_KING_UNITS_ON_BOARD) {
+            Unit justPlaced = game.getGameBoard().getField(row, col).getUnit();
+            game.getGameBoard().getField(row, col).removeUnit();
+            System.out.println(String.format(JUST_PLACED_ELIMINATED_MESSAGE_FORMAT, justPlaced.getName()));
+        }
     }
 }
