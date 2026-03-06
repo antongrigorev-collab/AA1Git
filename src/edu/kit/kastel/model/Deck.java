@@ -12,6 +12,10 @@ import java.util.Random;
  * @author usylb
  */
 public class Deck {
+
+    /** Index of the top card in the list (drawn first). */
+    private static final int TOP_CARD_INDEX = 0;
+
     private final List<Unit> cards = new ArrayList<>();
 
     /**
@@ -59,6 +63,6 @@ public class Deck {
         if (cards.isEmpty()) {
             return null;
         }
-        return cards.remove(0);
+        return cards.remove(TOP_CARD_INDEX);
     }
 }

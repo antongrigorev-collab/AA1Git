@@ -28,6 +28,9 @@ public class ShowCommand extends Command {
     /** Prefix for unit team display. */
     private static final String TEAM_DISPLAY_PREFIX = " (Team ";
 
+    /** Closing parenthesis for team display line. */
+    private static final String TEAM_DISPLAY_SUFFIX_CLOSE = ")";
+
     /** Prefix for ATK display line. */
     private static final String ATK_PREFIX = "ATK: ";
 
@@ -88,12 +91,12 @@ public class ShowCommand extends Command {
             return;
         }
         if (!u.isRevealed() && !u.getTeam().equals(game.getCurrentTeam())) {
-            System.out.println(HIDDEN_UNIT_PLACEHOLDER + TEAM_DISPLAY_PREFIX + u.getTeam().getName() + ")");
+            System.out.println(HIDDEN_UNIT_PLACEHOLDER + TEAM_DISPLAY_PREFIX + u.getTeam().getName() + TEAM_DISPLAY_SUFFIX_CLOSE);
             System.out.println(ATK_PREFIX + HIDDEN_UNIT_PLACEHOLDER);
             System.out.println(DEF_PREFIX + HIDDEN_UNIT_PLACEHOLDER);
             return;
         }
-        System.out.println(u.getName() + TEAM_DISPLAY_PREFIX + u.getTeam().getName() + ")");
+        System.out.println(u.getName() + TEAM_DISPLAY_PREFIX + u.getTeam().getName() + TEAM_DISPLAY_SUFFIX_CLOSE);
         System.out.println(ATK_PREFIX + u.getAtk());
         System.out.println(DEF_PREFIX + u.getDef());
     }

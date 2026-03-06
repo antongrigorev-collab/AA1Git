@@ -41,9 +41,19 @@ public class Game {
     private static final int KING_TEAM1_ROW = 0;
     private static final int KING_TEAM2_ROW = 6;
     private static final int KING_COL = 3;
-
-    /** Separator between name parts in merged unit (A.1.9). */
     private static final String MERGED_NAME_PART_SEPARATOR = " ";
+    private static final int START_INDEX = 0;
+    private static final int INDEX_COL = 1;
+    private static final int MIN_HAND_INDEX = 1;
+    private static final int ADJACENT_MAX_OFFSET = 1;
+    private static final int FIELD_COORD_LENGTH = 2;
+    private static final char COLUMN_MIN = 'A';
+    private static final char COLUMN_MAX = 'G';
+    private static final char ROW_CHAR_MIN = '1';
+    private static final char ROW_CHAR_MAX = '7';
+    private static final int CHAR_INDEX_COL = 0;
+    private static final int CHAR_INDEX_ROW = 1;
+    private static final String INITIAL_HAND_DRAW_FAILED_MESSAGE = "Initial hand draw failed";
 
     private final GameConfig config;
     private final Random random;
@@ -105,10 +115,10 @@ public class Game {
 
     private void fillDeck(Team team, List<Integer> counts) {
         var units = config.units();
-        for (int i = 0; i < units.size(); i++) {
+        for (int i = START_INDEX; i < units.size(); i++) {
             UnitTemplate t = units.get(i);
             int n = counts.get(i);
-            for (int k = 0; k < n; k++) {
+            for (int k = START_INDEX; k < n; k++) {
                 team.getDeck().add(new BasicUnit(t.qualifier(), t.role(), t.atk(), t.def()));
             }
         }
@@ -116,12 +126,12 @@ public class Game {
 
     private void drawToHand(Team team, int count)
             throws InitializationException, HandFullMustDiscardException {
-        for (int i = 0; i < count; i++) {
+        for (int i = START_INDEX; i < count; i++) {
             Unit unit = team.getDeck().draw();
             if (unit != null) {
                 unit.setTeam(team);
                 if (team.getHand().isFull()) {
-                    throw new InitializationException("Initial hand draw failed");
+                    throw new InitializationException(INITIAL_HAND_DRAW_FAILED_MESSAGE);
                 }
                 team.getHand().add(unit, team.getName());
             }
@@ -203,9 +213,9 @@ public class Game {
      * @return count of that team's non-King units on the board
      */
     public int getBoardCount(Team team) {
-        int count = 0;
-        for (int row = 0; row < GameBoard.SIZE; row++) {
-            for (int col = 0; col < GameBoard.SIZE; col++) {
+        int count = START_INDEX;
+        for (int row = START_INDEX; row < GameBoard.SIZE; row++) {
+            for (int col = START_INDEX; col < GameBoard.SIZE; col++) {
                 Unit u = gameBoard.getField(row, col).getUnit();
                 if (u != null && team.equals(u.getTeam()) && !u.isKing()) {
                     count++;
@@ -238,7 +248,7 @@ public class Game {
         if (discardHandIndex != null && handSize < MAX_HAND_SIZE) {
             throw new CannotDiscardException();
         }
-        if (discardHandIndex != null && (discardHandIndex < 1 || discardHandIndex > handSize)) {
+        if (discardHandIndex != null && (discardHandIndex < MIN_HAND_INDEX || discardHandIndex > handSize)) {
             throw new InvalidHandIndexException(discardHandIndex);
         }
 
@@ -268,8 +278,8 @@ public class Game {
 
     private void resetTurnStateFor(Team team) {
         team.getHand().resetTurn();
-        for (int row = 0; row < GameBoard.SIZE; row++) {
-            for (int col = 0; col < GameBoard.SIZE; col++) {
+        for (int row = START_INDEX; row < GameBoard.SIZE; row++) {
+            for (int col = START_INDEX; col < GameBoard.SIZE; col++) {
                 Unit u = gameBoard.getField(row, col).getUnit();
                 if (u != null && team.equals(u.getTeam())) {
                     u.setMovedThisTurn(false);
@@ -342,7 +352,7 @@ public class Game {
      * @return true if the two fields are adjacent or the same
      */
     public static boolean isAdjacent(int fromRow, int fromCol, int toRow, int toCol) {
-        return Math.abs(fromRow - toRow) + Math.abs(fromCol - toCol) <= 1;
+        return Math.abs(fromRow - toRow) + Math.abs(fromCol - toCol) <= ADJACENT_MAX_OFFSET;
     }
 
     /**
@@ -358,9 +368,9 @@ public class Game {
         if (kingPos == null) {
             return false;
         }
-        int kr = kingPos[0];
-        int kc = kingPos[1];
-        return Math.abs(row - kr) <= 1 && Math.abs(col - kc) <= 1;
+        int kr = kingPos[START_INDEX];
+        int kc = kingPos[INDEX_COL];
+        return Math.abs(row - kr) <= ADJACENT_MAX_OFFSET && Math.abs(col - kc) <= ADJACENT_MAX_OFFSET;
     }
 
     /**
@@ -371,11 +381,13 @@ public class Game {
      */
     public static int[] parseField(String coord) {
         String u = coord.strip().toUpperCase();
-        if (u.length() != 2 || u.charAt(0) < 'A' || u.charAt(0) > 'G' || u.charAt(1) < '1' || u.charAt(1) > '7') {
+        if (u.length() != FIELD_COORD_LENGTH || u.charAt(CHAR_INDEX_COL) < COLUMN_MIN
+                || u.charAt(CHAR_INDEX_COL) > COLUMN_MAX || u.charAt(CHAR_INDEX_ROW) < ROW_CHAR_MIN
+                || u.charAt(CHAR_INDEX_ROW) > ROW_CHAR_MAX) {
             return null;
         }
-        int col = u.charAt(0) - 'A';
-        int row = u.charAt(1) - '1';
+        int col = u.charAt(CHAR_INDEX_COL) - COLUMN_MIN;
+        int row = u.charAt(CHAR_INDEX_ROW) - ROW_CHAR_MIN;
         return new int[] { row, col };
     }
 
@@ -387,8 +399,8 @@ public class Game {
      */
     public int[] getKingPosition(Team team) {
         Unit king = team.getKing();
-        for (int r = 0; r < GameBoard.SIZE; r++) {
-            for (int c = 0; c < GameBoard.SIZE; c++) {
+        for (int r = START_INDEX; r < GameBoard.SIZE; r++) {
+            for (int c = START_INDEX; c < GameBoard.SIZE; c++) {
                 Unit u = gameBoard.getField(r, c).getUnit();
                 if (u == king) {
                     return new int[] { r, c };

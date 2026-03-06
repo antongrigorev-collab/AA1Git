@@ -17,55 +17,21 @@ import java.util.Random;
  */
 public final class AIPlayer {
 
-    /** King move score: weight for enemy-adjacent penalty (A.2). */
     private static final int KING_SCORE_ENEMY_WEIGHT = 2;
-
-    /** King move score: weight for fellow-on-field penalty (A.2). */
     private static final int KING_SCORE_FELLOW_PRESENT_WEIGHT = 3;
-
-    /** Place phase score: weight for adjacent enemies (A.2). */
     private static final int PLACE_SCORE_ENEMY_WEIGHT = 2;
-
-    /** Directions around the king in clockwise order (dr, dc) for place phase. */
-    private static final int[][] CLOCKWISE_DIRS = {
-        {1, 0}, {1, 1}, {0, 1}, {-1, 1},
-        {-1, 0}, {-1, -1}, {0, -1}, {1, -1}
-    };
-
-    /** Index of block option in move options list (after 4 cardinal directions). */
+    private static final int[][] CLOCKWISE_DIRS = {{1, 0}, {1, 1}, {0, 1}, {-1, 1}, {-1, 0}, {-1, -1}, {0, -1}, {1, -1}};
     private static final int BLOCK_OPTION_INDEX = 4;
-
-    /** Index of en-place option in move options list. */
     private static final int EN_PLACE_OPTION_INDEX = 5;
-
-    /** Hand size at which discard is required before yield (A.1.5). */
     private static final int MAX_HAND_SIZE_BEFORE_DISCARD = 5;
-
-    /** Message format when a unit blocks on a field. */
     private static final String BLOCKS_MESSAGE_FORMAT = "%s (%s) blocks!";
-
-    /** Message format when a unit no longer blocks. */
     private static final String NO_LONGER_BLOCKS_MESSAGE_FORMAT = "%s no longer blocks.";
-
-    /** Message format when a unit moves to a field. */
     private static final String MOVES_TO_MESSAGE_FORMAT = "%s moves to %s.";
-
-    /** Message format when a team discards a unit on yield. */
     private static final String DISCARDED_UNIT_MESSAGE_FORMAT = "%s discarded %s (%d/%d).";
-
-    /** Message format announcing which team's turn it is. */
     private static final String TURN_ANNOUNCEMENT_MESSAGE_FORMAT = "It is %s's turn!";
-
-    /** Message format when a team has no cards left in the deck. */
     private static final String NO_CARDS_LEFT_MESSAGE_FORMAT = "%s has no cards left in the deck!";
-
-    /** Message format when a team wins the game. */
     private static final String WINS_MESSAGE_FORMAT = "%s wins!";
-
-    /** Context for the place phase (king position, enemy king, RNG). */
     private record PlacePhaseContext(Game game, Team ai, Team enemy, int kr, int kc, int ekr, int ekc, Random rnd) { }
-
-    /** Collected data for one unit-move round: movable units, positions, and their option scores. */
     private record UnitMoveRoundData(List<Unit> movable, List<int[]> positions,
                                      List<Integer> unitTotalScores, List<List<int[]>> unitOptions,
                                      List<List<Integer>> unitOptionScores) { }
@@ -220,7 +186,7 @@ public final class AIPlayer {
         List<int[]> opts = data.unitOptions().get(chosenUnit);
         int tr = opts.get(moveIdx)[0];
         int tc = opts.get(moveIdx)[1];
-        if (tr == -1 && tc == -1) {
+        if (tr == AIPlayerHelper.EN_PLACE_SENTINEL_ROW && tc == AIPlayerHelper.EN_PLACE_SENTINEL_COL) {
             System.out.println(String.format(MOVES_TO_MESSAGE_FORMAT, u.getName(),
                     game.getGameBoard().getField(ur, uc).coordinate()));
             u.setMovedThisTurn(true);

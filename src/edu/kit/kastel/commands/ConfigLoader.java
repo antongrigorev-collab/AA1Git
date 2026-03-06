@@ -148,6 +148,33 @@ public final class ConfigLoader {
     /** Context label for defense value parsing. */
     private static final String CONTEXT_DEF = "DEF";
 
+    /** Context label for deck count parsing. */
+    private static final String CONTEXT_DECK_COUNT = "deck count";
+
+    /** Verbosity value for full output (A.3). */
+    private static final String VERBOSITY_ALL = "all";
+
+    /** Verbosity value for compact output (A.3). */
+    private static final String VERBOSITY_COMPACT = "compact";
+
+    /** Index of qualifier in unit line parts. */
+    private static final int INDEX_QUALIFIER = 0;
+
+    /** Index of role in unit line parts. */
+    private static final int INDEX_ROLE = 1;
+
+    /** Index of ATK in unit line parts. */
+    private static final int INDEX_ATK = 2;
+
+    /** Index of DEF in unit line parts. */
+    private static final int INDEX_DEF = 3;
+
+    /** Index of first line in a file. */
+    private static final int INDEX_FIRST_LINE = 0;
+
+    /** Initial value for deck count sum. */
+    private static final int INITIAL_DECK_SUM = 0;
+
     /**
      * Allowed configuration keys as specified in A.3 (for unknown-parameter detection).
      */
@@ -261,10 +288,10 @@ public final class ConfigLoader {
             if (parts.length != EXPECTED_UNIT_FIELDS_COUNT) {
                 throw new InvalidUnitsFileException(ERROR_UNITS_FILE_FIELD_COUNT);
             }
-            String qualifier = parts[0].strip();
-            String role = parts[1].strip();
-            int atk = parseNonNegativeInt(parts[2].strip(), CONTEXT_ATK);
-            int def = parseNonNegativeInt(parts[3].strip(), CONTEXT_DEF);
+            String qualifier = parts[INDEX_QUALIFIER].strip();
+            String role = parts[INDEX_ROLE].strip();
+            int atk = parseNonNegativeInt(parts[INDEX_ATK].strip(), CONTEXT_ATK);
+            int def = parseNonNegativeInt(parts[INDEX_DEF].strip(), CONTEXT_DEF);
             units.add(new UnitTemplate(qualifier, role, atk, def));
         }
         return List.copyOf(units);
@@ -276,9 +303,9 @@ public final class ConfigLoader {
             throw new InvalidDeckFileException(ERROR_DECK_LINE_COUNT_MISMATCH);
         }
         List<Integer> counts = new ArrayList<>();
-        int sum = 0;
+        int sum = INITIAL_DECK_SUM;
         for (String line : lines) {
-            int count = parseNonNegativeInt(line.strip(), "deck count");
+            int count = parseNonNegativeInt(line.strip(), CONTEXT_DECK_COUNT);
             counts.add(count);
             sum += count;
         }
@@ -318,8 +345,8 @@ public final class ConfigLoader {
     private static VerbosityMode parseVerbosity(String v) throws InvalidArgumentException {
         String x = v.toLowerCase();
         return switch (x) {
-            case "all" -> VerbosityMode.ALL;
-            case "compact" -> VerbosityMode.COMPACT;
+            case VERBOSITY_ALL -> VerbosityMode.ALL;
+            case VERBOSITY_COMPACT -> VerbosityMode.COMPACT;
             default -> throw new InvalidArgumentException(ERROR_INVALID_VERBOSITY_PREFIX + v);
         };
     }
@@ -329,7 +356,7 @@ public final class ConfigLoader {
         if (lines.isEmpty()) {
             throw new InvalidBoardFileException(ERROR_EMPTY_BOARD_FILE);
         }
-        String line = lines.get(0);
+        String line = lines.get(INDEX_FIRST_LINE);
         if (line.length() != EXPECTED_BOARD_SYMBOL_COUNT) {
             throw new InvalidBoardFileException(ERROR_INVALID_BOARD_SYMBOL_COUNT);
         }

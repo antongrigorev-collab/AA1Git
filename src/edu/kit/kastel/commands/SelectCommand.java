@@ -19,6 +19,15 @@ public class SelectCommand extends Command {
     private static final char MIN_COLUMN_CHAR = 'A';
     private static final int ROW_INDEX_OFFSET = 1;
 
+    /** Index of the first (and only) argument (field). */
+    private static final int INDEX_FIRST_ARG = 0;
+
+    /** Index of first character in field string (column letter). */
+    private static final int INDEX_FIRST_CHAR = 0;
+
+    /** Start index for row substring in field string (digit part). */
+    private static final int SUBSTRING_ROW_START = 1;
+
     /**
      * Creates the select command with the given handler.
      *
@@ -34,9 +43,9 @@ public class SelectCommand extends Command {
         if (game == null) {
             return;
         }
-        String fieldStr = commandArguments[0].toUpperCase();
-        int col = fieldStr.charAt(0) - MIN_COLUMN_CHAR;
-        int row = Integer.parseInt(fieldStr.substring(1)) - ROW_INDEX_OFFSET;
+        String fieldStr = commandArguments[INDEX_FIRST_ARG].toUpperCase();
+        int col = fieldStr.charAt(INDEX_FIRST_CHAR) - MIN_COLUMN_CHAR;
+        int row = Integer.parseInt(fieldStr.substring(SUBSTRING_ROW_START)) - ROW_INDEX_OFFSET;
         game.setSelectedField(game.getGameBoard().getField(row, col));
         List<String> lines = game.getGameBoard().render(game.getSelectedField(), game.getTeam1(), game.getCurrentTeam());
         for (String line : lines) {

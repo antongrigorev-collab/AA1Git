@@ -14,6 +14,15 @@ public final class Compatibility {
     /** Divisor for converting status values to prime-check index (A.1.10 Primkompatibilität). */
     private static final int STATUS_VALUE_SCALE = 100;
 
+    /** Remainder meaning divisible (for modulo checks). */
+    private static final int REMAINDER_ZERO = 0;
+
+    /** Smallest prime number (used in prime check). */
+    private static final int SMALLEST_PRIME = 2;
+
+    /** GCD loop terminates when remainder is this. */
+    private static final int GCD_TERMINATE_WHEN = 0;
+
     private Compatibility() { }
 
     /**
@@ -53,9 +62,9 @@ public final class Compatibility {
             return new MergeStats(atkA + atkB - ggt, defA + defB - ggt);
         }
         if (ggt == CONSPIRATIVE_GGT_THRESHOLD) {
-            boolean atkPrime = atkA % STATUS_VALUE_SCALE == 0 && atkB % STATUS_VALUE_SCALE == 0
+            boolean atkPrime = atkA % STATUS_VALUE_SCALE == REMAINDER_ZERO && atkB % STATUS_VALUE_SCALE == REMAINDER_ZERO
                     && isPrime(atkA / STATUS_VALUE_SCALE) && isPrime(atkB / STATUS_VALUE_SCALE);
-            boolean defPrime = defA % STATUS_VALUE_SCALE == 0 && defB % STATUS_VALUE_SCALE == 0
+            boolean defPrime = defA % STATUS_VALUE_SCALE == REMAINDER_ZERO && defB % STATUS_VALUE_SCALE == REMAINDER_ZERO
                     && isPrime(defA / STATUS_VALUE_SCALE) && isPrime(defB / STATUS_VALUE_SCALE);
             if (atkPrime || defPrime) {
                 return new MergeStats(atkA + atkB, defA + defB);
@@ -67,7 +76,7 @@ public final class Compatibility {
     private static int gcd(int a, int b) {
         int x = Math.abs(a);
         int y = Math.abs(b);
-        while (y != 0) {
+        while (y != GCD_TERMINATE_WHEN) {
             int t = y;
             y = x % y;
             x = t;
@@ -76,11 +85,11 @@ public final class Compatibility {
     }
 
     private static boolean isPrime(int n) {
-        if (n < 2) {
+        if (n < SMALLEST_PRIME) {
             return false;
         }
-        for (int i = 2; i * i <= n; i++) {
-            if (n % i == 0) {
+        for (int i = SMALLEST_PRIME; i * i <= n; i++) {
+            if (n % i == REMAINDER_ZERO) {
                 return false;
             }
         }

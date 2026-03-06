@@ -11,6 +11,15 @@ public class SymbolSet {
     /** Number of symbols required for custom board display (A.3.1). */
     private static final int CUSTOM_SYMBOL_SET_SIZE = 29;
 
+    /** Standard horizontal line character for ASCII board. */
+    private static final char STANDARD_HORIZONTAL = '-';
+
+    /** Standard vertical line character for ASCII board. */
+    private static final char STANDARD_VERTICAL = '|';
+
+    /** Standard corner character for ASCII board. */
+    private static final char STANDARD_CORNER = '+';
+
     private final char[] symbols;
 
     /**
@@ -46,9 +55,8 @@ public class SymbolSet {
      * @return the standard symbol set
      */
     public static SymbolSet standard() {
-        final char horizontal = '-';
-        final char vertical = '|';
-        final char corner = '+';
-        return new SymbolSet(new char[] {corner, horizontal, vertical});
+        return new SymbolSet(new char[] {
+            STANDARD_CORNER, STANDARD_HORIZONTAL, STANDARD_VERTICAL
+        });
     }
 }

@@ -24,6 +24,12 @@ public final class ArgumentParser {
     /** Minimal required length of the value part after the '=' separator. */
     private static final int MIN_VALUE_LENGTH = 1;
 
+    /** Start index for key substring (from beginning of argument). */
+    private static final int INDEX_KEY_START = 0;
+
+    /** Offset after '=' to start of value substring. */
+    private static final int VALUE_START_OFFSET = 1;
+
     /** Prefix for invalid-argument error messages. */
     private static final String INVALID_ARGUMENT_PREFIX = "Invalid argument: ";
 
@@ -46,8 +52,8 @@ public final class ArgumentParser {
             if (eq < MIN_KEY_END_INDEX || arg.length() - eq <= MIN_VALUE_LENGTH) {
                 throw new InvalidArgumentException(INVALID_ARGUMENT_PREFIX + arg);
             }
-            String key = arg.substring(0, eq);
-            String value = arg.substring(eq + 1);
+            String key = arg.substring(INDEX_KEY_START, eq);
+            String value = arg.substring(eq + VALUE_START_OFFSET);
             if (kv.containsKey(key)) {
                 throw new DuplicateArgumentException(key);
             }

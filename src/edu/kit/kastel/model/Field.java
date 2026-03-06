@@ -8,6 +8,12 @@ package edu.kit.kastel.model;
  */
 public final class Field {
 
+    /** First column label (A). */
+    private static final char COLUMN_LABEL_FIRST = 'A';
+
+    /** Display offset: row index 0 is shown as 1. */
+    private static final int ROW_DISPLAY_OFFSET = 1;
+
     private final int row;
     private final int col;
 
@@ -83,8 +89,8 @@ public final class Field {
      * @return the field coordinate
      */
     public String coordinate() {
-        char c = (char) ('A' + col);
-        int r = row + 1;
+        char c = (char) (COLUMN_LABEL_FIRST + col);
+        int r = row + ROW_DISPLAY_OFFSET;
         return "" + c + r;
     }
 }

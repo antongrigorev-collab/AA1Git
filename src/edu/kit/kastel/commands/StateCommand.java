@@ -30,6 +30,9 @@ public class StateCommand extends Command {
     private static final String BOARD_COUNT_SEPARATOR = "/";
     private static final String PADDING_SPACE = " ";
 
+    /** Minimum padding length (no padding when padLen is 0 or less). */
+    private static final int MIN_PADDING_LENGTH = 0;
+
     /**
      * Creates the state command with the given handler.
      *
@@ -69,7 +72,7 @@ public class StateCommand extends Command {
 
     private void printStateLine(String prefix, String left, String right) {
         int padLen = STATE_LINE_LENGTH - prefix.length() - left.length() - right.length();
-        String pad = padLen > 0 ? PADDING_SPACE.repeat(padLen) : "";
+        String pad = padLen > MIN_PADDING_LENGTH ? PADDING_SPACE.repeat(padLen) : "";
         System.out.println(prefix + left + pad + right);
     }
 }

@@ -31,6 +31,9 @@ public class YieldCommand extends Command {
     private static final String NO_CARDS_IN_DECK = " has no cards left in the deck!";
     private static final String WINS = " wins!";
 
+    /** Separator between ATK and DEF in stats output. */
+    private static final String STATS_ATK_DEF_SEPARATOR = "/";
+
     private static final int FIRST_ARGUMENT_INDEX = 0;
 
     /**
@@ -68,7 +71,7 @@ public class YieldCommand extends Command {
             if (result.discarded() != null) {
                 Unit u = result.discarded();
                 System.out.println(result.yieldingTeam().getName() + DISCARDED_SUFFIX
-                        + u.getName() + STATS_PREFIX + u.getAtk() + "/" + u.getDef() + STATS_SUFFIX);
+                        + u.getName() + STATS_PREFIX + u.getAtk() + STATS_ATK_DEF_SEPARATOR + u.getDef() + STATS_SUFFIX);
             }
             System.out.println(IT_IS_TURN + game.getCurrentTeam().getName() + TURN_SUFFIX);
             if (result.newTeamDeckEmpty()) {

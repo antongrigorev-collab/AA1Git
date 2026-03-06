@@ -42,6 +42,15 @@ public class MoveCommand extends Command {
     private static final String UNION_FAILED_PREFIX = "Union failed. ";
     private static final String WAS_ELIMINATED_SUFFIX = " was eliminated!";
 
+    /** Index of the first (and only) argument (target field). */
+    private static final int INDEX_FIRST_ARG = 0;
+
+    /** Index of row in parseField result array. */
+    private static final int INDEX_ROW = 0;
+
+    /** Index of column in parseField result array. */
+    private static final int INDEX_COL = 1;
+
     /**
      * Creates the move command with the given handler.
      *
@@ -71,13 +80,13 @@ public class MoveCommand extends Command {
         if (unit.hasMovedThisTurn()) {
             throw new UnitAlreadyMovedException(unit.getName());
         }
-        String toStr = commandArguments[0].toUpperCase();
+        String toStr = commandArguments[INDEX_FIRST_ARG].toUpperCase();
         int[] toRc = Game.parseField(toStr);
         if (toRc == null) {
-            throw new InvalidFieldException(commandArguments[0]);
+            throw new InvalidFieldException(commandArguments[INDEX_FIRST_ARG]);
         }
-        int toRow = toRc[0];
-        int toCol = toRc[1];
+        int toRow = toRc[INDEX_ROW];
+        int toCol = toRc[INDEX_COL];
         int fromRow = selected.row();
         int fromCol = selected.col();
         if (!Game.isAdjacent(fromRow, fromCol, toRow, toCol)) {

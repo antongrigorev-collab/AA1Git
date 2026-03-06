@@ -17,6 +17,12 @@ public class HandCommand extends Command {
     private static final String COMMAND_NAME = "hand";
     private static final String COMMAND_REGEX = "(?i)^hand$";
 
+    /** Loop start index for iterating hand. */
+    private static final int HAND_LOOP_START = 0;
+
+    /** Offset from 0-based index to 1-based display index. */
+    private static final int HAND_DISPLAY_INDEX_OFFSET = 1;
+
     /** Format for hand list entry: [idx] name (atk/def). */
     private static final String HAND_ENTRY_INDEX_PREFIX = "[";
     private static final String HAND_ENTRY_INDEX_SUFFIX = "] ";
@@ -40,9 +46,9 @@ public class HandCommand extends Command {
             return;
         }
         List<Unit> handUnits = game.getCurrentTeam().getHand().snapshot();
-        for (int i = 0; i < handUnits.size(); i++) {
+        for (int i = HAND_LOOP_START; i < handUnits.size(); i++) {
             Unit u = handUnits.get(i);
-            int idx = i + 1;
+            int idx = i + HAND_DISPLAY_INDEX_OFFSET;
             System.out.println(HAND_ENTRY_INDEX_PREFIX + idx + HAND_ENTRY_INDEX_SUFFIX + u.getName()
                     + UNIT_STATS_PREFIX + u.getAtk() + UNIT_STATS_SEPARATOR + u.getDef() + UNIT_STATS_SUFFIX);
         }

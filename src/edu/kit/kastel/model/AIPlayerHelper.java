@@ -12,38 +12,25 @@ import java.util.Random;
  */
 final class AIPlayerHelper {
 
-    /** Unit move advance score: multiplier for steps toward enemy king (A.2). */
     private static final int ADVANCE_SCORE_STEPS_MULTIPLIER = 10;
-
-    /** Penalty for attacking a hidden (unrevealed) unit (A.2). */
     private static final int PENALTY_ATTACKING_HIDDEN_UNIT = 500;
-
-    /** Standard duel score: multiplier for attack difference (A.2). */
     private static final int ATTACK_DIFFERENCE_MULTIPLIER = 2;
-
-    /** Divisor for block/en-place score scaling from status values (A.2). */
     private static final int AI_SCORE_STATUS_DIVISOR = 100;
-
-    /** Message format when a unit no longer blocks. */
     private static final String NO_LONGER_BLOCKS_MESSAGE_FORMAT = "%s no longer blocks.";
-
-    /** Message format when a unit moves to a field. */
     private static final String MOVES_TO_MESSAGE_FORMAT = "%s moves to %s.";
-
-    /** Message format when two units join forces on a field. */
     private static final String JOIN_FORCES_MESSAGE_FORMAT = "%s and %s on %s join forces!";
-
-    /** Message printed when a merge was successful. */
     private static final String SUCCESS_MESSAGE = "Success!";
-
-    /** Message format when a merge failed and one unit was eliminated. */
     private static final String UNION_FAILED_MESSAGE_FORMAT = "Union failed. %s was eliminated.";
-
-    /** Message format when a team places a unit on a field. */
     private static final String PLACES_ON_MESSAGE_FORMAT = "%s places %s on %s.";
-
-    /** Message format when a just placed unit is eliminated due to board limit. */
     private static final String JUST_PLACED_ELIMINATED_MESSAGE_FORMAT = "%s was eliminated!";
+    private static final int INDEX_ROW = 0;
+    private static final int INDEX_COL = 1;
+    private static final int MIN_BOARD_INDEX = 0;
+    private static final int SCORE_ZERO = 0;
+    private static final int MIN_BLOCK_SCORE = 1;
+    private static final int MIN_EN_PLACE_SCORE = 0;
+    static final int EN_PLACE_SENTINEL_ROW = -1;
+    static final int EN_PLACE_SENTINEL_COL = -1;
 
     /**
      * Context for merge/eliminate action (game, units, coordinates, target field).
@@ -248,16 +235,16 @@ final class AIPlayerHelper {
         List<Integer> scores = new ArrayList<>();
         int[][] dirs = {{ur + 1, uc}, {ur, uc + 1}, {ur - 1, uc}, {ur, uc - 1}};
         for (int[] d : dirs) {
-            int tr = d[0];
-            int tc = d[1];
-            if (tr < 0 || tr >= GameBoard.SIZE || tc < 0 || tc >= GameBoard.SIZE) {
+            int tr = d[INDEX_ROW];
+            int tc = d[INDEX_COL];
+            if (tr < MIN_BOARD_INDEX || tr >= GameBoard.SIZE || tc < MIN_BOARD_INDEX || tc >= GameBoard.SIZE) {
                 options.add(d);
-                scores.add(0);
+                scores.add(SCORE_ZERO);
                 continue;
             }
             Field toField = game.getGameBoard().getField(tr, tc);
             Unit target = toField.getUnit();
-            int score = 0;
+            int score = SCORE_ZERO;
             if (target == null) {
                 int steps = Math.abs(tr - ekr) + Math.abs(tc - ekc);
                 int enemies = countAdjacent4(game, tr, tc, enemy);
@@ -267,7 +254,7 @@ final class AIPlayerHelper {
                 if (stats != null && !target.isKing()) {
                     score = stats.atk() + stats.def() - u.getAtk() - u.getDef();
                 } else {
-                    score = -target.getAtk() - target.getDef();
+                    score = SCORE_ZERO - target.getAtk() - target.getDef();
                 }
             } else {
                 if (target.isKing()) {
@@ -283,13 +270,13 @@ final class AIPlayerHelper {
             options.add(d);
             scores.add(score);
         }
-        int blockScore = (int) Math.max(1, (u.getDef() - maxEnemyAtkInLine(game, ur, uc, enemy))
+        int blockScore = (int) Math.max(MIN_BLOCK_SCORE, (u.getDef() - maxEnemyAtkInLine(game, ur, uc, enemy))
                 / AI_SCORE_STATUS_DIVISOR);
         options.add(new int[] { ur, uc });
         scores.add(blockScore);
-        int enPlaceScore = (int) Math.max(0, (u.getAtk() - maxEnemyAtkInLine(game, ur, uc, enemy))
+        int enPlaceScore = (int) Math.max(MIN_EN_PLACE_SCORE, (u.getAtk() - maxEnemyAtkInLine(game, ur, uc, enemy))
                 / AI_SCORE_STATUS_DIVISOR);
-        options.add(new int[] { -1, -1 });
+        options.add(new int[] { EN_PLACE_SENTINEL_ROW, EN_PLACE_SENTINEL_COL });
         scores.add(enPlaceScore);
         return new UnitMoveOption(options, scores);
     }
@@ -313,8 +300,7 @@ final class AIPlayerHelper {
             ctx.toField().removeUnit();
             ctx.game().getGameBoard().placeUnit(ctx.toRow(), ctx.toCol(), merged);
             ctx.game().setSelectedField(ctx.toField());
-            System.out.println(String.format(MOVES_TO_MESSAGE_FORMAT, ctx.unit().getName(),
-                    ctx.toField().coordinate()));
+            System.out.println(String.format(MOVES_TO_MESSAGE_FORMAT, ctx.unit().getName(), ctx.toField().coordinate()));
             System.out.println(String.format(JOIN_FORCES_MESSAGE_FORMAT, ctx.unit().getName(),
                     ctx.defender().getName(), ctx.toField().coordinate()));
             System.out.println(SUCCESS_MESSAGE);
@@ -324,14 +310,12 @@ final class AIPlayerHelper {
             ctx.game().getGameBoard().placeUnit(ctx.toRow(), ctx.toCol(), ctx.unit());
             ctx.unit().setMovedThisTurn(true);
             ctx.game().setSelectedField(ctx.toField());
-            System.out.println(String.format(MOVES_TO_MESSAGE_FORMAT, ctx.unit().getName(),
-                    ctx.toField().coordinate()));
+            System.out.println(String.format(MOVES_TO_MESSAGE_FORMAT, ctx.unit().getName(), ctx.toField().coordinate()));
             System.out.println(String.format(JOIN_FORCES_MESSAGE_FORMAT, ctx.unit().getName(),
                     ctx.defender().getName(), ctx.toField().coordinate()));
             System.out.println(String.format(UNION_FAILED_MESSAGE_FORMAT, ctx.defender().getName()));
         }
     }
-
     /**
      * Places one unit from the current team's hand onto the given field (merge or eliminate as per A.2).
      *
@@ -350,13 +334,11 @@ final class AIPlayerHelper {
         unit.setTeam(game.getCurrentTeam());
         Field field = game.getGameBoard().getField(row, col);
         Unit current = field.getUnit();
-        System.out.println(String.format(PLACES_ON_MESSAGE_FORMAT,
-                game.getCurrentTeam().getName(), unit.getName(), field.coordinate()));
+        System.out.println(String.format(PLACES_ON_MESSAGE_FORMAT, game.getCurrentTeam().getName(), unit.getName(), field.coordinate()));
         if (current == null) {
             game.getGameBoard().placeUnit(row, col, unit);
         } else {
-            System.out.println(String.format(JOIN_FORCES_MESSAGE_FORMAT, unit.getName(),
-                    current.getName(), field.coordinate()));
+            System.out.println(String.format(JOIN_FORCES_MESSAGE_FORMAT, unit.getName(), current.getName(), field.coordinate()));
             Compatibility.MergeStats stats = Compatibility.check(unit, current);
             if (stats != null) {
                 Unit merged = Game.createMergedUnit(unit, current, stats);
