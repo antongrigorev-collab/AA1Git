@@ -47,6 +47,15 @@ final class AIPlayerHelper {
 
     /**
      * Context for merge/eliminate action (game, units, coordinates, target field).
+     *
+     * @param game     the game state
+     * @param unit     the moving/attacking unit
+     * @param defender the unit on the target field (same team, for merge/eliminate)
+     * @param fromRow  row of the moving unit
+     * @param fromCol  column of the moving unit
+     * @param toRow    row of the target field
+     * @param toCol    column of the target field
+     * @param toField  the target field
      */
     record MergeActionContext(Game game, Unit unit, Unit defender,
                              int fromRow, int fromCol, int toRow, int toCol, Field toField) { }
