@@ -7,12 +7,14 @@ package edu.kit.kastel.exceptions;
  */
 public class FileNotFoundException extends StartupException {
 
+    private static final String FILE_NOT_FOUND_PREFIX = "file not found: ";
+
     /**
      * Constructs a new FileNotFoundException.
      *
      * @param filePath the path that was not found
      */
     public FileNotFoundException(String filePath) {
-        super("file not found: " + filePath);
+        super(FILE_NOT_FOUND_PREFIX + filePath);
     }
 }

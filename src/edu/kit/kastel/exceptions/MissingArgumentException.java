@@ -8,12 +8,14 @@ package edu.kit.kastel.exceptions;
  */
 public class MissingArgumentException extends StartupException {
 
+    private static final String MISSING_ARGUMENT_PREFIX = "missing required argument: ";
+
     /**
      * Constructs a new MissingArgumentException.
      *
      * @param argumentName the name of the missing argument
      */
     public MissingArgumentException(String argumentName) {
-        super("missing required argument: " + argumentName);
+        super(MISSING_ARGUMENT_PREFIX + argumentName);
     }
 }

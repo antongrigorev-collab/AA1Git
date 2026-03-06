@@ -31,6 +31,8 @@ public class YieldCommand extends Command {
     private static final String NO_CARDS_IN_DECK = " has no cards left in the deck!";
     private static final String WINS = " wins!";
 
+    private static final int FIRST_ARGUMENT_INDEX = 0;
+
     /**
      * Creates the yield command with the given handler.
      *
@@ -51,11 +53,12 @@ public class YieldCommand extends Command {
         }
 
         Integer discardIndex = null;
-        if (commandArguments.length > 0) {
+        if (commandArguments.length > FIRST_ARGUMENT_INDEX) {
             try {
-                discardIndex = Integer.parseInt(commandArguments[0]);
+                discardIndex = Integer.parseInt(commandArguments[FIRST_ARGUMENT_INDEX]);
             } catch (NumberFormatException e) {
-                throw new InvalidCommandArgumentsException(INVALID_HAND_INDEX_PREFIX + commandArguments[0]);
+                throw new InvalidCommandArgumentsException(
+                        INVALID_HAND_INDEX_PREFIX + commandArguments[FIRST_ARGUMENT_INDEX]);
             }
         }
 

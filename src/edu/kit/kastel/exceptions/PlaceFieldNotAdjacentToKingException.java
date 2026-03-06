@@ -7,12 +7,15 @@ package edu.kit.kastel.exceptions;
  */
 public class PlaceFieldNotAdjacentToKingException extends CommandException {
 
+    private static final String CANNOT_PLACE_ON_PREFIX = "cannot place on ";
+    private static final String NOT_ADJACENT_TO_KING_SUFFIX = ": not adjacent to Farmer King";
+
     /**
      * Constructs a new PlaceFieldNotAdjacentToKingException.
      *
      * @param field the target field coordinate
      */
     public PlaceFieldNotAdjacentToKingException(String field) {
-        super("cannot place on " + field + ": not adjacent to Farmer King");
+        super(CANNOT_PLACE_ON_PREFIX + field + NOT_ADJACENT_TO_KING_SUFFIX);
     }
 }

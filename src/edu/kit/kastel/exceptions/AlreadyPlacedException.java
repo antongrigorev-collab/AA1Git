@@ -7,10 +7,12 @@ package edu.kit.kastel.exceptions;
  */
 public class AlreadyPlacedException extends CommandException {
 
+    private static final String ALREADY_PLACED_MESSAGE = "already placed a unit this turn";
+
     /**
      * Constructs a new AlreadyPlacedException.
      */
     public AlreadyPlacedException() {
-        super("already placed a unit this turn");
+        super(ALREADY_PLACED_MESSAGE);
     }
 }

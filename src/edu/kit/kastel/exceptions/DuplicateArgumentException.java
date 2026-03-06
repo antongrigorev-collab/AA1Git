@@ -7,12 +7,14 @@ package edu.kit.kastel.exceptions;
  */
 public class DuplicateArgumentException extends StartupException {
 
+    private static final String DUPLICATE_ARGUMENT_PREFIX = "duplicate argument: ";
+
     /**
      * Constructs a new DuplicateArgumentException.
      *
      * @param key the duplicate key
      */
     public DuplicateArgumentException(String key) {
-        super("duplicate argument: " + key);
+        super(DUPLICATE_ARGUMENT_PREFIX + key);
     }
 }

@@ -32,6 +32,16 @@ public class MoveCommand extends Command {
     private static final String COMMAND_NAME = "move";
     private static final String COMMAND_REGEX = "(?i)^move\\s+[A-Ga-g][1-7]$";
 
+    private static final String NO_LONGER_BLOCKS_SUFFIX = " no longer blocks.";
+    private static final String MOVES_TO_MIDDLE = " moves to ";
+    private static final String MOVES_TO_SUFFIX = ".";
+    private static final String AND_CONNECTOR = " and ";
+    private static final String ON_MIDDLE = " on ";
+    private static final String JOIN_FORCES_SUFFIX = " join forces!";
+    private static final String UNION_SUCCESS_MESSAGE = "Success!";
+    private static final String UNION_FAILED_PREFIX = "Union failed. ";
+    private static final String WAS_ELIMINATED_SUFFIX = " was eliminated!";
+
     /**
      * Creates the move command with the given handler.
      *
@@ -98,10 +108,10 @@ public class MoveCommand extends Command {
     private void executeMoveEnPlace(Game game, Unit unit, Field toField) {
         if (unit.isBlocked()) {
             unit.setBlocked(false);
-            System.out.println(unit.getName() + " no longer blocks.");
+            System.out.println(unit.getName() + NO_LONGER_BLOCKS_SUFFIX);
         }
         unit.setMovedThisTurn(true);
-        System.out.println(unit.getName() + " moves to " + toField.coordinate() + ".");
+        System.out.println(unit.getName() + MOVES_TO_MIDDLE + toField.coordinate() + MOVES_TO_SUFFIX);
         ShowCommand.printBoardAndShow(game);
     }
 
@@ -109,13 +119,13 @@ public class MoveCommand extends Command {
                                     int toRow, int toCol, Field toField) {
         if (unit.isBlocked()) {
             unit.setBlocked(false);
-            System.out.println(unit.getName() + " no longer blocks.");
+            System.out.println(unit.getName() + NO_LONGER_BLOCKS_SUFFIX);
         }
         selected.removeUnit();
         game.getGameBoard().placeUnit(toRow, toCol, unit);
         unit.setMovedThisTurn(true);
         game.setSelectedField(toField);
-        System.out.println(unit.getName() + " moves to " + toField.coordinate() + ".");
+        System.out.println(unit.getName() + MOVES_TO_MIDDLE + toField.coordinate() + MOVES_TO_SUFFIX);
         ShowCommand.printBoardAndShow(game);
     }
 
@@ -146,7 +156,7 @@ public class MoveCommand extends Command {
         Compatibility.MergeStats stats = Compatibility.check(unit, defender);
         if (unit.isBlocked()) {
             unit.setBlocked(false);
-            System.out.println(unit.getName() + " no longer blocks.");
+            System.out.println(unit.getName() + NO_LONGER_BLOCKS_SUFFIX);
         }
         if (stats != null) {
             Unit merged = Game.createMergedUnit(unit, defender, stats);
@@ -156,20 +166,20 @@ public class MoveCommand extends Command {
             toField.removeUnit();
             game.getGameBoard().placeUnit(toRow, toCol, merged);
             game.setSelectedField(toField);
-            System.out.println(unit.getName() + " moves to " + toField.coordinate() + ".");
-            System.out.println(unit.getName() + " and " + defender.getName() + " on " + toField.coordinate()
-                    + " join forces!");
-            System.out.println("Success!");
+            System.out.println(unit.getName() + MOVES_TO_MIDDLE + toField.coordinate() + MOVES_TO_SUFFIX);
+            System.out.println(unit.getName() + AND_CONNECTOR + defender.getName() + ON_MIDDLE
+                    + toField.coordinate() + JOIN_FORCES_SUFFIX);
+            System.out.println(UNION_SUCCESS_MESSAGE);
         } else {
             selected.removeUnit();
             toField.removeUnit();
             game.getGameBoard().placeUnit(toRow, toCol, unit);
             unit.setMovedThisTurn(true);
             game.setSelectedField(toField);
-            System.out.println(unit.getName() + " moves to " + toField.coordinate() + ".");
-            System.out.println(unit.getName() + " and " + defender.getName() + " on " + toField.coordinate()
-                    + " join forces!");
-            System.out.println("Union failed. " + defender.getName() + " was eliminated.");
+            System.out.println(unit.getName() + MOVES_TO_MIDDLE + toField.coordinate() + MOVES_TO_SUFFIX);
+            System.out.println(unit.getName() + AND_CONNECTOR + defender.getName() + ON_MIDDLE
+                    + toField.coordinate() + JOIN_FORCES_SUFFIX);
+            System.out.println(UNION_FAILED_PREFIX + defender.getName() + WAS_ELIMINATED_SUFFIX);
         }
         ShowCommand.printBoardAndShow(game);
     }

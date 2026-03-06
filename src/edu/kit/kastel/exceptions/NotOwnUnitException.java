@@ -7,10 +7,12 @@ package edu.kit.kastel.exceptions;
  */
 public class NotOwnUnitException extends CommandException {
 
+    private static final String CANNOT_CONTROL_ENEMY_UNIT_MESSAGE = "cannot control an enemy unit";
+
     /**
      * Constructs a new NotOwnUnitException.
      */
     public NotOwnUnitException() {
-        super("cannot control an enemy unit");
+        super(CANNOT_CONTROL_ENEMY_UNIT_MESSAGE);
     }
 }

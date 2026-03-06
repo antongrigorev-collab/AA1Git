@@ -7,12 +7,14 @@ package edu.kit.kastel.exceptions;
  */
 public class UnknownCommandException extends CommandException {
 
+    private static final String UNKNOWN_COMMAND_PREFIX = "unknown command: ";
+
     /**
      * Constructs a new UnknownCommandException.
      *
      * @param command the unrecognised command string
      */
     public UnknownCommandException(String command) {
-        super("unknown command: " + command);
+        super(UNKNOWN_COMMAND_PREFIX + command);
     }
 }

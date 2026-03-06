@@ -7,12 +7,14 @@ package edu.kit.kastel.exceptions;
  */
 public class InvalidFieldException extends CommandException {
 
+    private static final String INVALID_FIELD_PREFIX = "invalid field: ";
+
     /**
      * Constructs a new InvalidFieldException.
      *
      * @param field the invalid field string
      */
     public InvalidFieldException(String field) {
-        super("invalid field: " + field);
+        super(INVALID_FIELD_PREFIX + field);
     }
 }

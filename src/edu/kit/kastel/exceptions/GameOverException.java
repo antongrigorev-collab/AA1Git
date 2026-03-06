@@ -7,10 +7,12 @@ package edu.kit.kastel.exceptions;
  */
 public class GameOverException extends CommandException {
 
+    private static final String GAME_ALREADY_OVER_MESSAGE = "the game is already over";
+
     /**
      * Constructs a new GameOverException.
      */
     public GameOverException() {
-        super("the game is already over");
+        super(GAME_ALREADY_OVER_MESSAGE);
     }
 }

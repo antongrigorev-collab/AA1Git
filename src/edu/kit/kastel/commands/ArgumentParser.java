@@ -18,6 +18,15 @@ public final class ArgumentParser {
     /** Key-value separator in program arguments (e.g. seed=123). */
     private static final char ARGUMENT_KEY_VALUE_SEPARATOR = '=';
 
+    /** Minimal index at which a key may end (at least one character). */
+    private static final int MIN_KEY_END_INDEX = 1;
+
+    /** Minimal required length of the value part after the '=' separator. */
+    private static final int MIN_VALUE_LENGTH = 1;
+
+    /** Prefix for invalid-argument error messages. */
+    private static final String INVALID_ARGUMENT_PREFIX = "Invalid argument: ";
+
     private ArgumentParser() { }
 
     /**
@@ -34,8 +43,8 @@ public final class ArgumentParser {
         Map<String, String> kv = new HashMap<>();
         for (String arg : args) {
             int eq = arg.indexOf(ARGUMENT_KEY_VALUE_SEPARATOR);
-            if (eq <= 0 || eq == arg.length() - 1) {
-                throw new InvalidArgumentException("Invalid argument: " + arg);
+            if (eq < MIN_KEY_END_INDEX || arg.length() - eq <= MIN_VALUE_LENGTH) {
+                throw new InvalidArgumentException(INVALID_ARGUMENT_PREFIX + arg);
             }
             String key = arg.substring(0, eq);
             String value = arg.substring(eq + 1);

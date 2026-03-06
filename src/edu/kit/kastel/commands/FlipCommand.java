@@ -23,6 +23,11 @@ public class FlipCommand extends Command {
     private static final String COMMAND_NAME = "flip";
     private static final String COMMAND_REGEX = "(?i)^flip$";
 
+    private static final String FLIPPED_STATS_PREFIX = " (";
+    private static final String FLIPPED_STATS_SEPARATOR = "/";
+    private static final String FLIPPED_STATS_MIDDLE = ") was flipped on ";
+    private static final String FLIPPED_STATS_SUFFIX = "!";
+
     /**
      * Creates the flip command and binds it to the given handler.
      *
@@ -56,8 +61,9 @@ public class FlipCommand extends Command {
             throw new FlipAlreadyFlippedException(unit.getName());
         }
         unit.setRevealed(true);
-        System.out.println(unit.getName() + " (" + unit.getAtk() + "/" + unit.getDef() + ") was flipped on "
-                + selected.coordinate() + "!");
+        System.out.println(unit.getName() + FLIPPED_STATS_PREFIX + unit.getAtk()
+                + FLIPPED_STATS_SEPARATOR + unit.getDef()
+                + FLIPPED_STATS_MIDDLE + selected.coordinate() + FLIPPED_STATS_SUFFIX);
         List<String> lines = game.getGameBoard().render(game.getSelectedField(), game.getTeam1(), game.getCurrentTeam());
         for (String line : lines) {
             System.out.println(line);

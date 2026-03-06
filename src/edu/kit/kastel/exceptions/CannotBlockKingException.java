@@ -7,10 +7,12 @@ package edu.kit.kastel.exceptions;
  */
 public class CannotBlockKingException extends CommandException {
 
+    private static final String CANNOT_BLOCK_KING_MESSAGE = "Farmer King cannot block";
+
     /**
      * Constructs a new CannotBlockKingException.
      */
     public CannotBlockKingException() {
-        super("Farmer King cannot block");
+        super(CANNOT_BLOCK_KING_MESSAGE);
     }
 }

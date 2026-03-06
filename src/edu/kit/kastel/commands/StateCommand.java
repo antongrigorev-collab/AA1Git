@@ -22,6 +22,14 @@ public class StateCommand extends Command {
     /** Indent for state output lines. */
     private static final String STATE_OUTPUT_INDENT = "  ";
 
+    private static final String LIFE_POINTS_SEPARATOR = "/";
+    private static final String LIFE_POINTS_SUFFIX = " LP";
+    private static final String DECK_COUNT_PREFIX = "DC: ";
+    private static final String DECK_COUNT_SEPARATOR = "/";
+    private static final String BOARD_COUNT_PREFIX = "BC: ";
+    private static final String BOARD_COUNT_SEPARATOR = "/";
+    private static final String PADDING_SPACE = " ";
+
     /**
      * Creates the state command with the given handler.
      *
@@ -41,12 +49,15 @@ public class StateCommand extends Command {
         Team t2 = game.getTeam2();
         String prefix = STATE_OUTPUT_INDENT;
         printStateLine(prefix, t1.getName(), t2.getName());
-        printStateLine(prefix, t1.getLifePoints() + "/" + Team.INITIAL_LIFE_POINTS + " LP",
-                t2.getLifePoints() + "/" + Team.INITIAL_LIFE_POINTS + " LP");
-        printStateLine(prefix, "DC: " + t1.getDeck().size() + "/" + DECK_SIZE,
-                "DC: " + t2.getDeck().size() + "/" + DECK_SIZE);
-        printStateLine(prefix, "BC: " + game.getBoardCount(t1) + "/" + Game.MAX_NON_KING_UNITS_ON_BOARD,
-                "BC: " + game.getBoardCount(t2) + "/" + Game.MAX_NON_KING_UNITS_ON_BOARD);
+        printStateLine(prefix,
+                t1.getLifePoints() + LIFE_POINTS_SEPARATOR + Team.INITIAL_LIFE_POINTS + LIFE_POINTS_SUFFIX,
+                t2.getLifePoints() + LIFE_POINTS_SEPARATOR + Team.INITIAL_LIFE_POINTS + LIFE_POINTS_SUFFIX);
+        printStateLine(prefix,
+                DECK_COUNT_PREFIX + t1.getDeck().size() + DECK_COUNT_SEPARATOR + DECK_SIZE,
+                DECK_COUNT_PREFIX + t2.getDeck().size() + DECK_COUNT_SEPARATOR + DECK_SIZE);
+        printStateLine(prefix,
+                BOARD_COUNT_PREFIX + game.getBoardCount(t1) + BOARD_COUNT_SEPARATOR + Game.MAX_NON_KING_UNITS_ON_BOARD,
+                BOARD_COUNT_PREFIX + game.getBoardCount(t2) + BOARD_COUNT_SEPARATOR + Game.MAX_NON_KING_UNITS_ON_BOARD);
         List<String> boardLines = game.getGameBoard().render(game.getSelectedField(), game.getTeam1(), game.getCurrentTeam());
         for (String line : boardLines) {
             System.out.println(line);
@@ -58,7 +69,7 @@ public class StateCommand extends Command {
 
     private void printStateLine(String prefix, String left, String right) {
         int padLen = STATE_LINE_LENGTH - prefix.length() - left.length() - right.length();
-        String pad = padLen > 0 ? " ".repeat(padLen) : "";
+        String pad = padLen > 0 ? PADDING_SPACE.repeat(padLen) : "";
         System.out.println(prefix + left + pad + right);
     }
 }

@@ -34,7 +34,7 @@ public final class Main {
             CommandHandler handler = new CommandHandler(config);
             handler.handleUserInput();
         } catch (GameException e) {
-            System.out.println(e.getFormattedMessage());
+            System.err.println(e.getFormattedMessage());
         }
     }
 }

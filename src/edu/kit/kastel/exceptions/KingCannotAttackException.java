@@ -7,10 +7,13 @@ package edu.kit.kastel.exceptions;
  */
 public class KingCannotAttackException extends CommandException {
 
+    private static final String KING_CANNOT_ATTACK_MESSAGE =
+            "Farmer King cannot move onto an enemy-occupied field";
+
     /**
      * Constructs a new KingCannotAttackException.
      */
     public KingCannotAttackException() {
-        super("Farmer King cannot move onto an enemy-occupied field");
+        super(KING_CANNOT_ATTACK_MESSAGE);
     }
 }

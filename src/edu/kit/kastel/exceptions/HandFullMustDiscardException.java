@@ -8,12 +8,14 @@ package edu.kit.kastel.exceptions;
  */
 public class HandFullMustDiscardException extends CommandException {
 
+    private static final String HAND_FULL_SUFFIX = "'s hand is full!";
+
     /**
      * Constructs a new HandFullMustDiscardException.
      *
      * @param teamName the name of the team whose hand is full
      */
     public HandFullMustDiscardException(String teamName) {
-        super(teamName + "'s hand is full!");
+        super(teamName + HAND_FULL_SUFFIX);
     }
 }

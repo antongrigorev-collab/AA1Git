@@ -7,7 +7,8 @@ Java-Spiel „Crown of Farmland“ (Programmieren WS 2025/26, Abschlussaufgabe 1
 - **Java SE 21**
 - Erlaubte Bibliotheken: `java.lang`, `java.io`, `java.util`, `java.util.regex`, `java.nio.file`, `java.nio.charset`, `java.util.Scanner`
 - Kein `System.exit()` / `Runtime.exit()`
-- Checkstyle-Regeln einhalten
+- Checkstyle-Regeln einhalten  
+- **Code-Vorgaben (erlaubt/verboten, Stil):** siehe [.cursor/rules/code-anforderungen.md](.cursor/rules/code-anforderungen.md)
 
 ## Wichtige Projektstruktur
 - **Einstieg:** `Main.java` → `ArgumentParser.parse(args)` → `ConfigLoader.load(kv)` → `CommandHandler(config)` → `handleUserInput()`
@@ -41,22 +42,7 @@ Java-Spiel „Crown of Farmland“ (Programmieren WS 2025/26, Abschlussaufgabe 1
 - Ggf. Feinschliff an Ausgabeformaten (z. B. Duell „???“ vor Aufdecken) und Tests gegen Beispielinteraktion aus dem Aufgaben-PDF.
 - Checkstyle durchlaufen lassen und ggf. Anpassungen.
 
-## Erledigt (Beispielinteraktion A.5.10)
-- **yield bei voller Hand:** Ausgabe `ERROR: Player's hand is full!` (war bereits korrekt).
-- **place bei voller Hand:** Ausgabe `ERROR: cannot place a card, you must discard!` (MustDiscardException von „place“ auf „place a card“ geändert).
-- **place 3 C2:** Befehl akzeptiert (optionales Feldargument), danach gleiche Fehlermeldung wenn Hand voll. Eingabedateien `input/units/default.txt` und `input/decks/default.txt` für die Beispiel-Parameter angelegt.
 
-## Erledigt (Methodenlänge max. 60 Zeilen)
-- **AIPlayer:** `runTurn` → `runKingMove`, `runPlacePhase`, `runUnitMovesLoop` (+ `computeUnitMoveOptions`/`UnitMoveOption`); `executeMove` → `executeMergeOrEliminate` für Merge/Union-failed.
-- **Game:** `performDuel` → `addDuelIntroLines`, `resolveDuelVsKing`, `resolveBlockedDuel`, `resolveStandardDuel`.
-- **MoveCommand:** `execute` → `executeMoveEnPlace`, `executeMoveToEmpty`, `executeMoveToOccupied`.
-- **PlaceCommand:** `execute` → `validatePlaceCommand`, `placeUnitsOnField`.
-
-## Erledigt (KI-Platzierung)
-- **Select vor Place:** Vor dem Platzieren einer Einheit durch den KI-Gegner wird das Zielfeld per `game.setSelectedField(game.getGameBoard().getField(pr, pc))` in `runPlacePhase` gesetzt – entspricht dem Ablauf des Spielers (erst select, dann place).
-
-## Erledigt (KI Bewegung en place)
-- **Ausgabe `<name> moves to <field>.:`** Wenn der KI-Gegner eine Einheit en place bewegt (Option `tr == -1 && tc == -1` in `runUnitMovesLoop`), wird die Zeile `<name> moves to <field>.` ausgegeben – **vor** der Brett- und Show-Ausgabe – analog zu anderen KI-Bewegungen und zum Spieler-Befehl `move`.
 
 ## Konventionen & Besonderheiten
 - **Methodenlänge:** Jede Methode ist maximal 60 Zeilen lang (Refaktorierung umgesetzt). Lange Abläufe sind in Hilfsmethoden ausgelagert (z. B. AIPlayer: `runKingMove`, `runPlacePhase`, `runUnitMovesLoop`, `computeUnitMoveOptions`, `executeMergeOrEliminate`; Game: `addDuelIntroLines`, `resolveDuelVsKing`, `resolveBlockedDuel`, `resolveStandardDuel`; MoveCommand/PlaceCommand: execute-Pfade und Validierung in eigene Methoden).

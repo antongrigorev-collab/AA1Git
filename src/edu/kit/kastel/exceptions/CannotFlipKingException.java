@@ -7,10 +7,12 @@ package edu.kit.kastel.exceptions;
  */
 public class CannotFlipKingException extends CommandException {
 
+    private static final String CANNOT_FLIP_KING_MESSAGE = "cannot flip the Farmer King";
+
     /**
      * Constructs a new CannotFlipKingException.
      */
     public CannotFlipKingException() {
-        super("cannot flip the Farmer King");
+        super(CANNOT_FLIP_KING_MESSAGE);
     }
 }

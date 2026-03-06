@@ -46,6 +46,9 @@ public class SymbolSet {
      * @return the standard symbol set
      */
     public static SymbolSet standard() {
-        return new SymbolSet(new char[] {'+', '-', '|'});
+        final char horizontal = '-';
+        final char vertical = '|';
+        final char corner = '+';
+        return new SymbolSet(new char[] {corner, horizontal, vertical});
     }
 }

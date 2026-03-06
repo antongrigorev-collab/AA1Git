@@ -7,10 +7,12 @@ package edu.kit.kastel.exceptions;
  */
 public class CannotDiscardException extends CommandException {
 
+    private static final String CANNOT_DISCARD_MESSAGE = "cannot discard: hand is not full";
+
     /**
      * Constructs a new CannotDiscardException.
      */
     public CannotDiscardException() {
-        super("cannot discard: hand is not full");
+        super(CANNOT_DISCARD_MESSAGE);
     }
 }

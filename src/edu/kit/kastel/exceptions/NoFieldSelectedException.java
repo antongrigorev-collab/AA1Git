@@ -8,10 +8,12 @@ package edu.kit.kastel.exceptions;
  */
 public class NoFieldSelectedException extends CommandException {
 
+    private static final String NO_FIELD_SELECTED_MESSAGE = "no field selected";
+
     /**
      * Constructs a new NoFieldSelectedException.
      */
     public NoFieldSelectedException() {
-        super("no field selected");
+        super(NO_FIELD_SELECTED_MESSAGE);
     }
 }

@@ -7,12 +7,14 @@ package edu.kit.kastel.exceptions;
  */
 public class InvalidHandIndexException extends CommandException {
 
+    private static final String INVALID_HAND_INDEX_PREFIX = "invalid hand index: ";
+
     /**
      * Constructs a new InvalidHandIndexException.
      *
      * @param index the invalid index
      */
     public InvalidHandIndexException(int index) {
-        super("invalid hand index: " + index);
+        super(INVALID_HAND_INDEX_PREFIX + index);
     }
 }

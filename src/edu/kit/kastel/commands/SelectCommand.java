@@ -16,6 +16,9 @@ public class SelectCommand extends Command {
     private static final String COMMAND_NAME = "select";
     private static final String COMMAND_REGEX = "(?i)^select\\s+[A-Ga-g][1-7]$";
 
+    private static final char MIN_COLUMN_CHAR = 'A';
+    private static final int ROW_INDEX_OFFSET = 1;
+
     /**
      * Creates the select command with the given handler.
      *
@@ -32,8 +35,8 @@ public class SelectCommand extends Command {
             return;
         }
         String fieldStr = commandArguments[0].toUpperCase();
-        int col = fieldStr.charAt(0) - 'A';
-        int row = Integer.parseInt(fieldStr.substring(1)) - 1;
+        int col = fieldStr.charAt(0) - MIN_COLUMN_CHAR;
+        int row = Integer.parseInt(fieldStr.substring(1)) - ROW_INDEX_OFFSET;
         game.setSelectedField(game.getGameBoard().getField(row, col));
         List<String> lines = game.getGameBoard().render(game.getSelectedField(), game.getTeam1(), game.getCurrentTeam());
         for (String line : lines) {

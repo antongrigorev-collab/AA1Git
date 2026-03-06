@@ -22,6 +22,7 @@ public class CommandHandler {
     private static final String COMMAND_NOT_FOUND_ERROR = "ERROR: Command '%s' not recognised by any pattern%n";
     private static final String HELP_MESSAGE = "Use one of the following commands: select, board, move, flip, "
             + "block, hand, place, show, yield, state, quit.";
+    private static final int FIRST_ARGUMENT_INDEX = 1;
 
     private final GameConfig config;
     private final Map<String, Command> commands;
@@ -85,7 +86,7 @@ public class CommandHandler {
         String strippedInput = inputString.strip().replaceAll(COMMAND_DELIMITER_REGEX, COMMAND_DELIMITER_REPLACEMENT);
         String[] splitCommand = strippedInput.split(COMMAND_DELIMITER_REGEX);
 
-        String[] commandArguments = Arrays.copyOfRange(splitCommand, 1, splitCommand.length);
+        String[] commandArguments = Arrays.copyOfRange(splitCommand, FIRST_ARGUMENT_INDEX, splitCommand.length);
         for (Command command : commands.values()) {
             if (strippedInput.matches(command.getCommandRegex())) {
                 try {

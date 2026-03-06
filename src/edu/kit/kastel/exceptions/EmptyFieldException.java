@@ -8,12 +8,14 @@ package edu.kit.kastel.exceptions;
  */
 public class EmptyFieldException extends CommandException {
 
+    private static final String NO_UNIT_ON_FIELD_PREFIX = "no unit on field ";
+
     /**
      * Constructs a new EmptyFieldException.
      *
      * @param field the coordinate of the empty field
      */
     public EmptyFieldException(String field) {
-        super("no unit on field " + field);
+        super(NO_UNIT_ON_FIELD_PREFIX + field);
     }
 }

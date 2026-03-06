@@ -1,6 +1,7 @@
 package edu.kit.kastel.commands;
 
 import edu.kit.kastel.exceptions.GameException;
+import edu.kit.kastel.exceptions.NoFieldSelectedException;
 import edu.kit.kastel.model.Game;
 import edu.kit.kastel.model.Unit;
 
@@ -47,6 +48,9 @@ public class ShowCommand extends Command {
         Game game = commandHandler.getGame();
         if (game == null) {
             return;
+        }
+        if (game.getSelectedField() == null) {
+            throw new NoFieldSelectedException();
         }
         printShow(game);
     }

@@ -21,6 +21,8 @@ public class BlockCommand extends Command {
 
     private static final String COMMAND_NAME = "block";
     private static final String COMMAND_REGEX = "(?i)^block$";
+    private static final String BLOCK_MESSAGE_COORDINATE_PREFIX = " (";
+    private static final String BLOCK_MESSAGE_SUFFIX = ") blocks!";
 
     /**
      * Creates the block command with the given handler.
@@ -56,7 +58,8 @@ public class BlockCommand extends Command {
         }
         unit.setBlocked(true);
         unit.setMovedThisTurn(true);
-        System.out.println(unit.getName() + " (" + selected.coordinate() + ") blocks!");
+        System.out.println(unit.getName() + BLOCK_MESSAGE_COORDINATE_PREFIX
+                + selected.coordinate() + BLOCK_MESSAGE_SUFFIX);
         List<String> lines = game.getGameBoard().render(game.getSelectedField(), game.getTeam1(), game.getCurrentTeam());
         for (String line : lines) {
             System.out.println(line);

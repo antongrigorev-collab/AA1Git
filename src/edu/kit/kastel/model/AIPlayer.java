@@ -26,6 +26,12 @@ public final class AIPlayer {
     /** Place phase score: weight for adjacent enemies (A.2). */
     private static final int PLACE_SCORE_ENEMY_WEIGHT = 2;
 
+    /** Directions around the king in clockwise order (dr, dc) for place phase. */
+    private static final int[][] CLOCKWISE_DIRS = {
+        {1, 0}, {1, 1}, {0, 1}, {-1, 1},
+        {-1, 0}, {-1, -1}, {0, -1}, {1, -1}
+    };
+
     /** Index of block option in move options list (after 4 cardinal directions). */
     private static final int BLOCK_OPTION_INDEX = 4;
 
@@ -34,6 +40,42 @@ public final class AIPlayer {
 
     /** Hand size at which discard is required before yield (A.1.5). */
     private static final int MAX_HAND_SIZE_BEFORE_DISCARD = 5;
+
+    /** Message format when a unit blocks on a field. */
+    private static final String BLOCKS_MESSAGE_FORMAT = "%s (%s) blocks!";
+
+    /** Message format when a unit no longer blocks. */
+    private static final String NO_LONGER_BLOCKS_MESSAGE_FORMAT = "%s no longer blocks.";
+
+    /** Message format when a unit moves to a field. */
+    private static final String MOVES_TO_MESSAGE_FORMAT = "%s moves to %s.";
+
+    /** Message format when two units join forces on a field. */
+    private static final String JOIN_FORCES_MESSAGE_FORMAT = "%s and %s on %s join forces!";
+
+    /** Message printed when a merge was successful. */
+    private static final String SUCCESS_MESSAGE = "Success!";
+
+    /** Message format when a merge failed and one unit was eliminated. */
+    private static final String UNION_FAILED_MESSAGE_FORMAT = "Union failed. %s was eliminated.";
+
+    /** Message format when a team discards a unit on yield. */
+    private static final String DISCARDED_UNIT_MESSAGE_FORMAT = "%s discarded %s (%d/%d).";
+
+    /** Message format announcing which team's turn it is. */
+    private static final String TURN_ANNOUNCEMENT_MESSAGE_FORMAT = "It is %s's turn!";
+
+    /** Message format when a team has no cards left in the deck. */
+    private static final String NO_CARDS_LEFT_MESSAGE_FORMAT = "%s has no cards left in the deck!";
+
+    /** Message format when a team wins the game. */
+    private static final String WINS_MESSAGE_FORMAT = "%s wins!";
+
+    /** Message format when a team places a unit on a field. */
+    private static final String PLACES_ON_MESSAGE_FORMAT = "%s places %s on %s.";
+
+    /** Message format when a just placed unit is eliminated due to board limit. */
+    private static final String JUST_PLACED_ELIMINATED_MESSAGE_FORMAT = "%s was eliminated!";
 
     /** Context for the place phase (king position, enemy king, RNG). */
     private record PlacePhaseContext(Game game, Team ai, Team enemy, int kr, int kc, int ekr, int ekc, Random rnd) { }
@@ -128,10 +170,9 @@ public final class AIPlayer {
         return game.getKingPosition(ai) == null || game.isGameOver();
     }
     private static void runPlacePhase(PlacePhaseContext ctx) {
-        int[][] clockwiseDirs = {{1, 0}, {1, 1}, {0, 1}, {-1, 1}, {-1, 0}, {-1, -1}, {0, -1}, {1, -1}};
         List<int[]> placeFieldsOrdered = new ArrayList<>();
         List<Integer> placeScores = new ArrayList<>();
-        for (int[] d : clockwiseDirs) {
+        for (int[] d : CLOCKWISE_DIRS) {
             int r = ctx.kr() + d[0];
             int c = ctx.kc() + d[1];
             if (r < 0 || r >= GameBoard.SIZE || c < 0 || c >= GameBoard.SIZE) {
@@ -187,7 +228,8 @@ public final class AIPlayer {
             Unit u = data.movable().get(chosenUnit);
             u.setBlocked(true);
             u.setMovedThisTurn(true);
-            System.out.println(u.getName() + " (" + game.getGameBoard().getField(ur, uc).coordinate() + ") blocks!");
+            System.out.println(String.format(BLOCKS_MESSAGE_FORMAT, u.getName(),
+                    game.getGameBoard().getField(ur, uc).coordinate()));
             ShowCommand.printBoardAndShow(game);
             return true;
         }
@@ -197,7 +239,8 @@ public final class AIPlayer {
         int tr = opts.get(moveIdx)[0];
         int tc = opts.get(moveIdx)[1];
         if (tr == -1 && tc == -1) {
-            System.out.println(u.getName() + " moves to " + game.getGameBoard().getField(ur, uc).coordinate() + ".");
+            System.out.println(String.format(MOVES_TO_MESSAGE_FORMAT, u.getName(),
+                    game.getGameBoard().getField(ur, uc).coordinate()));
             u.setMovedThisTurn(true);
             ShowCommand.printBoardAndShow(game);
             return true;
@@ -205,7 +248,8 @@ public final class AIPlayer {
         if (tr == ur && tc == uc && moveIdx == BLOCK_OPTION_INDEX) {
             u.setBlocked(true);
             u.setMovedThisTurn(true);
-            System.out.println(u.getName() + " (" + game.getGameBoard().getField(ur, uc).coordinate() + ") blocks!");
+            System.out.println(String.format(BLOCKS_MESSAGE_FORMAT, u.getName(),
+                    game.getGameBoard().getField(ur, uc).coordinate()));
         } else {
             executeMove(game, ur, uc, tr, tc);
         }
@@ -269,15 +313,16 @@ public final class AIPlayer {
             Game.YieldResult result = game.endTurn(discardIdx);
             if (result.discarded() != null) {
                 Unit u = result.discarded();
-                System.out.println(result.yieldingTeam().getName() + " discarded "
-                        + u.getName() + " (" + u.getAtk() + "/" + u.getDef() + ").");
+                System.out.println(String.format(DISCARDED_UNIT_MESSAGE_FORMAT,
+                        result.yieldingTeam().getName(), u.getName(), u.getAtk(), u.getDef()));
             }
-            System.out.println("It is " + game.getCurrentTeam().getName() + "'s turn!");
+            System.out.println(String.format(TURN_ANNOUNCEMENT_MESSAGE_FORMAT, game.getCurrentTeam().getName()));
             if (result.newTeamDeckEmpty()) {
-                System.out.println(game.getCurrentTeam().getName() + " has no cards left in the deck!");
+                System.out.println(String.format(NO_CARDS_LEFT_MESSAGE_FORMAT,
+                        game.getCurrentTeam().getName()));
             }
             if (result.winner() != null) {
-                System.out.println(result.winner().getName() + " wins!");
+                System.out.println(String.format(WINS_MESSAGE_FORMAT, result.winner().getName()));
             }
         } catch (HandFullMustDiscardException | CannotDiscardException | InvalidHandIndexException
                 | InitializationException e) {
@@ -294,22 +339,22 @@ public final class AIPlayer {
         if (fromRow == toRow && fromCol == toCol) {
             if (unit.isBlocked()) {
                 unit.setBlocked(false);
-                System.out.println(unit.getName() + " no longer blocks.");
+                System.out.println(String.format(NO_LONGER_BLOCKS_MESSAGE_FORMAT, unit.getName()));
             }
             unit.setMovedThisTurn(true);
-            System.out.println(unit.getName() + " moves to " + toField.coordinate() + ".");
+            System.out.println(String.format(MOVES_TO_MESSAGE_FORMAT, unit.getName(), toField.coordinate()));
             return;
         }
         if (toField.isEmpty()) {
             if (unit.isBlocked()) {
                 unit.setBlocked(false);
-                System.out.println(unit.getName() + " no longer blocks.");
+                System.out.println(String.format(NO_LONGER_BLOCKS_MESSAGE_FORMAT, unit.getName()));
             }
             game.getGameBoard().getField(fromRow, fromCol).removeUnit();
             game.getGameBoard().placeUnit(toRow, toCol, unit);
             unit.setMovedThisTurn(true);
             game.setSelectedField(toField);
-            System.out.println(unit.getName() + " moves to " + toField.coordinate() + ".");
+            System.out.println(String.format(MOVES_TO_MESSAGE_FORMAT, unit.getName(), toField.coordinate()));
             return;
         }
         Unit defender = toField.getUnit();
@@ -329,7 +374,7 @@ public final class AIPlayer {
     private static void executeMergeOrEliminate(MergeActionContext ctx) {
         if (ctx.unit().isBlocked()) {
             ctx.unit().setBlocked(false);
-            System.out.println(ctx.unit().getName() + " no longer blocks.");
+            System.out.println(String.format(NO_LONGER_BLOCKS_MESSAGE_FORMAT, ctx.unit().getName()));
         }
         Compatibility.MergeStats stats = Compatibility.check(ctx.unit(), ctx.defender());
         if (stats != null) {
@@ -340,20 +385,22 @@ public final class AIPlayer {
             ctx.toField().removeUnit();
             ctx.game().getGameBoard().placeUnit(ctx.toRow(), ctx.toCol(), merged);
             ctx.game().setSelectedField(ctx.toField());
-            System.out.println(ctx.unit().getName() + " moves to " + ctx.toField().coordinate() + ".");
-            System.out.println(ctx.unit().getName() + " and " + ctx.defender().getName() + " on "
-                    + ctx.toField().coordinate() + " join forces!");
-            System.out.println("Success!");
+            System.out.println(String.format(MOVES_TO_MESSAGE_FORMAT, ctx.unit().getName(),
+                    ctx.toField().coordinate()));
+            System.out.println(String.format(JOIN_FORCES_MESSAGE_FORMAT, ctx.unit().getName(),
+                    ctx.defender().getName(), ctx.toField().coordinate()));
+            System.out.println(SUCCESS_MESSAGE);
         } else {
             ctx.game().getGameBoard().getField(ctx.fromRow(), ctx.fromCol()).removeUnit();
             ctx.toField().removeUnit();
             ctx.game().getGameBoard().placeUnit(ctx.toRow(), ctx.toCol(), ctx.unit());
             ctx.unit().setMovedThisTurn(true);
             ctx.game().setSelectedField(ctx.toField());
-            System.out.println(ctx.unit().getName() + " moves to " + ctx.toField().coordinate() + ".");
-            System.out.println(ctx.unit().getName() + " and " + ctx.defender().getName() + " on "
-                    + ctx.toField().coordinate() + " join forces!");
-            System.out.println("Union failed. " + ctx.defender().getName() + " was eliminated.");
+            System.out.println(String.format(MOVES_TO_MESSAGE_FORMAT, ctx.unit().getName(),
+                    ctx.toField().coordinate()));
+            System.out.println(String.format(JOIN_FORCES_MESSAGE_FORMAT, ctx.unit().getName(),
+                    ctx.defender().getName(), ctx.toField().coordinate()));
+            System.out.println(String.format(UNION_FAILED_MESSAGE_FORMAT, ctx.defender().getName()));
         }
     }
     private static void placeUnit(Game game, int handIndex, int row, int col) {
@@ -366,13 +413,13 @@ public final class AIPlayer {
         unit.setTeam(game.getCurrentTeam());
         Field field = game.getGameBoard().getField(row, col);
         Unit current = field.getUnit();
-        System.out.println(game.getCurrentTeam().getName() + " places " + unit.getName() + " on "
-                + field.coordinate() + ".");
+        System.out.println(String.format(PLACES_ON_MESSAGE_FORMAT,
+                game.getCurrentTeam().getName(), unit.getName(), field.coordinate()));
         if (current == null) {
             game.getGameBoard().placeUnit(row, col, unit);
         } else {
-            System.out.println(unit.getName() + " and " + current.getName() + " on " + field.coordinate()
-                    + " join forces!");
+            System.out.println(String.format(JOIN_FORCES_MESSAGE_FORMAT, unit.getName(),
+                    current.getName(), field.coordinate()));
             Compatibility.MergeStats stats = Compatibility.check(unit, current);
             if (stats != null) {
                 Unit merged = Game.createMergedUnit(unit, current, stats);
@@ -380,17 +427,17 @@ public final class AIPlayer {
                 merged.setMovedThisTurn(false);
                 field.removeUnit();
                 game.getGameBoard().placeUnit(row, col, merged);
-                System.out.println("Success!");
+                System.out.println(SUCCESS_MESSAGE);
             } else {
                 field.removeUnit();
                 game.getGameBoard().placeUnit(row, col, unit);
-                System.out.println("Union failed. " + current.getName() + " was eliminated.");
+                System.out.println(String.format(UNION_FAILED_MESSAGE_FORMAT, current.getName()));
             }
         }
         if (game.getBoardCount(game.getCurrentTeam()) > Game.MAX_NON_KING_UNITS_ON_BOARD) {
             Unit justPlaced = game.getGameBoard().getField(row, col).getUnit();
             game.getGameBoard().getField(row, col).removeUnit();
-            System.out.println(justPlaced.getName() + " was eliminated!");
+            System.out.println(String.format(JUST_PLACED_ELIMINATED_MESSAGE_FORMAT, justPlaced.getName()));
         }
     }
 }

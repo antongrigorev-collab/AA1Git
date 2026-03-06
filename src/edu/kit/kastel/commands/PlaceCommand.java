@@ -29,6 +29,13 @@ public class PlaceCommand extends Command {
     /** place &lt;idx&gt; [&lt;idx&gt; ...] [&lt;field&gt;] e.g. place 3 or place 3 C2 */
     private static final String COMMAND_REGEX = "(?i)^place\\s+\\d+(\\s+(\\d+|[A-Ga-g][1-7]))*$";
 
+    private static final int FIELD_ARGUMENT_LENGTH = 2;
+    private static final char MIN_COLUMN_CHAR = 'A';
+    private static final char MAX_COLUMN_CHAR = 'G';
+    private static final char MIN_ROW_CHAR = '1';
+    private static final char MAX_ROW_CHAR = '7';
+    private static final int HAND_INDEX_OFFSET = 1;
+
     /**
      * Creates the place command with the given handler.
      *
@@ -39,12 +46,12 @@ public class PlaceCommand extends Command {
     }
 
     private static boolean isFieldArg(String arg) {
-        if (arg == null || arg.length() != 2) {
+        if (arg == null || arg.length() != FIELD_ARGUMENT_LENGTH) {
             return false;
         }
         char c0 = Character.toUpperCase(arg.charAt(0));
         char c1 = arg.charAt(1);
-        return c0 >= 'A' && c0 <= 'G' && c1 >= '1' && c1 <= '7';
+        return c0 >= MIN_COLUMN_CHAR && c0 <= MAX_COLUMN_CHAR && c1 >= MIN_ROW_CHAR && c1 <= MAX_ROW_CHAR;
     }
 
     @Override
@@ -100,7 +107,7 @@ public class PlaceCommand extends Command {
         List<Integer> indices = new ArrayList<>();
         for (String arg : argsList) {
             int idx = Integer.parseInt(arg);
-            if (idx < 1 || idx > handSize) {
+            if (idx < HAND_INDEX_OFFSET || idx > handSize) {
                 throw new InvalidHandIndexException(idx);
             }
             if (!seen.add(idx)) {
@@ -145,7 +152,7 @@ public class PlaceCommand extends Command {
                 } else {
                     game.getGameBoard().getField(r, c).removeUnit();
                     game.getGameBoard().placeUnit(r, c, unit);
-                    System.out.println("Union failed. " + currentOnField.getName() + " was eliminated.");
+                    System.out.println("Union failed. " + currentOnField.getName() + " was eliminated!");
                 }
             }
             if (game.getBoardCount(game.getCurrentTeam()) > Game.MAX_NON_KING_UNITS_ON_BOARD) {

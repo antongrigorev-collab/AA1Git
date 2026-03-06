@@ -7,10 +7,13 @@ package edu.kit.kastel.exceptions;
  */
 public class MoveOntoOwnKingException extends CommandException {
 
+    private static final String MOVE_ONTO_OWN_KING_MESSAGE =
+            "cannot move onto your own Farmer King's field";
+
     /**
      * Constructs a new MoveOntoOwnKingException.
      */
     public MoveOntoOwnKingException() {
-        super("cannot move onto your own Farmer King's field");
+        super(MOVE_ONTO_OWN_KING_MESSAGE);
     }
 }
