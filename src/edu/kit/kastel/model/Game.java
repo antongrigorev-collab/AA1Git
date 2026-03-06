@@ -54,14 +54,11 @@ public class Game {
     private static final int CHAR_INDEX_COL = 0;
     private static final int CHAR_INDEX_ROW = 1;
     private static final String INITIAL_HAND_DRAW_FAILED_MESSAGE = "Initial hand draw failed";
-
     private final GameConfig config;
     private final Random random;
-
     private final GameBoard gameBoard;
     private final Team team1;
     private final Team team2;
-
     private Team currentTeam;
     private Field selectedField;
     private boolean gameOver;
@@ -77,11 +74,9 @@ public class Game {
     public Game(GameConfig config) throws InvalidArgumentException {
         this.config = Objects.requireNonNull(config);
         this.random = new Random(config.seed());
-
         this.gameBoard = new GameBoard(config.symbolSet(), config.verbosityMode());
         this.team1 = Team.createTeam1(config.team1Name());
         this.team2 = Team.createTeam2(config.team2Name());
-
         this.currentTeam = team1;
         this.selectedField = null;
         this.gameOver = false;
@@ -97,17 +92,12 @@ public class Game {
     public void initFromConfig() throws InitializationException, HandFullMustDiscardException {
         fillDeck(team1, config.deckCountsTeam1());
         fillDeck(team2, config.deckCountsTeam2());
-
         team1.getDeck().shuffle(random);
         team2.getDeck().shuffle(random);
-
         drawToHand(team1, INITIAL_HAND_SIZE);
         drawToHand(team2, INITIAL_HAND_SIZE);
-
         gameBoard.placeUnit(KING_TEAM1_ROW, KING_COL, team1.getKing());
         gameBoard.placeUnit(KING_TEAM2_ROW, KING_COL, team2.getKing());
-
-        // Zu Beginn jedes eigenen Zuges eine weitere (A.1.5): Team 1 zieht zu Beginn des ersten Zugs.
         if (!team1.getDeck().isEmpty()) {
             drawToHand(team1, CARDS_DRAWN_PER_TURN);
         }
@@ -251,19 +241,14 @@ public class Game {
         if (discardHandIndex != null && (discardHandIndex < MIN_HAND_INDEX || discardHandIndex > handSize)) {
             throw new InvalidHandIndexException(discardHandIndex);
         }
-
         selectedField = null;
-
         Unit discarded = null;
         if (discardHandIndex != null) {
             discarded = yieldingTeam.getHand().remove(discardHandIndex);
         }
-
         Team nextTeam = yieldingTeam == team1 ? team2 : team1;
         currentTeam = nextTeam;
-
         resetTurnStateFor(nextTeam);
-
         boolean newTeamDeckEmpty = nextTeam.getDeck().isEmpty();
         Team winner = null;
         if (newTeamDeckEmpty) {
@@ -272,7 +257,6 @@ public class Game {
         } else {
             drawToHand(nextTeam, CARDS_DRAWN_PER_TURN);
         }
-
         return new YieldResult(discarded, yieldingTeam, newTeamDeckEmpty, winner);
     }
 

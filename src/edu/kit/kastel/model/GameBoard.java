@@ -38,6 +38,33 @@ public class GameBoard {
     /** Custom symbol set: index for vertical line. */
     private static final int CUSTOM_SYMBOL_INDEX_VERTICAL = 9;
 
+    private static final int CUSTOM_SYMBOL_INDEX_TOP_LEFT_CORNER = 0;
+    private static final int CUSTOM_SYMBOL_INDEX_TOP_RIGHT_CORNER = 1;
+    private static final int CUSTOM_SYMBOL_INDEX_BOTTOM_LEFT_CORNER = 2;
+    private static final int CUSTOM_SYMBOL_INDEX_BOTTOM_RIGHT_CORNER = 3;
+    private static final int CUSTOM_SYMBOL_INDEX_TOP_MID = 4;
+    private static final int CUSTOM_SYMBOL_INDEX_RIGHT_MID = 5;
+    private static final int CUSTOM_SYMBOL_INDEX_BOTTOM_MID = 6;
+    private static final int CUSTOM_SYMBOL_INDEX_LEFT_MID = 7;
+    private static final int CUSTOM_SYMBOL_INDEX_CENTER = 10;
+
+    private static final int CUSTOM_SYMBOL_INDEX_TOP_LEFT_CORNER_SELECTED = 11;
+    private static final int CUSTOM_SYMBOL_INDEX_TOP_RIGHT_CORNER_SELECTED = 12;
+    private static final int CUSTOM_SYMBOL_INDEX_BOTTOM_LEFT_CORNER_SELECTED = 13;
+    private static final int CUSTOM_SYMBOL_INDEX_BOTTOM_RIGHT_CORNER_SELECTED = 14;
+    private static final int CUSTOM_SYMBOL_INDEX_TOP_MID_SELECTED_LEFT = 15;
+    private static final int CUSTOM_SYMBOL_INDEX_TOP_MID_SELECTED_RIGHT = 16;
+    private static final int CUSTOM_SYMBOL_INDEX_RIGHT_MID_SELECTED_ABOVE = 17;
+    private static final int CUSTOM_SYMBOL_INDEX_RIGHT_MID_SELECTED_BELOW = 18;
+    private static final int CUSTOM_SYMBOL_INDEX_BOTTOM_MID_SELECTED_LEFT = 19;
+    private static final int CUSTOM_SYMBOL_INDEX_BOTTOM_MID_SELECTED_RIGHT = 20;
+    private static final int CUSTOM_SYMBOL_INDEX_LEFT_MID_SELECTED_ABOVE = 21;
+    private static final int CUSTOM_SYMBOL_INDEX_LEFT_MID_SELECTED_BELOW = 22;
+    private static final int CUSTOM_SYMBOL_INDEX_CENTER_SELECTED_TOP_LEFT = 25;
+    private static final int CUSTOM_SYMBOL_INDEX_CENTER_SELECTED_TOP_RIGHT = 26;
+    private static final int CUSTOM_SYMBOL_INDEX_CENTER_SELECTED_BOTTOM_LEFT = 27;
+    private static final int CUSTOM_SYMBOL_INDEX_CENTER_SELECTED_BOTTOM_RIGHT = 28;
+
     /** Custom symbol set: index for horizontal line when selected. */
     private static final int CUSTOM_SYMBOL_INDEX_HORIZONTAL_SELECTED = 23;
 
@@ -167,53 +194,173 @@ public class GameBoard {
         return leftSel || curSel || aboveLeft || aboveCur;
     }
 
-    private boolean isCornerRightSelected(int r, int c, int rAbove, Field selectedField) {
-        if (c == SIZE - 1) {
-            boolean selR = isSelected(r, SIZE - 1, selectedField);
-            boolean selAbove = rAbove >= 0 && isSelected(rAbove, SIZE - 1, selectedField);
-            return selR || selAbove;
-        }
-        boolean curSel = isSelected(r, c, selectedField);
-        boolean rightSel = isSelected(r, c + 1, selectedField);
-        boolean aboveCur = rAbove >= 0 && isSelected(rAbove, c, selectedField);
-        boolean aboveRight = rAbove >= 0 && isSelected(rAbove, c + 1, selectedField);
-        return curSel || rightSel || aboveCur || aboveRight;
-    }
-
     private String buildSeparatorLine(int row, boolean unused, Field selectedField, boolean useStandard, char[] sym) {
-        // Draw the top edge of the given row. This same line is the BOTTOM edge of row r+1 (display).
-        // So we must show selection for both row r (top of r) and row r+1 (bottom of r+1).
-        // row=-1: bottom of row 0 only.
-        int r = row >= 0 ? row : 0;
-        int rAbove = (row >= 0 && row < SIZE - 1) ? row + 1 : -1; // row above in grid (display), or -1
-        char hNorm = useStandard ? STD_H : sym[CUSTOM_SYMBOL_INDEX_HORIZONTAL];
-        char customHSel = sym.length > CUSTOM_SYMBOL_INDEX_HORIZONTAL_SELECTED
-                ? sym[CUSTOM_SYMBOL_INDEX_HORIZONTAL_SELECTED] : STD_H_SEL;
-        char hSel = useStandard ? STD_H_SEL : customHSel;
+        // Draw the separator line above the given row (or the bottom border for row=-1).
+        int rowBelow = row >= 0 ? row : 0;
+        int rowAbove = (row >= 0 && row < SIZE - 1) ? row + 1 : -1;
+        boolean isTopBorder = row == SIZE - 1;
+        boolean isBottomBorder = row == -1;
+
         StringBuilder sb = new StringBuilder();
         sb.append(BOARD_ROW_INDENT);
+
+        char hNorm = useStandard ? STD_H : sym[CUSTOM_SYMBOL_INDEX_HORIZONTAL];
+        char hSel = useStandard ? STD_H_SEL : sym[CUSTOM_SYMBOL_INDEX_HORIZONTAL_SELECTED];
+
+        char firstJunction;
+        if (useStandard) {
+            boolean leftEdgeSel = selectedField != null
+                    && (isSelected(rowBelow, 0, selectedField)
+                    || (rowAbove >= 0 && isSelected(rowAbove, 0, selectedField)));
+            firstJunction = leftEdgeSel ? STD_CORNER_SEL : STD_CORNER;
+        } else if (isTopBorder) {
+            firstJunction = selectedField != null && isSelected(rowBelow, 0, selectedField)
+                    ? sym[CUSTOM_SYMBOL_INDEX_TOP_LEFT_CORNER_SELECTED]
+                    : sym[CUSTOM_SYMBOL_INDEX_TOP_LEFT_CORNER];
+        } else if (isBottomBorder) {
+            firstJunction = selectedField != null && isSelected(rowBelow, 0, selectedField)
+                    ? sym[CUSTOM_SYMBOL_INDEX_BOTTOM_LEFT_CORNER_SELECTED]
+                    : sym[CUSTOM_SYMBOL_INDEX_BOTTOM_LEFT_CORNER];
+        } else {
+            firstJunction = customLeftMidJunction(rowBelow, rowAbove, selectedField, sym);
+        }
+        sb.append(firstJunction);
+
         for (int c = 0; c < SIZE; c++) {
-            boolean selR = isSelected(r, c, selectedField);
-            boolean selRAbove = rAbove >= 0 && isSelected(rAbove, c, selectedField);
-            boolean cornerLeftSel = isCornerLeftSelected(r, c, rAbove, selectedField);
-            boolean cornerRightSel = isCornerRightSelected(r, c, rAbove, selectedField);
-            if (c == 0) {
-                sb.append(cornerChar(true, true, cornerLeftSel, useStandard, sym));
-            }
-            boolean segSel = selR || selRAbove;
+            boolean segSel = isSegmentSelected(rowBelow, rowAbove, c, selectedField, isTopBorder, isBottomBorder);
             sb.append(segSel ? hSel : hNorm).append(segSel ? hSel : hNorm).append(segSel ? hSel : hNorm);
-            sb.append(cornerChar(true, false, cornerRightSel, useStandard, sym));
+            boolean junctionSel = useStandard && selectedField != null
+                    && isStandardJunctionSelected(rowBelow, rowAbove, c, false, c == SIZE - 1, selectedField);
+            char junction = useStandard
+                    ? (junctionSel ? STD_CORNER_SEL : STD_CORNER)
+                    : customJunctionAfterCell(rowBelow, rowAbove, c, selectedField, sym, isTopBorder, isBottomBorder);
+            sb.append(junction);
         }
         return sb.toString();
     }
 
-    private char cornerChar(boolean top, boolean left, boolean selected, boolean useStandard, char[] sym) {
-        if (useStandard) {
-            return selected ? STD_CORNER_SEL : STD_CORNER;
+    private boolean isStandardJunctionSelected(int rowBelow, int rowAbove, int junctionCol, boolean isLeftEdge,
+                                               boolean isRightEdge, Field selectedField) {
+        if (selectedField == null) {
+            return false;
         }
-        int idx = top ? (left ? 0 : 1) : (left ? 2 : 3);
-        int selIdx = idx + CUSTOM_CORNER_SELECTED_OFFSET;
-        return selected && selIdx < sym.length ? sym[selIdx] : sym[idx];
+        if (isLeftEdge) {
+            return isSelected(rowBelow, 0, selectedField) || (rowAbove >= 0 && isSelected(rowAbove, 0, selectedField));
+        }
+        if (isRightEdge) {
+            return isSelected(rowBelow, SIZE - 1, selectedField)
+                    || (rowAbove >= 0 && isSelected(rowAbove, SIZE - 1, selectedField));
+        }
+        return isSelected(rowBelow, junctionCol, selectedField)
+                || isSelected(rowBelow, junctionCol + 1, selectedField)
+                || (rowAbove >= 0 && isSelected(rowAbove, junctionCol, selectedField))
+                || (rowAbove >= 0 && isSelected(rowAbove, junctionCol + 1, selectedField));
+    }
+
+    private boolean isSegmentSelected(int rowBelow, int rowAbove, int col, Field selectedField,
+                                      boolean isTopBorder, boolean isBottomBorder) {
+        if (selectedField == null) {
+            return false;
+        }
+        if (isTopBorder || isBottomBorder) {
+            return isSelected(rowBelow, col, selectedField);
+        }
+        return isSelected(rowBelow, col, selectedField) || isSelected(rowAbove, col, selectedField);
+    }
+
+    private char customLeftMidJunction(int rowBelow, int rowAbove, Field selectedField, char[] sym) {
+        if (selectedField == null) {
+            return sym[CUSTOM_SYMBOL_INDEX_LEFT_MID];
+        }
+        if (rowAbove >= 0 && isSelected(rowAbove, 0, selectedField)) {
+            return sym[CUSTOM_SYMBOL_INDEX_LEFT_MID_SELECTED_ABOVE];
+        }
+        if (isSelected(rowBelow, 0, selectedField)) {
+            return sym[CUSTOM_SYMBOL_INDEX_LEFT_MID_SELECTED_BELOW];
+        }
+        return sym[CUSTOM_SYMBOL_INDEX_LEFT_MID];
+    }
+
+    private char customRightMidJunction(int rowBelow, int rowAbove, Field selectedField, char[] sym) {
+        if (selectedField == null) {
+            return sym[CUSTOM_SYMBOL_INDEX_RIGHT_MID];
+        }
+        if (rowAbove >= 0 && isSelected(rowAbove, SIZE - 1, selectedField)) {
+            return sym[CUSTOM_SYMBOL_INDEX_RIGHT_MID_SELECTED_ABOVE];
+        }
+        if (isSelected(rowBelow, SIZE - 1, selectedField)) {
+            return sym[CUSTOM_SYMBOL_INDEX_RIGHT_MID_SELECTED_BELOW];
+        }
+        return sym[CUSTOM_SYMBOL_INDEX_RIGHT_MID];
+    }
+
+    private char customJunctionAfterCell(int rowBelow, int rowAbove, int c, Field selectedField, char[] sym,
+                                        boolean isTopBorder, boolean isBottomBorder) {
+        if (c == SIZE - 1) {
+            if (isTopBorder) {
+                return selectedField != null && isSelected(rowBelow, SIZE - 1, selectedField)
+                        ? sym[CUSTOM_SYMBOL_INDEX_TOP_RIGHT_CORNER_SELECTED]
+                        : sym[CUSTOM_SYMBOL_INDEX_TOP_RIGHT_CORNER];
+            }
+            if (isBottomBorder) {
+                return selectedField != null && isSelected(rowBelow, SIZE - 1, selectedField)
+                        ? sym[CUSTOM_SYMBOL_INDEX_BOTTOM_RIGHT_CORNER_SELECTED]
+                        : sym[CUSTOM_SYMBOL_INDEX_BOTTOM_RIGHT_CORNER];
+            }
+            return customRightMidJunction(rowBelow, rowAbove, selectedField, sym);
+        }
+        if (isTopBorder) {
+            return customTopMidJunction(rowBelow, c, selectedField, sym);
+        }
+        if (isBottomBorder) {
+            return customBottomMidJunction(rowBelow, c, selectedField, sym);
+        }
+        return customCenterJunction(rowBelow, rowAbove, c, selectedField, sym);
+    }
+
+    private char customTopMidJunction(int row, int c, Field selectedField, char[] sym) {
+        if (selectedField == null) {
+            return sym[CUSTOM_SYMBOL_INDEX_TOP_MID];
+        }
+        if (isSelected(row, c, selectedField)) {
+            return sym[CUSTOM_SYMBOL_INDEX_TOP_MID_SELECTED_LEFT];
+        }
+        if (isSelected(row, c + 1, selectedField)) {
+            return sym[CUSTOM_SYMBOL_INDEX_TOP_MID_SELECTED_RIGHT];
+        }
+        return sym[CUSTOM_SYMBOL_INDEX_TOP_MID];
+    }
+
+    private char customBottomMidJunction(int row, int c, Field selectedField, char[] sym) {
+        if (selectedField == null) {
+            return sym[CUSTOM_SYMBOL_INDEX_BOTTOM_MID];
+        }
+        if (isSelected(row, c, selectedField)) {
+            return sym[CUSTOM_SYMBOL_INDEX_BOTTOM_MID_SELECTED_LEFT];
+        }
+        if (isSelected(row, c + 1, selectedField)) {
+            return sym[CUSTOM_SYMBOL_INDEX_BOTTOM_MID_SELECTED_RIGHT];
+        }
+        return sym[CUSTOM_SYMBOL_INDEX_BOTTOM_MID];
+    }
+
+    private char customCenterJunction(int rowBelow, int rowAbove, int c, Field selectedField, char[] sym) {
+        if (selectedField == null) {
+            return sym[CUSTOM_SYMBOL_INDEX_CENTER];
+        }
+        if (rowAbove >= 0 && isSelected(rowAbove, c, selectedField)) {
+            return sym[CUSTOM_SYMBOL_INDEX_CENTER_SELECTED_TOP_LEFT];
+        }
+        if (rowAbove >= 0 && isSelected(rowAbove, c + 1, selectedField)) {
+            return sym[CUSTOM_SYMBOL_INDEX_CENTER_SELECTED_TOP_RIGHT];
+        }
+        if (isSelected(rowBelow, c, selectedField)) {
+            return sym[CUSTOM_SYMBOL_INDEX_CENTER_SELECTED_BOTTOM_LEFT];
+        }
+        if (isSelected(rowBelow, c + 1, selectedField)) {
+            return sym[CUSTOM_SYMBOL_INDEX_CENTER_SELECTED_BOTTOM_RIGHT];
+        }
+        return sym[CUSTOM_SYMBOL_INDEX_CENTER];
     }
 
     private String buildCellLine(int r, Field selectedField, Team teamShownAsX, Team currentTeam,
