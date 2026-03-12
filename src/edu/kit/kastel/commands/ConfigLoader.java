@@ -16,7 +16,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Loads and validates game configuration from key-value pairs (e.g. from command line).
@@ -36,15 +35,6 @@ public final class ConfigLoader {
     /** Maximum allowed length of a team name (A.3). */
     private static final int MAX_TEAM_NAME_LENGTH = 14;
 
-    /** Default team 1 name when not specified (A.3). */
-    private static final String DEFAULT_TEAM1_NAME = "Player";
-
-    /** Default team 2 name when not specified (A.3). */
-    private static final String DEFAULT_TEAM2_NAME = "Enemy";
-
-    /** Default verbosity when not specified (A.3). */
-    private static final String DEFAULT_VERBOSITY = "all";
-
     /** Expected number of symbols in custom board file (A.3.1). */
     private static final int EXPECTED_BOARD_SYMBOL_COUNT = 29;
 
@@ -56,33 +46,6 @@ public final class ConfigLoader {
 
     /** Invalid content in units file (double space). */
     private static final String INVALID_DOUBLE_SPACE = "  ";
-
-    /** Configuration key 'seed'. */
-    private static final String KEY_SEED = "seed";
-
-    /** Configuration key 'board'. */
-    private static final String KEY_BOARD = "board";
-
-    /** Configuration key 'units'. */
-    private static final String KEY_UNITS = "units";
-
-    /** Configuration key 'deck'. */
-    private static final String KEY_DECK = "deck";
-
-    /** Configuration key 'deck1'. */
-    private static final String KEY_DECK1 = "deck1";
-
-    /** Configuration key 'deck2'. */
-    private static final String KEY_DECK2 = "deck2";
-
-    /** Configuration key 'team1'. */
-    private static final String KEY_TEAM1 = "team1";
-
-    /** Configuration key 'team2'. */
-    private static final String KEY_TEAM2 = "team2";
-
-    /** Configuration key 'verbosity'. */
-    private static final String KEY_VERBOSITY = "verbosity";
 
     /** Error prefix for too long team names. */
     private static final String ERROR_TEAM_NAME_PREFIX = "Team name for ";
@@ -151,12 +114,6 @@ public final class ConfigLoader {
     /** Context label for deck count parsing. */
     private static final String CONTEXT_DECK_COUNT = "deck count";
 
-    /** Verbosity value for full output (A.3). */
-    private static final String VERBOSITY_ALL = "all";
-
-    /** Verbosity value for compact output (A.3). */
-    private static final String VERBOSITY_COMPACT = "compact";
-
     /** Index of qualifier in unit line parts. */
     private static final int INDEX_QUALIFIER = 0;
 
@@ -175,21 +132,6 @@ public final class ConfigLoader {
     /** Initial value for deck count sum. */
     private static final int INITIAL_DECK_SUM = 0;
 
-    /**
-     * Allowed configuration keys as specified in A.3 (for unknown-parameter detection).
-     */
-    private static final Set<String> ALLOWED_KEYS = Set.of(
-            KEY_SEED,
-            KEY_BOARD,
-            KEY_UNITS,
-            KEY_DECK,
-            KEY_DECK1,
-            KEY_DECK2,
-            KEY_TEAM1,
-            KEY_TEAM2,
-            KEY_VERBOSITY
-    );
-
     private ConfigLoader() { }
 
     /**
@@ -206,37 +148,37 @@ public final class ConfigLoader {
     public static GameConfig load(Map<String, String> kv) throws StartupException {
         validateKnownKeys(kv);
 
-        long seed = parseLongRequired(kv, KEY_SEED);
+        long seed = parseLongRequired(kv, ConfigKeys.KEY_SEED);
 
-        if (!kv.containsKey(KEY_UNITS)) {
-            throw new MissingArgumentException(KEY_UNITS);
+        if (!kv.containsKey(ConfigKeys.KEY_UNITS)) {
+            throw new MissingArgumentException(ConfigKeys.KEY_UNITS);
         }
         validateDeckKeys(kv);
 
-        String team1 = kv.getOrDefault(KEY_TEAM1, DEFAULT_TEAM1_NAME);
-        String team2 = kv.getOrDefault(KEY_TEAM2, DEFAULT_TEAM2_NAME);
-        String verbosityValue = kv.getOrDefault(KEY_VERBOSITY, DEFAULT_VERBOSITY);
+        String team1 = kv.getOrDefault(ConfigKeys.KEY_TEAM1, ConfigKeys.DEFAULT_TEAM1_NAME);
+        String team2 = kv.getOrDefault(ConfigKeys.KEY_TEAM2, ConfigKeys.DEFAULT_TEAM2_NAME);
+        String verbosityValue = kv.getOrDefault(ConfigKeys.KEY_VERBOSITY, ConfigKeys.DEFAULT_VERBOSITY);
 
         SymbolSet symbolSet = SymbolSet.standard();
-        if (kv.containsKey(KEY_BOARD)) {
-            symbolSet = readBoardSymbols(Path.of(kv.get(KEY_BOARD)));
+        if (kv.containsKey(ConfigKeys.KEY_BOARD)) {
+            symbolSet = readBoardSymbols(Path.of(kv.get(ConfigKeys.KEY_BOARD)));
         }
 
-        List<UnitTemplate> units = readUnitsFile(Path.of(kv.get(KEY_UNITS)));
+        List<UnitTemplate> units = readUnitsFile(Path.of(kv.get(ConfigKeys.KEY_UNITS)));
         List<Integer> deckCountsTeam1;
         List<Integer> deckCountsTeam2;
 
-        if (kv.containsKey(KEY_DECK)) {
-            List<Integer> counts = readDeckFile(Path.of(kv.get(KEY_DECK)), units.size());
+        if (kv.containsKey(ConfigKeys.KEY_DECK)) {
+            List<Integer> counts = readDeckFile(Path.of(kv.get(ConfigKeys.KEY_DECK)), units.size());
             deckCountsTeam1 = counts;
             deckCountsTeam2 = counts;
         } else {
-            deckCountsTeam1 = readDeckFile(Path.of(kv.get(KEY_DECK1)), units.size());
-            deckCountsTeam2 = readDeckFile(Path.of(kv.get(KEY_DECK2)), units.size());
+            deckCountsTeam1 = readDeckFile(Path.of(kv.get(ConfigKeys.KEY_DECK1)), units.size());
+            deckCountsTeam2 = readDeckFile(Path.of(kv.get(ConfigKeys.KEY_DECK2)), units.size());
         }
 
-        validateTeamNameLength(team1, KEY_TEAM1);
-        validateTeamNameLength(team2, KEY_TEAM2);
+        validateTeamNameLength(team1, ConfigKeys.KEY_TEAM1);
+        validateTeamNameLength(team2, ConfigKeys.KEY_TEAM2);
         VerbosityMode mode = parseVerbosity(verbosityValue);
 
         return new GameConfig(seed, team1, team2, mode, symbolSet, units, deckCountsTeam1, deckCountsTeam2);
@@ -250,16 +192,16 @@ public final class ConfigLoader {
 
     private static void validateKnownKeys(Map<String, String> kv) throws InvalidArgumentException {
         for (String key : kv.keySet()) {
-            if (!ALLOWED_KEYS.contains(key)) {
+            if (!ConfigKeys.ALLOWED_KEYS.contains(key)) {
                 throw new InvalidArgumentException(ERROR_UNKNOWN_PARAMETER_PREFIX + key);
             }
         }
     }
 
     private static void validateDeckKeys(Map<String, String> kv) throws ConflictingDeckArgumentsException {
-        boolean hasDeck = kv.containsKey(KEY_DECK);
-        boolean hasDeck1 = kv.containsKey(KEY_DECK1);
-        boolean hasDeck2 = kv.containsKey(KEY_DECK2);
+        boolean hasDeck = kv.containsKey(ConfigKeys.KEY_DECK);
+        boolean hasDeck1 = kv.containsKey(ConfigKeys.KEY_DECK1);
+        boolean hasDeck2 = kv.containsKey(ConfigKeys.KEY_DECK2);
         if (hasDeck && (hasDeck1 || hasDeck2)) {
             throw new ConflictingDeckArgumentsException(ERROR_CONFLICTING_DECK_KEYS);
         }
@@ -345,8 +287,8 @@ public final class ConfigLoader {
     private static VerbosityMode parseVerbosity(String v) throws InvalidArgumentException {
         String x = v.toLowerCase();
         return switch (x) {
-            case VERBOSITY_ALL -> VerbosityMode.ALL;
-            case VERBOSITY_COMPACT -> VerbosityMode.COMPACT;
+            case "all" -> VerbosityMode.ALL;
+            case "compact" -> VerbosityMode.COMPACT;
             default -> throw new InvalidArgumentException(ERROR_INVALID_VERBOSITY_PREFIX + v);
         };
     }

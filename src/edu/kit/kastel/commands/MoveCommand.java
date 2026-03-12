@@ -14,6 +14,7 @@ import edu.kit.kastel.model.DuelResult;
 import edu.kit.kastel.model.Field;
 import edu.kit.kastel.model.Game;
 import edu.kit.kastel.model.Unit;
+import edu.kit.kastel.model.BoardGeometry;
 
 /**
  * Command "move &lt;field&gt;": moves the selected unit to the given adjacent field (A1–G7).
@@ -81,7 +82,7 @@ public class MoveCommand extends Command {
             throw new UnitAlreadyMovedException(unit.getName());
         }
         String toStr = commandArguments[INDEX_FIRST_ARG].toUpperCase();
-        int[] toRc = Game.parseField(toStr);
+        int[] toRc = BoardGeometry.parseField(toStr);
         if (toRc == null) {
             throw new InvalidFieldException(commandArguments[INDEX_FIRST_ARG]);
         }
@@ -89,7 +90,7 @@ public class MoveCommand extends Command {
         int toCol = toRc[INDEX_COL];
         int fromRow = selected.row();
         int fromCol = selected.col();
-        if (!Game.isAdjacent(fromRow, fromCol, toRow, toCol)) {
+        if (!BoardGeometry.isAdjacent(fromRow, fromCol, toRow, toCol)) {
             throw new FieldTooFarException(selected.coordinate(), toStr);
         }
         var toField = game.getGameBoard().getField(toRow, toCol);

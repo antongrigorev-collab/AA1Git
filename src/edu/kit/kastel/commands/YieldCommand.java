@@ -9,6 +9,7 @@ import edu.kit.kastel.exceptions.InvalidHandIndexException;
 import edu.kit.kastel.model.AIPlayer;
 import edu.kit.kastel.model.Game;
 import edu.kit.kastel.model.Unit;
+import edu.kit.kastel.model.YieldResult;
 
 /**
  * Command "yield" [idx]: ends the current turn. If the hand has 5 cards, a 1-based
@@ -66,7 +67,7 @@ public class YieldCommand extends Command {
         }
 
         try {
-            Game.YieldResult result = game.endTurn(discardIndex);
+            YieldResult result = game.endTurn(discardIndex);
 
             if (result.discarded() != null) {
                 Unit u = result.discarded();

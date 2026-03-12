@@ -25,16 +25,6 @@ public class Game {
     /** Maximum non-King units per team on the board (6th unit is eliminated, A.1.5). */
     public static final int MAX_NON_KING_UNITS_ON_BOARD = 5;
 
-    /**
-     * Result of ending the current turn (yield). Used for command output.
-     *
-     * @param discarded       unit discarded from hand, or null if none
-     * @param yieldingTeam   team that ended the turn (the one that had the turn before switch)
-     * @param newTeamDeckEmpty whether the new team's deck was empty and could not draw
-     * @param winner         winning team if game over, otherwise null
-     */
-    public record YieldResult(Unit discarded, Team yieldingTeam,
-                             boolean newTeamDeckEmpty, Team winner) { }
     private static final int INITIAL_HAND_SIZE = 4;
     private static final int MAX_HAND_SIZE = 5;
     private static final int CARDS_DRAWN_PER_TURN = 1;
@@ -46,13 +36,6 @@ public class Game {
     private static final int INDEX_COL = 1;
     private static final int MIN_HAND_INDEX = 1;
     private static final int ADJACENT_MAX_OFFSET = 1;
-    private static final int FIELD_COORD_LENGTH = 2;
-    private static final char COLUMN_MIN = 'A';
-    private static final char COLUMN_MAX = 'G';
-    private static final char ROW_CHAR_MIN = '1';
-    private static final char ROW_CHAR_MAX = '7';
-    private static final int CHAR_INDEX_COL = 0;
-    private static final int CHAR_INDEX_ROW = 1;
     private static final String INITIAL_HAND_DRAW_FAILED_MESSAGE = "Initial hand draw failed";
     private final GameConfig config;
     private final Random random;
@@ -100,6 +83,9 @@ public class Game {
         gameBoard.placeUnit(KING_TEAM2_ROW, KING_COL, team2.getKing());
         if (!team1.getDeck().isEmpty()) {
             drawToHand(team1, CARDS_DRAWN_PER_TURN);
+        }
+        if (!team2.getDeck().isEmpty()) {
+            drawToHand(team2, CARDS_DRAWN_PER_TURN);
         }
     }
 
@@ -327,19 +313,6 @@ public class Game {
     }
 
     /**
-     * Manhattan distance 1 (including en place).
-     *
-     * @param fromRow row of source field
-     * @param fromCol column of source field
-     * @param toRow   row of target field
-     * @param toCol   column of target field
-     * @return true if the two fields are adjacent or the same
-     */
-    public static boolean isAdjacent(int fromRow, int fromCol, int toRow, int toCol) {
-        return Math.abs(fromRow - toRow) + Math.abs(fromCol - toCol) <= ADJACENT_MAX_OFFSET;
-    }
-
-    /**
      * True if (row, col) is adjacent to the given team's king (8 directions).
      *
      * @param team the team whose king position is used
@@ -355,24 +328,6 @@ public class Game {
         int kr = kingPos[START_INDEX];
         int kc = kingPos[INDEX_COL];
         return Math.abs(row - kr) <= ADJACENT_MAX_OFFSET && Math.abs(col - kc) <= ADJACENT_MAX_OFFSET;
-    }
-
-    /**
-     * Parses "A1"-"G7" to row,col. Row 1 = index 0.
-     *
-     * @param coord field identifier A1 to G7
-     * @return int array [row, col] or null if invalid
-     */
-    public static int[] parseField(String coord) {
-        String u = coord.strip().toUpperCase();
-        if (u.length() != FIELD_COORD_LENGTH || u.charAt(CHAR_INDEX_COL) < COLUMN_MIN
-                || u.charAt(CHAR_INDEX_COL) > COLUMN_MAX || u.charAt(CHAR_INDEX_ROW) < ROW_CHAR_MIN
-                || u.charAt(CHAR_INDEX_ROW) > ROW_CHAR_MAX) {
-            return null;
-        }
-        int col = u.charAt(CHAR_INDEX_COL) - COLUMN_MIN;
-        int row = u.charAt(CHAR_INDEX_ROW) - ROW_CHAR_MIN;
-        return new int[] { row, col };
     }
 
     /**

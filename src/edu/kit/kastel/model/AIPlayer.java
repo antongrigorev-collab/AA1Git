@@ -258,7 +258,7 @@ public final class AIPlayer {
             discardIdx = AIPlayerHelper.weightedSelect(inv, game.getRandom()) + 1;
         }
         try {
-            Game.YieldResult result = game.endTurn(discardIdx);
+            YieldResult result = game.endTurn(discardIdx);
             if (result.discarded() != null) {
                 Unit u = result.discarded();
                 System.out.println(String.format(DISCARDED_UNIT_MESSAGE_FORMAT,

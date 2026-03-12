@@ -11,6 +11,7 @@ import edu.kit.kastel.model.Compatibility;
 import edu.kit.kastel.model.Field;
 import edu.kit.kastel.model.Game;
 import edu.kit.kastel.model.Unit;
+import edu.kit.kastel.model.BoardGeometry;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -123,7 +124,7 @@ public class PlaceCommand extends Command {
     private List<Integer> validatePlaceCommand(Game game, List<String> argsList) throws GameException {
         if (!argsList.isEmpty() && isFieldArg(argsList.get(argsList.size() - INDEX_LAST_OFFSET))) {
             String fieldStr = argsList.remove(argsList.size() - INDEX_LAST_OFFSET).toUpperCase();
-            int[] rc = Game.parseField(fieldStr);
+            int[] rc = BoardGeometry.parseField(fieldStr);
             if (rc != null) {
                 game.setSelectedField(game.getGameBoard().getField(rc[INDEX_ROW], rc[INDEX_COL]));
             }
