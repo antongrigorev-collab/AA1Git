@@ -104,7 +104,8 @@ public final class AIPlayer {
             int fellows = AIPlayerHelper.countAdjacent(game, tr, tc, ai, false);
             int enemies = AIPlayerHelper.countAdjacent(game, tr, tc, enemy, false);
             int fellowPresent = (onTo != null && onTo.getTeam().equals(ai) && !onTo.isKing()) ? 1 : 0;
-            int score = fellows - KING_SCORE_ENEMY_WEIGHT * enemies - distance - KING_SCORE_FELLOW_PRESENT_WEIGHT * fellowPresent;
+            int score = fellows - KING_SCORE_ENEMY_WEIGHT * enemies - distance
+                    - KING_SCORE_FELLOW_PRESENT_WEIGHT * fellowPresent;
             validKingMoves.add(to);
             kingScores.add(score);
         }
@@ -126,7 +127,9 @@ public final class AIPlayer {
             if (r < 0 || r >= GameBoard.SIZE || c < 0 || c >= GameBoard.SIZE) {
                 continue;
             }
-            if (!ctx.game().getGameBoard().getField(r, c).isEmpty()) {
+            Field field = ctx.game().getGameBoard().getField(r, c);
+            Unit occupant = field.getUnit();
+            if (occupant != null && !occupant.getTeam().equals(ctx.ai())) {
                 continue;
             }
             placeFieldsOrdered.add(new int[] { r, c });
@@ -271,6 +274,7 @@ public final class AIPlayer {
             }
             if (result.winner() != null) {
                 System.out.println(String.format(WINS_MESSAGE_FORMAT, result.winner().getName()));
+                ShowCommand.printBoard(game);
             }
         } catch (HandFullMustDiscardException | CannotDiscardException | InvalidHandIndexException
                 | InitializationException e) {
@@ -310,6 +314,10 @@ public final class AIPlayer {
             DuelResult result = game.performDuel(unit, defender, defender.isBlocked(), fromRow, fromCol, toRow, toCol);
             for (String line : result.lines()) {
                 System.out.println(line);
+            }
+            if (result.winner() != null) {
+                ShowCommand.printBoard(game);
+                return;
             }
             if (toField.getUnit() == unit) {
                 game.setSelectedField(toField);

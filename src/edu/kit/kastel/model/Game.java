@@ -241,7 +241,9 @@ public class Game {
             gameOver = true;
             winner = yieldingTeam;
         } else {
-            drawToHand(nextTeam, CARDS_DRAWN_PER_TURN);
+            if (!nextTeam.getHand().isFull()) {
+                drawToHand(nextTeam, CARDS_DRAWN_PER_TURN);
+            }
         }
         return new YieldResult(discarded, yieldingTeam, newTeamDeckEmpty, winner);
     }

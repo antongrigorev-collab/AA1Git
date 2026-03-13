@@ -71,18 +71,22 @@ final class AIPlayerHelper {
         for (Integer w : weights) {
             sum += Math.max(0, w);
         }
+        int chosenIndex;
         if (sum <= 0) {
-            return rnd.nextInt(weights.size());
-        }
-        int r = rnd.nextInt(sum) + 1;
-        int acc = 0;
-        for (int i = 0; i < weights.size(); i++) {
-            acc += Math.max(0, weights.get(i));
-            if (r <= acc) {
-                return i;
+            chosenIndex = rnd.nextInt(0, weights.size());
+        } else {
+            int r = rnd.nextInt(1, sum + 1);
+            int acc = 0;
+            chosenIndex = weights.size() - 1;
+            for (int i = 0; i < weights.size(); i++) {
+                acc += Math.max(0, weights.get(i));
+                if (r <= acc) {
+                    chosenIndex = i;
+                    break;
+                }
             }
         }
-        return weights.size() - 1;
+        return chosenIndex;
     }
 
     /**

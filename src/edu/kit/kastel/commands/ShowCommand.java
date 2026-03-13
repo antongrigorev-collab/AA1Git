@@ -74,6 +74,20 @@ public class ShowCommand extends Command {
     }
 
     /**
+     * Prints only the game board without any show output. Used e.g. directly
+     * after a team has won the game.
+     *
+     * @param game the game (must not be null)
+     */
+    public static void printBoard(Game game) {
+        List<String> lines = game.getGameBoard().render(
+                game.getSelectedField(), game.getTeam1(), game.getCurrentTeam());
+        for (String line : lines) {
+            System.out.println(line);
+        }
+    }
+
+    /**
      * Prints the show output for the current selection. Displays unit name, team,
      * ATK and DEF, or placeholder for empty/hidden/King. Reused by show and select.
      *

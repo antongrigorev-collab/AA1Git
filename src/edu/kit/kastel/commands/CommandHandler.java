@@ -75,7 +75,11 @@ public class CommandHandler {
 
         try (Scanner scanner = new Scanner(System.in)) {
             while (running) {
-                executeCommand(scanner.nextLine());
+                if (game != null && game.isGameOver()) {
+                    break;
+                }
+                String input = scanner.nextLine();
+                executeCommand(input);
             }
         }
     }

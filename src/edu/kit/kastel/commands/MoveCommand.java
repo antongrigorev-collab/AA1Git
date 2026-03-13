@@ -154,6 +154,12 @@ public class MoveCommand extends Command {
                 System.out.println(line);
             }
             if (result.winner() != null) {
+                if (toField.getUnit() == unit) {
+                    game.setSelectedField(toField);
+                } else {
+                    game.setSelectedField(null);
+                }
+                ShowCommand.printBoardAndShow(game);
                 return;
             }
             if (toField.getUnit() == unit) {
