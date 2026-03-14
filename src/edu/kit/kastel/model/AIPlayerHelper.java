@@ -67,6 +67,9 @@ final class AIPlayerHelper {
      * @return index of selected option
      */
     static int weightedSelect(List<Integer> weights, Random rnd) {
+        if (weights.size() == 1) {
+            return 0;
+        }
         int sum = 0;
         for (Integer w : weights) {
             sum += Math.max(0, w);
@@ -90,7 +93,7 @@ final class AIPlayerHelper {
     }
 
     /**
-     * Selects among indices with maximum score. Bei Gleichstand: Gewichte je 1.
+     * Selects among indices with maximum score. On tie, each option has weight 1.
      *
      * @param scores list of scores (order preserved)
      * @param rnd    random
@@ -197,7 +200,7 @@ final class AIPlayerHelper {
                     c += dx[1];
                     continue;
                 }
-                if (u.getTeam().equals(enemy) && !u.isKing()) {
+                if (u.getTeam().equals(enemy) && !u.isKing() && u.isRevealed()) {
                     max = Math.max(max, u.getAtk());
                 }
                 break;

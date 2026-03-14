@@ -80,7 +80,8 @@ final class DuelResolver {
         return resolveStandardDuel(ctx, fromField, toField, lines);
     }
 
-    private static void addDuelIntroLines(Unit attacker, Unit defender, Field fromField, Field toField, List<String> lines) {
+    private static void addDuelIntroLines(Unit attacker, Unit defender, Field fromField, Field toField,
+                                          List<String> lines) {
         if (attacker.isBlocked()) {
             lines.add(String.format(FORMAT_NO_LONGER_BLOCKS, attacker.getName()));
             attacker.setBlocked(false);
@@ -88,8 +89,18 @@ final class DuelResolver {
         int atkA = attacker.getAtk();
         int atkB = defender.getAtk();
         int defB = defender.getDef();
-        String defenderDisplayName = defender.isRevealed() ? defender.getName() : HIDDEN_UNIT_DISPLAY_PLACEHOLDER;
-        String defenderStats = defender.isRevealed() ? String.format(FORMAT_STATS, atkB, defB) : "";
+        String defenderDisplayName;
+        String defenderStats;
+        if (defender.isKing()) {
+            defenderDisplayName = "Farmer King";
+            defenderStats = "";
+        } else if (defender.isRevealed()) {
+            defenderDisplayName = defender.getName();
+            defenderStats = String.format(FORMAT_STATS, atkB, defB);
+        } else {
+            defenderDisplayName = HIDDEN_UNIT_DISPLAY_PLACEHOLDER;
+            defenderStats = "";
+        }
         lines.add(String.format(FORMAT_ATTACKS_ON_FIELD, attacker.getName(), atkA, attacker.getDef(),
                 defenderDisplayName, defenderStats, toField.coordinate()));
         if (!attacker.isRevealed()) {

@@ -80,7 +80,6 @@ public class YieldCommand extends Command {
             }
             if (result.winner() != null) {
                 System.out.println(result.winner().getName() + WINS);
-                ShowCommand.printBoard(game);
             }
         } catch (HandFullMustDiscardException | CannotDiscardException | InvalidHandIndexException
                 | InitializationException e) {

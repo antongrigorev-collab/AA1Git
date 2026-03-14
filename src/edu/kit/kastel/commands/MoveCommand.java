@@ -141,34 +141,55 @@ public class MoveCommand extends Command {
 
     private void executeMoveToOccupied(MoveToOccupiedContext ctx) {
         Game game = ctx.game();
+        Unit defender = ctx.defender();
+        if (!defender.getTeam().equals(game.getCurrentTeam())) {
+            executeMoveToOccupiedVsEnemy(ctx);
+        } else {
+            executeMoveToOccupiedVsAlly(ctx);
+        }
+    }
+
+    private void executeMoveToOccupiedVsEnemy(MoveToOccupiedContext ctx) {
+        Game game = ctx.game();
         Unit unit = ctx.unit();
         Unit defender = ctx.defender();
         Field selected = ctx.selected();
         Field toField = ctx.toField();
         int toRow = ctx.toRow();
         int toCol = ctx.toCol();
-        if (!defender.getTeam().equals(game.getCurrentTeam())) {
-            DuelResult result = game.performDuel(unit, defender, defender.isBlocked(),
-                    ctx.fromRow(), ctx.fromCol(), toRow, toCol);
-            for (String line : result.lines()) {
-                System.out.println(line);
-            }
-            if (result.winner() != null) {
-                if (toField.getUnit() == unit) {
-                    game.setSelectedField(toField);
-                } else {
-                    game.setSelectedField(null);
-                }
-                ShowCommand.printBoardAndShow(game);
-                return;
-            }
+        DuelResult result = game.performDuel(unit, defender, defender.isBlocked(),
+                ctx.fromRow(), ctx.fromCol(), toRow, toCol);
+        for (String line : result.lines()) {
+            System.out.println(line);
+        }
+        if (result.winner() != null) {
             if (toField.getUnit() == unit) {
                 unit.setMovedThisTurn(true);
                 game.setSelectedField(toField);
+            } else if (selected.getUnit() == unit) {
+                unit.setMovedThisTurn(true);
+                game.setSelectedField(selected);
+            } else {
+                game.setSelectedField(null);
             }
             ShowCommand.printBoardAndShow(game);
             return;
         }
+        if (toField.getUnit() == unit) {
+            unit.setMovedThisTurn(true);
+            game.setSelectedField(toField);
+        }
+        ShowCommand.printBoardAndShow(game);
+    }
+
+    private void executeMoveToOccupiedVsAlly(MoveToOccupiedContext ctx) {
+        Game game = ctx.game();
+        Unit unit = ctx.unit();
+        Unit defender = ctx.defender();
+        Field selected = ctx.selected();
+        Field toField = ctx.toField();
+        int toRow = ctx.toRow();
+        int toCol = ctx.toCol();
         Compatibility.MergeStats stats = Compatibility.check(unit, defender);
         if (unit.isBlocked()) {
             unit.setBlocked(false);

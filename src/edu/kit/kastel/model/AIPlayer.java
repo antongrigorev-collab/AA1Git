@@ -5,7 +5,6 @@ import edu.kit.kastel.exceptions.CannotDiscardException;
 import edu.kit.kastel.exceptions.HandFullMustDiscardException;
 import edu.kit.kastel.exceptions.InitializationException;
 import edu.kit.kastel.exceptions.InvalidHandIndexException;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -62,7 +61,9 @@ public final class AIPlayer {
         int kc = kingPos[1];
 
         if (runKingMove(game, ai, enemy, kr, kc, rnd)) {
-            yieldTurn(game);
+            if (!game.isGameOver()) {
+                yieldTurn(game);
+            }
             return;
         }
         kingPos = game.getKingPosition(ai);
@@ -77,7 +78,9 @@ public final class AIPlayer {
         int ekc = enemyKingPos != null ? enemyKingPos[1] : 0;
         runPlacePhase(new PlacePhaseContext(game, ai, enemy, kr, kc, ekr, ekc, rnd));
         runUnitMovesLoop(game, ai, enemy, ekr, ekc, rnd);
-        yieldTurn(game);
+        if (!game.isGameOver()) {
+            yieldTurn(game);
+        }
     }
 
     /** Returns true if turn should abort (game over or king gone after move). */
@@ -115,7 +118,9 @@ public final class AIPlayer {
         int idx = AIPlayerHelper.selectAmongMaxScore(kingScores, rnd);
         int[] to = validKingMoves.get(idx);
         executeMove(game, kr, kc, to[0], to[1]);
-        ShowCommand.printBoardAndShow(game);
+        if (!game.isGameOver()) {
+            ShowCommand.printBoardAndShow(game);
+        }
         return game.getKingPosition(ai) == null || game.isGameOver();
     }
     private static void runPlacePhase(PlacePhaseContext ctx) {
@@ -204,7 +209,9 @@ public final class AIPlayer {
         } else {
             executeMove(game, ur, uc, tr, tc);
         }
-        ShowCommand.printBoardAndShow(game);
+        if (!game.isGameOver()) {
+            ShowCommand.printBoardAndShow(game);
+        }
         return true;
     }
     private static UnitMoveRoundData computeUnitMoveRoundData(Game game, Team ai, Team enemy, int ekr, int ekc) {
@@ -240,6 +247,9 @@ public final class AIPlayer {
         return new UnitMoveRoundData(movable, positions, unitTotalScores, unitOptions, unitOptionScores);
     }
     private static void yieldTurn(Game game) {
+        if (game.isGameOver()) {
+            return;
+        }
         int handSize = game.getCurrentTeam().getHand().size();
         Integer discardIdx = null;
         if (handSize == MAX_HAND_SIZE_BEFORE_DISCARD) {
@@ -274,7 +284,6 @@ public final class AIPlayer {
             }
             if (result.winner() != null) {
                 System.out.println(String.format(WINS_MESSAGE_FORMAT, result.winner().getName()));
-                ShowCommand.printBoard(game);
             }
         } catch (HandFullMustDiscardException | CannotDiscardException | InvalidHandIndexException
                 | InitializationException e) {
@@ -316,7 +325,14 @@ public final class AIPlayer {
                 System.out.println(line);
             }
             if (result.winner() != null) {
-                ShowCommand.printBoard(game);
+                if (toField.getUnit() == unit) {
+                    unit.setMovedThisTurn(true);
+                    game.setSelectedField(toField);
+                } else if (game.getGameBoard().getField(fromRow, fromCol).getUnit() == unit) {
+                    unit.setMovedThisTurn(true);
+                    game.setSelectedField(game.getGameBoard().getField(fromRow, fromCol));
+                }
+                ShowCommand.printBoardAndShow(game);
                 return;
             }
             if (toField.getUnit() == unit) {
