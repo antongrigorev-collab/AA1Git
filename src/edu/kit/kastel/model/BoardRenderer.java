@@ -176,7 +176,8 @@ final class BoardRenderer {
 
     private static String buildSeparatorLine(int row, Field selectedField, boolean useStandard, char[] sym) {
         int rowBelow = Math.max(row, MIN_ROW_INDEX);
-        int rowAbove = (row >= MIN_ROW_INDEX && row < GameBoard.SIZE - INDEX_OFFSET_ONE) ? row + INDEX_OFFSET_ONE : SENTINEL_ROW_FOR_BOTTOM_BORDER;
+        boolean inRange = row >= MIN_ROW_INDEX && row < GameBoard.SIZE - INDEX_OFFSET_ONE;
+        int rowAbove = inRange ? row + INDEX_OFFSET_ONE : SENTINEL_ROW_FOR_BOTTOM_BORDER;
         boolean isTopBorder = row == GameBoard.SIZE - INDEX_OFFSET_ONE;
         boolean isBottomBorder = row == SENTINEL_ROW_FOR_BOTTOM_BORDER;
 

@@ -53,7 +53,7 @@ public final class AIPlayer {
     private static final String WINS_MESSAGE_FORMAT = "%s wins!";
     private record PlacePhaseContext(Game game, Team ai, Team enemy, int kr, int kc, int ekr, int ekc, Random rnd) { }
     private record UnitMoveRoundData(List<Unit> movable, List<int[]> positions, List<Integer> unitTotalScores,
-                                     List<List<int[]>> unitOptions, List<List<Integer>> unitOptionScores) { }
+            List<List<int[]>> unitOptions, List<List<Integer>> unitOptionScores) { }
     private AIPlayer() { }
 
     /** Returns true if no move option (cardinal, block, en place) has positive score. */
@@ -64,7 +64,7 @@ public final class AIPlayer {
     }
 
     /**
-     * Runs one full turn for the current team (AI / team 2). Prints output and ends the turn.
+     * Runs one full turn for current team (AI). Prints output and ends the turn.
      * @param game the game instance (current team must be team 2)
      */
     public static void runTurn(Game game) {

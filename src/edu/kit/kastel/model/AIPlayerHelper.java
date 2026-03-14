@@ -39,6 +39,10 @@ final class AIPlayerHelper {
         {MIN_BOARD_INDEX, DIR_OFFSET_LEFT}, {MIN_BOARD_INDEX, DIR_OFFSET_RIGHT},
         {DIR_OFFSET_UP, DIR_OFFSET_DOWN}, {DIR_OFFSET_UP, MIN_BOARD_INDEX}, {DIR_OFFSET_UP, DIR_OFFSET_UP}
     };
+    private static final int[][] CARDINAL_OFFSETS = {
+        {DIR_OFFSET_UP, MIN_BOARD_INDEX}, {DIR_OFFSET_DOWN, MIN_BOARD_INDEX},
+        {MIN_BOARD_INDEX, DIR_OFFSET_RIGHT}, {MIN_BOARD_INDEX, DIR_OFFSET_LEFT}
+    };
     private static final int SINGLE_OPTION_INDEX = 0;
     private static final int SIZE_ONE = 1;
     private static final int INITIAL_SUM = 0;
@@ -54,7 +58,6 @@ final class AIPlayerHelper {
 
     /**
      * Context for merge/eliminate action (game, units, coordinates, target field).
-     *
      * @param game     the game state
      * @param unit     the moving/attacking unit
      * @param defender the unit on the target field (same team, for merge/eliminate)
@@ -67,12 +70,7 @@ final class AIPlayerHelper {
     record MergeActionContext(Game game, Unit unit, Unit defender,
                              int fromRow, int fromCol, int toRow, int toCol, Field toField) { }
 
-    /**
-     * Options and scores for one unit's possible moves. Order: up, right, down, left, block , en place (special -1,-1).
-     *
-     * @param options list of target coordinates per option
-     * @param scores  list of scores in same order as options
-     */
+    /** Options (target coords) and scores for one unit's moves. Order: up, right, down, left, block, en place. */
     record UnitMoveOption(List<int[]> options, List<Integer> scores) { }
 
     private AIPlayerHelper() { }
@@ -181,8 +179,7 @@ final class AIPlayerHelper {
         return count;
     }
 
-    private static final int[][] CARDINAL_OFFSETS = {{DIR_OFFSET_UP, MIN_BOARD_INDEX}, {DIR_OFFSET_DOWN, MIN_BOARD_INDEX}, {MIN_BOARD_INDEX, DIR_OFFSET_RIGHT}, {MIN_BOARD_INDEX, DIR_OFFSET_LEFT}};
-
+    /** Counts adjacent units in 4 cardinal directions. */
     static int countAdjacent4(Game game, int row, int col, Team team) {
         int count = INITIAL_COUNT;
         for (int[] dx : CARDINAL_OFFSETS) {
