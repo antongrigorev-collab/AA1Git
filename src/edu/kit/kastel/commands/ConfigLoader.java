@@ -105,15 +105,6 @@ public final class ConfigLoader {
     /** Minimal allowed non-negative integer value for parsed numbers. */
     private static final int MIN_NON_NEGATIVE_VALUE = 0;
 
-    /** Context label for attack value parsing. */
-    private static final String CONTEXT_ATK = "ATK";
-
-    /** Context label for defense value parsing. */
-    private static final String CONTEXT_DEF = "DEF";
-
-    /** Context label for deck count parsing. */
-    private static final String CONTEXT_DECK_COUNT = "deck count";
-
     /** Index of qualifier in unit line parts. */
     private static final int INDEX_QUALIFIER = 0;
 
@@ -132,6 +123,15 @@ public final class ConfigLoader {
     /** Initial value for deck count sum. */
     private static final int INITIAL_DECK_SUM = 0;
 
+    /** Limit for split to keep all trailing empty parts. */
+    private static final int SPLIT_LIMIT_KEEP_ALL = -1;
+
+    /** Verbosity argument value for full output. */
+    private static final String VERBOSITY_ARG_ALL = "all";
+
+    /** Verbosity argument value for compact output. */
+    private static final String VERBOSITY_ARG_COMPACT = "compact";
+
     private ConfigLoader() { }
 
     /**
@@ -148,7 +148,7 @@ public final class ConfigLoader {
     public static GameConfig load(Map<String, String> kv) throws StartupException {
         validateKnownKeys(kv);
 
-        long seed = parseLongRequired(kv, ConfigKeys.KEY_SEED);
+        long seed = parseSeedRequired(kv);
 
         if (!kv.containsKey(ConfigKeys.KEY_UNITS)) {
             throw new MissingArgumentException(ConfigKeys.KEY_UNITS);
@@ -226,14 +226,14 @@ public final class ConfigLoader {
             if (trimmed.endsWith(UNIT_FIELD_DELIMITER) || trimmed.contains(INVALID_DOUBLE_SPACE)) {
                 throw new InvalidUnitsFileException(ERROR_UNITS_FILE_LINE_FORMAT);
             }
-            String[] parts = trimmed.split(UNIT_FIELD_DELIMITER, -1);
+            String[] parts = trimmed.split(UNIT_FIELD_DELIMITER, SPLIT_LIMIT_KEEP_ALL);
             if (parts.length != EXPECTED_UNIT_FIELDS_COUNT) {
                 throw new InvalidUnitsFileException(ERROR_UNITS_FILE_FIELD_COUNT);
             }
             String qualifier = parts[INDEX_QUALIFIER].strip();
             String role = parts[INDEX_ROLE].strip();
-            int atk = parseNonNegativeInt(parts[INDEX_ATK].strip(), CONTEXT_ATK);
-            int def = parseNonNegativeInt(parts[INDEX_DEF].strip(), CONTEXT_DEF);
+            int atk = parseNonNegativeInt(parts[INDEX_ATK].strip());
+            int def = parseNonNegativeInt(parts[INDEX_DEF].strip());
             units.add(new UnitTemplate(qualifier, role, atk, def));
         }
         return List.copyOf(units);
@@ -247,7 +247,7 @@ public final class ConfigLoader {
         List<Integer> counts = new ArrayList<>();
         int sum = INITIAL_DECK_SUM;
         for (String line : lines) {
-            int count = parseNonNegativeInt(line.strip(), CONTEXT_DECK_COUNT);
+            int count = parseNonNegativeInt(line.strip());
             counts.add(count);
             sum += count;
         }
@@ -272,7 +272,7 @@ public final class ConfigLoader {
         return lines;
     }
 
-    private static int parseNonNegativeInt(String value, String context) throws InvalidIntegerException {
+    private static int parseNonNegativeInt(String value) throws InvalidIntegerException {
         try {
             int n = Integer.parseInt(value);
             if (n < MIN_NON_NEGATIVE_VALUE) {
@@ -287,8 +287,8 @@ public final class ConfigLoader {
     private static VerbosityMode parseVerbosity(String v) throws InvalidArgumentException {
         String x = v.toLowerCase();
         return switch (x) {
-            case "all" -> VerbosityMode.ALL;
-            case "compact" -> VerbosityMode.COMPACT;
+            case VERBOSITY_ARG_ALL -> VerbosityMode.ALL;
+            case VERBOSITY_ARG_COMPACT -> VerbosityMode.COMPACT;
             default -> throw new InvalidArgumentException(ERROR_INVALID_VERBOSITY_PREFIX + v);
         };
     }
@@ -305,15 +305,15 @@ public final class ConfigLoader {
         return new SymbolSet(line.toCharArray());
     }
 
-    private static long parseLongRequired(Map<String, String> kv, String key)
+    private static long parseSeedRequired(Map<String, String> kv)
             throws MissingArgumentException, InvalidIntegerException {
-        if (!kv.containsKey(key)) {
-            throw new MissingArgumentException(key);
+        if (!kv.containsKey(ConfigKeys.KEY_SEED)) {
+            throw new MissingArgumentException(ConfigKeys.KEY_SEED);
         }
         try {
-            return Long.parseLong(kv.get(key));
+            return Long.parseLong(kv.get(ConfigKeys.KEY_SEED));
         } catch (NumberFormatException ex) {
-            throw new InvalidIntegerException(kv.get(key));
+            throw new InvalidIntegerException(kv.get(ConfigKeys.KEY_SEED));
         }
     }
 

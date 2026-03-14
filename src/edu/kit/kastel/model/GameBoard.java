@@ -16,6 +16,9 @@ public class GameBoard {
     /** Board dimension (7x7). */
     public static final int SIZE = 7;
 
+    /** Minimum row/column index for the grid. */
+    private static final int MIN_ROW_COL = 0;
+
     private final SymbolSet symbolSet;
     private final VerbosityMode verbosityMode;
     private final Field[][] grid;
@@ -30,8 +33,8 @@ public class GameBoard {
         this.symbolSet = symbolSet;
         this.verbosityMode = verbosityMode;
         this.grid = new Field[SIZE][SIZE];
-        for (int row = 0; row < SIZE; row++) {
-            for (int col = 0; col < SIZE; col++) {
+        for (int row = MIN_ROW_COL; row < SIZE; row++) {
+            for (int col = MIN_ROW_COL; col < SIZE; col++) {
                 this.grid[row][col] = new Field(row, col);
             }
         }

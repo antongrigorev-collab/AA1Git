@@ -92,7 +92,7 @@ final class DuelResolver {
         String defenderDisplayName;
         String defenderStats;
         if (defender.isKing()) {
-            defenderDisplayName = "Farmer King";
+            defenderDisplayName = defender.getName();
             defenderStats = "";
         } else if (defender.isRevealed()) {
             defenderDisplayName = defender.getName();

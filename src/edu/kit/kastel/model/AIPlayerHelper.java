@@ -11,10 +11,8 @@ import java.util.Random;
  * @author usylb
  */
 final class AIPlayerHelper {
-
     static final int EN_PLACE_SENTINEL_ROW = -1;
     static final int EN_PLACE_SENTINEL_COL = -1;
-
     private static final int ADVANCE_SCORE_STEPS_MULTIPLIER = 10;
     private static final int PENALTY_ATTACKING_HIDDEN_UNIT = 500;
     private static final int ATTACK_DIFFERENCE_MULTIPLIER = 2;
@@ -32,9 +30,27 @@ final class AIPlayerHelper {
     private static final int SCORE_ZERO = 0;
     private static final int MIN_BLOCK_SCORE = 1;
     private static final int MIN_EN_PLACE_SCORE = 0;
+    private static final int DIR_OFFSET_UP = 1;
+    private static final int DIR_OFFSET_DOWN = -1;
+    private static final int DIR_OFFSET_RIGHT = 1;
+    private static final int DIR_OFFSET_LEFT = -1;
     private static final int[][] EIGHT_NEIGHBOR_OFFSETS = {
-        {-1, -1}, {-1, 0}, {-1, 1}, {0, -1}, {0, 1}, {1, -1}, {1, 0}, {1, 1}
+        {DIR_OFFSET_DOWN, DIR_OFFSET_DOWN}, {DIR_OFFSET_DOWN, MIN_BOARD_INDEX}, {DIR_OFFSET_DOWN, DIR_OFFSET_UP},
+        {MIN_BOARD_INDEX, DIR_OFFSET_LEFT}, {MIN_BOARD_INDEX, DIR_OFFSET_RIGHT},
+        {DIR_OFFSET_UP, DIR_OFFSET_DOWN}, {DIR_OFFSET_UP, MIN_BOARD_INDEX}, {DIR_OFFSET_UP, DIR_OFFSET_UP}
     };
+    private static final int SINGLE_OPTION_INDEX = 0;
+    private static final int SIZE_ONE = 1;
+    private static final int INITIAL_SUM = 0;
+    private static final int WEIGHT_FLOOR = 0;
+    private static final int RANDOM_ORIGIN_INCLUSIVE = 1;
+    private static final int LAST_INDEX_OFFSET = 1;
+    private static final int FIRST_INDEX = 0;
+    private static final int WEIGHT_TIE = 1;
+    private static final int COUNT_ONE = 1;
+    private static final int INITIAL_COUNT = 0;
+    private static final int INITIAL_MAX_ATK = 0;
+    private static final String FORMAT_NEWLINE = "%n";
 
     /**
      * Context for merge/eliminate action (game, units, coordinates, target field).
@@ -52,8 +68,7 @@ final class AIPlayerHelper {
                              int fromRow, int fromCol, int toRow, int toCol, Field toField) { }
 
     /**
-     * Options (target coordinates) and scores for one unit's possible moves (A.2).
-     * Order: up, right, down, left, block (same cell), en place (special -1,-1).
+     * Options and scores for one unit's possible moves. Order: up, right, down, left, block , en place (special -1,-1).
      *
      * @param options list of target coordinates per option
      * @param scores  list of scores in same order as options
@@ -70,22 +85,22 @@ final class AIPlayerHelper {
      * @return index of selected option
      */
     static int weightedSelect(List<Integer> weights, Random rnd) {
-        if (weights.size() == 1) {
-            return 0;
+        if (weights.size() == SIZE_ONE) {
+            return SINGLE_OPTION_INDEX;
         }
-        int sum = 0;
+        int sum = INITIAL_SUM;
         for (Integer w : weights) {
-            sum += Math.max(0, w);
+            sum += Math.max(WEIGHT_FLOOR, w);
         }
         int chosenIndex;
-        if (sum <= 0) {
-            chosenIndex = rnd.nextInt(0, weights.size());
+        if (sum <= SCORE_ZERO) {
+            chosenIndex = rnd.nextInt(MIN_BOARD_INDEX, weights.size());
         } else {
-            int r = rnd.nextInt(1, sum + 1);
-            int acc = 0;
-            chosenIndex = weights.size() - 1;
-            for (int i = 0; i < weights.size(); i++) {
-                acc += Math.max(0, weights.get(i));
+            int r = rnd.nextInt(RANDOM_ORIGIN_INCLUSIVE, sum + LAST_INDEX_OFFSET);
+            int acc = INITIAL_SUM;
+            chosenIndex = weights.size() - LAST_INDEX_OFFSET;
+            for (int i = FIRST_INDEX; i < weights.size(); i++) {
+                acc += Math.max(WEIGHT_FLOOR, weights.get(i));
                 if (r <= acc) {
                     chosenIndex = i;
                     break;
@@ -110,17 +125,17 @@ final class AIPlayerHelper {
             }
         }
         List<Integer> tiedIndices = new ArrayList<>();
-        for (int i = 0; i < scores.size(); i++) {
+        for (int i = FIRST_INDEX; i < scores.size(); i++) {
             if (scores.get(i) == max) {
                 tiedIndices.add(i);
             }
         }
-        if (tiedIndices.size() == 1) {
+        if (tiedIndices.size() == SIZE_ONE) {
             return tiedIndices.getFirst();
         }
         List<Integer> ones = new ArrayList<>();
-        for (int i = 0; i < tiedIndices.size(); i++) {
-            ones.add(1);
+        for (int i = FIRST_INDEX; i < tiedIndices.size(); i++) {
+            ones.add(WEIGHT_TIE);
         }
         int sel = weightedSelect(ones, rnd);
         return tiedIndices.get(sel);
@@ -136,17 +151,17 @@ final class AIPlayerHelper {
      * @return 0 or 1
      */
     private static int countAdjacentOneCell(Game game, int row, int col, Team team) {
-        if (row < 0 || row >= GameBoard.SIZE || col < 0 || col >= GameBoard.SIZE) {
-            return 0;
+        if (row < MIN_BOARD_INDEX || row >= GameBoard.SIZE || col < MIN_BOARD_INDEX || col >= GameBoard.SIZE) {
+            return SCORE_ZERO;
         }
         Unit u = game.getGameBoard().getField(row, col).getUnit();
         if (u == null || !u.getTeam().equals(team)) {
-            return 0;
+            return SCORE_ZERO;
         }
         if (!u.isKing()) {
-            return 1;
+            return COUNT_ONE;
         }
-        return 0;
+        return SCORE_ZERO;
     }
 
     /**
@@ -159,29 +174,21 @@ final class AIPlayerHelper {
      * @return count
      */
     static int countAdjacent(Game game, int row, int col, Team team) {
-        int count = 0;
+        int count = INITIAL_COUNT;
         for (int[] offset : EIGHT_NEIGHBOR_OFFSETS) {
-            count += countAdjacentOneCell(game, row + offset[0], col + offset[1], team);
+            count += countAdjacentOneCell(game, row + offset[INDEX_ROW], col + offset[INDEX_COL], team);
         }
         return count;
     }
 
-    /**
-     * Counts adjacent units in 4 directions (cardinal).
-     *
-     * @param game game state
-     * @param row  row
-     * @param col  column
-     * @param team team to count
-     * @return count
-     */
+    private static final int[][] CARDINAL_OFFSETS = {{DIR_OFFSET_UP, MIN_BOARD_INDEX}, {DIR_OFFSET_DOWN, MIN_BOARD_INDEX}, {MIN_BOARD_INDEX, DIR_OFFSET_RIGHT}, {MIN_BOARD_INDEX, DIR_OFFSET_LEFT}};
+
     static int countAdjacent4(Game game, int row, int col, Team team) {
-        int count = 0;
-        int[][] d = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
-        for (int[] dx : d) {
-            int r = row + dx[0];
-            int c = col + dx[1];
-            if (r >= 0 && r < GameBoard.SIZE && c >= 0 && c < GameBoard.SIZE) {
+        int count = INITIAL_COUNT;
+        for (int[] dx : CARDINAL_OFFSETS) {
+            int r = row + dx[INDEX_ROW];
+            int c = col + dx[INDEX_COL];
+            if (r >= MIN_BOARD_INDEX && r < GameBoard.SIZE && c >= MIN_BOARD_INDEX && c < GameBoard.SIZE) {
                 Unit u = game.getGameBoard().getField(r, c).getUnit();
                 if (u != null && u.getTeam().equals(team)) {
                     count++;
@@ -201,16 +208,15 @@ final class AIPlayerHelper {
      * @return max ATK or 0
      */
     static int maxEnemyAtkInLine(Game game, int row, int col, Team enemy) {
-        int max = 0;
-        int[][] d = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
-        for (int[] dx : d) {
-            int r = row + dx[0];
-            int c = col + dx[1];
-            while (r >= 0 && r < GameBoard.SIZE && c >= 0 && c < GameBoard.SIZE) {
+        int max = INITIAL_MAX_ATK;
+        for (int[] dx : CARDINAL_OFFSETS) {
+            int r = row + dx[INDEX_ROW];
+            int c = col + dx[INDEX_COL];
+            while (r >= MIN_BOARD_INDEX && r < GameBoard.SIZE && c >= MIN_BOARD_INDEX && c < GameBoard.SIZE) {
                 Unit u = game.getGameBoard().getField(r, c).getUnit();
                 if (u == null) {
-                    r += dx[0];
-                    c += dx[1];
+                    r += dx[INDEX_ROW];
+                    c += dx[INDEX_COL];
                     continue;
                 }
                 if (u.getTeam().equals(enemy) && !u.isKing() && u.isRevealed()) {
@@ -280,7 +286,7 @@ final class AIPlayerHelper {
         int ekc = ctx.enemyKingCol();
         List<int[]> options = new ArrayList<>();
         List<Integer> scores = new ArrayList<>();
-        int[][] dirs = {{ur + 1, uc}, {ur, uc + 1}, {ur - 1, uc}, {ur, uc - 1}};
+        int[][] dirs = {{ur + DIR_OFFSET_UP, uc}, {ur, uc + DIR_OFFSET_RIGHT}, {ur + DIR_OFFSET_DOWN, uc}, {ur, uc + DIR_OFFSET_LEFT}};
         for (int[] d : dirs) {
             int tr = d[INDEX_ROW];
             int tc = d[INDEX_COL];
@@ -321,7 +327,7 @@ final class AIPlayerHelper {
     static void executeMergeOrEliminate(MergeActionContext ctx) {
         if (ctx.unit().isBlocked()) {
             ctx.unit().setBlocked(false);
-            System.out.printf((NO_LONGER_BLOCKS_MESSAGE_FORMAT) + "%n", ctx.unit().getName());
+            System.out.printf((NO_LONGER_BLOCKS_MESSAGE_FORMAT) + FORMAT_NEWLINE, ctx.unit().getName());
         }
         Compatibility.MergeStats stats = Compatibility.check(ctx.unit(), ctx.defender());
         if (stats != null) {
@@ -332,8 +338,8 @@ final class AIPlayerHelper {
             ctx.toField().removeUnit();
             ctx.game().getGameBoard().placeUnit(ctx.toRow(), ctx.toCol(), merged);
             ctx.game().setSelectedField(ctx.toField());
-            System.out.printf((MOVES_TO_MESSAGE_FORMAT) + "%n", ctx.unit().getName(), ctx.toField().coordinate());
-            System.out.printf((JOIN_FORCES_MESSAGE_FORMAT) + "%n", ctx.unit().getName(),
+            System.out.printf((MOVES_TO_MESSAGE_FORMAT) + FORMAT_NEWLINE, ctx.unit().getName(), ctx.toField().coordinate());
+            System.out.printf((JOIN_FORCES_MESSAGE_FORMAT) + FORMAT_NEWLINE, ctx.unit().getName(),
                     ctx.defender().getName(), ctx.toField().coordinate());
             System.out.println(SUCCESS_MESSAGE);
         } else {
@@ -342,10 +348,10 @@ final class AIPlayerHelper {
             ctx.game().getGameBoard().placeUnit(ctx.toRow(), ctx.toCol(), ctx.unit());
             ctx.unit().setMovedThisTurn(true);
             ctx.game().setSelectedField(ctx.toField());
-            System.out.printf((MOVES_TO_MESSAGE_FORMAT) + "%n", ctx.unit().getName(), ctx.toField().coordinate());
-            System.out.printf((JOIN_FORCES_MESSAGE_FORMAT) + "%n", ctx.unit().getName(),
+            System.out.printf((MOVES_TO_MESSAGE_FORMAT) + FORMAT_NEWLINE, ctx.unit().getName(), ctx.toField().coordinate());
+            System.out.printf((JOIN_FORCES_MESSAGE_FORMAT) + FORMAT_NEWLINE, ctx.unit().getName(),
                     ctx.defender().getName(), ctx.toField().coordinate());
-            System.out.printf((UNION_FAILED_MESSAGE_FORMAT) + "%n", ctx.defender().getName());
+            System.out.printf((UNION_FAILED_MESSAGE_FORMAT) + FORMAT_NEWLINE, ctx.defender().getName());
         }
     }
     /**
@@ -366,11 +372,11 @@ final class AIPlayerHelper {
         unit.setTeam(game.getCurrentTeam());
         Field field = game.getGameBoard().getField(row, col);
         Unit current = field.getUnit();
-        System.out.printf((PLACES_ON_MESSAGE_FORMAT) + "%n", game.getCurrentTeam().getName(), unit.getName(), field.coordinate());
+        System.out.printf((PLACES_ON_MESSAGE_FORMAT) + FORMAT_NEWLINE, game.getCurrentTeam().getName(), unit.getName(), field.coordinate());
         if (current == null) {
             game.getGameBoard().placeUnit(row, col, unit);
         } else {
-            System.out.printf((JOIN_FORCES_MESSAGE_FORMAT) + "%n", unit.getName(), current.getName(), field.coordinate());
+            System.out.printf((JOIN_FORCES_MESSAGE_FORMAT) + FORMAT_NEWLINE, unit.getName(), current.getName(), field.coordinate());
             Compatibility.MergeStats stats = Compatibility.check(unit, current);
             if (stats != null) {
                 Unit merged = Game.createMergedUnit(unit, current, stats);
@@ -382,13 +388,13 @@ final class AIPlayerHelper {
             } else {
                 field.removeUnit();
                 game.getGameBoard().placeUnit(row, col, unit);
-                System.out.printf((UNION_FAILED_MESSAGE_FORMAT) + "%n", current.getName());
+                System.out.printf((UNION_FAILED_MESSAGE_FORMAT) + FORMAT_NEWLINE, current.getName());
             }
         }
         if (game.getBoardCount(game.getCurrentTeam()) > Game.MAX_NON_KING_UNITS_ON_BOARD) {
             Unit justPlaced = game.getGameBoard().getField(row, col).getUnit();
             game.getGameBoard().getField(row, col).removeUnit();
-            System.out.printf((JUST_PLACED_ELIMINATED_MESSAGE_FORMAT) + "%n", justPlaced.getName());
+            System.out.printf((JUST_PLACED_ELIMINATED_MESSAGE_FORMAT) + FORMAT_NEWLINE, justPlaced.getName());
         }
     }
 }

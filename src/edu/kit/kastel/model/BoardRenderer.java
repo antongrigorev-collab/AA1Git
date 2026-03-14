@@ -77,6 +77,21 @@ final class BoardRenderer {
     private static final char STD_H_SEL = '=';
     private static final char STD_V_SEL = 'N';
 
+    private static final int MIN_ROW_INDEX = 0;
+    private static final int MIN_COL_INDEX = 0;
+    private static final int SENTINEL_ROW_FOR_BOTTOM_BORDER = -1;
+    private static final int INDEX_OFFSET_ONE = 1;
+    private static final int ROW_DISPLAY_OFFSET = 1;
+    private static final char COLUMN_LABEL_FIRST_CHAR = 'A';
+    private static final char CHAR_OWN_KING = 'X';
+    private static final char CHAR_OWN_UNIT = 'x';
+    private static final char CHAR_ENEMY_KING = 'Y';
+    private static final char CHAR_ENEMY_UNIT = 'y';
+    private static final char CHAR_CAN_MOVE = '*';
+    private static final char CHAR_NO_MOVE = ' ';
+    private static final char CHAR_BLOCK_SUFFIX = 'b';
+    private static final char CHAR_NO_BLOCK = ' ';
+
     private BoardRenderer() {
     }
 
@@ -103,14 +118,14 @@ final class BoardRenderer {
         boolean useStandard = !symbolSet.isCustom();
         char[] sym = symbolSet.raw();
 
-        for (int r = GameBoard.SIZE - 1; r >= 0; r--) {
+        for (int r = GameBoard.SIZE - INDEX_OFFSET_ONE; r >= MIN_ROW_INDEX; r--) {
             if (!compact) {
                 out.add(buildSeparatorLine(r, selectedField, useStandard, sym));
             }
             out.add(buildCellLine(board, r, selectedField, teamShownAsX, currentTeam, useStandard, sym));
         }
         if (!compact) {
-            out.add(buildSeparatorLine(-1, selectedField, useStandard, sym));
+            out.add(buildSeparatorLine(SENTINEL_ROW_FOR_BOTTOM_BORDER, selectedField, useStandard, sym));
         }
         out.add(buildColumnLabelLine());
         return out;
@@ -127,17 +142,17 @@ final class BoardRenderer {
                                               char[] sym, boolean isTopBorder, boolean isBottomBorder) {
         if (useStandard) {
             boolean leftEdgeSel = selectedField != null
-                    && (isSelected(rowBelow, 0, selectedField)
-                    || (rowAbove >= 0 && isSelected(rowAbove, 0, selectedField)));
+                    && (isSelected(rowBelow, MIN_COL_INDEX, selectedField)
+                    || (rowAbove >= MIN_ROW_INDEX && isSelected(rowAbove, MIN_COL_INDEX, selectedField)));
             return leftEdgeSel ? STD_CORNER_SEL : STD_CORNER;
         }
         if (isTopBorder) {
-            return isSelected(rowBelow, 0, selectedField)
+            return isSelected(rowBelow, MIN_COL_INDEX, selectedField)
                     ? sym[CUSTOM_SYMBOL_INDEX_TOP_LEFT_CORNER_SELECTED]
                     : sym[CUSTOM_SYMBOL_INDEX_TOP_LEFT_CORNER];
         }
         if (isBottomBorder) {
-            return isSelected(rowBelow, 0, selectedField)
+            return isSelected(rowBelow, MIN_COL_INDEX, selectedField)
                     ? sym[CUSTOM_SYMBOL_INDEX_BOTTOM_LEFT_CORNER_SELECTED]
                     : sym[CUSTOM_SYMBOL_INDEX_BOTTOM_LEFT_CORNER];
         }
@@ -151,7 +166,7 @@ final class BoardRenderer {
         sb.append(hChar).append(hChar).append(hChar);
         boolean junctionSel = ctx.useStandard() && ctx.selectedField() != null
                 && isStandardJunctionSelected(ctx.rowBelow(), ctx.rowAbove(), c,
-                c == GameBoard.SIZE - 1, ctx.selectedField());
+                c == GameBoard.SIZE - INDEX_OFFSET_ONE, ctx.selectedField());
         char junction = ctx.useStandard()
                 ? (junctionSel ? STD_CORNER_SEL : STD_CORNER)
                 : customJunctionAfterCell(ctx.rowBelow(), ctx.rowAbove(), c, ctx.selectedField(),
@@ -160,10 +175,10 @@ final class BoardRenderer {
     }
 
     private static String buildSeparatorLine(int row, Field selectedField, boolean useStandard, char[] sym) {
-        int rowBelow = Math.max(row, 0);
-        int rowAbove = (row >= 0 && row < GameBoard.SIZE - 1) ? row + 1 : -1;
-        boolean isTopBorder = row == GameBoard.SIZE - 1;
-        boolean isBottomBorder = row == -1;
+        int rowBelow = Math.max(row, MIN_ROW_INDEX);
+        int rowAbove = (row >= MIN_ROW_INDEX && row < GameBoard.SIZE - INDEX_OFFSET_ONE) ? row + INDEX_OFFSET_ONE : SENTINEL_ROW_FOR_BOTTOM_BORDER;
+        boolean isTopBorder = row == GameBoard.SIZE - INDEX_OFFSET_ONE;
+        boolean isBottomBorder = row == SENTINEL_ROW_FOR_BOTTOM_BORDER;
 
         StringBuilder sb = new StringBuilder();
         sb.append(BOARD_ROW_INDENT);
@@ -173,7 +188,7 @@ final class BoardRenderer {
 
         SeparatorContext ctx = new SeparatorContext(rowBelow, rowAbove, selectedField, useStandard, sym,
                 hNorm, hSel, isTopBorder, isBottomBorder);
-        for (int c = 0; c < GameBoard.SIZE; c++) {
+        for (int c = MIN_COL_INDEX; c < GameBoard.SIZE; c++) {
             appendSegmentAndJunction(sb, c, ctx);
         }
         return sb.toString();
@@ -185,13 +200,13 @@ final class BoardRenderer {
             return false;
         }
         if (isRightEdge) {
-            return isSelected(rowBelow, GameBoard.SIZE - 1, selectedField)
-                    || (rowAbove >= 0 && isSelected(rowAbove, GameBoard.SIZE - 1, selectedField));
+            return isSelected(rowBelow, GameBoard.SIZE - INDEX_OFFSET_ONE, selectedField)
+                    || (rowAbove >= MIN_ROW_INDEX && isSelected(rowAbove, GameBoard.SIZE - INDEX_OFFSET_ONE, selectedField));
         }
         return isSelected(rowBelow, junctionCol, selectedField)
-                || isSelected(rowBelow, junctionCol + 1, selectedField)
-                || (rowAbove >= 0 && isSelected(rowAbove, junctionCol, selectedField))
-                || (rowAbove >= 0 && isSelected(rowAbove, junctionCol + 1, selectedField));
+                || isSelected(rowBelow, junctionCol + INDEX_OFFSET_ONE, selectedField)
+                || (rowAbove >= MIN_ROW_INDEX && isSelected(rowAbove, junctionCol, selectedField))
+                || (rowAbove >= MIN_ROW_INDEX && isSelected(rowAbove, junctionCol + INDEX_OFFSET_ONE, selectedField));
     }
 
     private static boolean isSegmentSelected(int rowBelow, int rowAbove, int col, Field selectedField,
@@ -209,10 +224,10 @@ final class BoardRenderer {
         if (selectedField == null) {
             return sym[CUSTOM_SYMBOL_INDEX_LEFT_MID];
         }
-        if (rowAbove >= 0 && isSelected(rowAbove, 0, selectedField)) {
+        if (rowAbove >= MIN_ROW_INDEX && isSelected(rowAbove, MIN_COL_INDEX, selectedField)) {
             return sym[CUSTOM_SYMBOL_INDEX_LEFT_MID_SELECTED_ABOVE];
         }
-        if (isSelected(rowBelow, 0, selectedField)) {
+        if (isSelected(rowBelow, MIN_COL_INDEX, selectedField)) {
             return sym[CUSTOM_SYMBOL_INDEX_LEFT_MID_SELECTED_BELOW];
         }
         return sym[CUSTOM_SYMBOL_INDEX_LEFT_MID];
@@ -222,10 +237,10 @@ final class BoardRenderer {
         if (selectedField == null) {
             return sym[CUSTOM_SYMBOL_INDEX_RIGHT_MID];
         }
-        if (rowAbove >= 0 && isSelected(rowAbove, GameBoard.SIZE - 1, selectedField)) {
+        if (rowAbove >= MIN_ROW_INDEX && isSelected(rowAbove, GameBoard.SIZE - INDEX_OFFSET_ONE, selectedField)) {
             return sym[CUSTOM_SYMBOL_INDEX_RIGHT_MID_SELECTED_ABOVE];
         }
-        if (isSelected(rowBelow, GameBoard.SIZE - 1, selectedField)) {
+        if (isSelected(rowBelow, GameBoard.SIZE - INDEX_OFFSET_ONE, selectedField)) {
             return sym[CUSTOM_SYMBOL_INDEX_RIGHT_MID_SELECTED_BELOW];
         }
         return sym[CUSTOM_SYMBOL_INDEX_RIGHT_MID];
@@ -234,12 +249,12 @@ final class BoardRenderer {
     private static char customJunctionRightEdge(int rowBelow, int rowAbove, Field selectedField, char[] sym,
                                                 boolean isTopBorder, boolean isBottomBorder) {
         if (isTopBorder) {
-            return isSelected(rowBelow, GameBoard.SIZE - 1, selectedField)
+            return isSelected(rowBelow, GameBoard.SIZE - INDEX_OFFSET_ONE, selectedField)
                     ? sym[CUSTOM_SYMBOL_INDEX_TOP_RIGHT_CORNER_SELECTED]
                     : sym[CUSTOM_SYMBOL_INDEX_TOP_RIGHT_CORNER];
         }
         if (isBottomBorder) {
-            return isSelected(rowBelow, GameBoard.SIZE - 1, selectedField)
+            return isSelected(rowBelow, GameBoard.SIZE - INDEX_OFFSET_ONE, selectedField)
                     ? sym[CUSTOM_SYMBOL_INDEX_BOTTOM_RIGHT_CORNER_SELECTED]
                     : sym[CUSTOM_SYMBOL_INDEX_BOTTOM_RIGHT_CORNER];
         }
@@ -248,7 +263,7 @@ final class BoardRenderer {
 
     private static char customJunctionAfterCell(int rowBelow, int rowAbove, int c, Field selectedField, char[] sym,
                                                boolean isTopBorder, boolean isBottomBorder) {
-        if (c == GameBoard.SIZE - 1) {
+        if (c == GameBoard.SIZE - INDEX_OFFSET_ONE) {
             return customJunctionRightEdge(rowBelow, rowAbove, selectedField, sym, isTopBorder, isBottomBorder);
         }
         if (isTopBorder) {
@@ -268,7 +283,7 @@ final class BoardRenderer {
         if (isSelected(row, c, selectedField)) {
             return sym[idxSelectedLeft];
         }
-        if (isSelected(row, c + 1, selectedField)) {
+        if (isSelected(row, c + INDEX_OFFSET_ONE, selectedField)) {
             return sym[idxSelectedRight];
         }
         return sym[idxNormal];
@@ -292,16 +307,16 @@ final class BoardRenderer {
         if (selectedField == null) {
             return sym[CUSTOM_SYMBOL_INDEX_CENTER];
         }
-        if (rowAbove >= 0 && isSelected(rowAbove, c, selectedField)) {
+        if (rowAbove >= MIN_ROW_INDEX && isSelected(rowAbove, c, selectedField)) {
             return sym[CUSTOM_SYMBOL_INDEX_CENTER_SELECTED_TOP_LEFT];
         }
-        if (rowAbove >= 0 && isSelected(rowAbove, c + 1, selectedField)) {
+        if (rowAbove >= MIN_ROW_INDEX && isSelected(rowAbove, c + INDEX_OFFSET_ONE, selectedField)) {
             return sym[CUSTOM_SYMBOL_INDEX_CENTER_SELECTED_TOP_RIGHT];
         }
         if (isSelected(rowBelow, c, selectedField)) {
             return sym[CUSTOM_SYMBOL_INDEX_CENTER_SELECTED_BOTTOM_LEFT];
         }
-        if (isSelected(rowBelow, c + 1, selectedField)) {
+        if (isSelected(rowBelow, c + INDEX_OFFSET_ONE, selectedField)) {
             return sym[CUSTOM_SYMBOL_INDEX_CENTER_SELECTED_BOTTOM_RIGHT];
         }
         return sym[CUSTOM_SYMBOL_INDEX_CENTER];
@@ -318,14 +333,14 @@ final class BoardRenderer {
     private static String buildCellLine(GameBoard board, int r, Field selectedField, Team teamShownAsX,
                                         Team currentTeam, boolean useStandard, char[] sym) {
         StringBuilder sb = new StringBuilder();
-        sb.append(r + 1).append(ROW_NUMBER_SEPARATOR);
-        for (int c = 0; c < GameBoard.SIZE; c++) {
+        sb.append(r + ROW_DISPLAY_OFFSET).append(ROW_NUMBER_SEPARATOR);
+        for (int c = MIN_COL_INDEX; c < GameBoard.SIZE; c++) {
             boolean edgeSelected = isSelected(r, c, selectedField)
-                    || (c > 0 && isSelected(r, c - 1, selectedField));
+                    || (c > MIN_COL_INDEX && isSelected(r, c - INDEX_OFFSET_ONE, selectedField));
             sb.append(getVerticalChar(edgeSelected, useStandard, sym));
             sb.append(cellContent(board, r, c, teamShownAsX, currentTeam));
         }
-        boolean rightEdgeSelected = isSelected(r, GameBoard.SIZE - 1, selectedField);
+        boolean rightEdgeSelected = isSelected(r, GameBoard.SIZE - INDEX_OFFSET_ONE, selectedField);
         sb.append(getVerticalChar(rightEdgeSelected, useStandard, sym));
         return sb.toString();
     }
@@ -333,11 +348,11 @@ final class BoardRenderer {
     private static String buildColumnLabelLine() {
         StringBuilder sb = new StringBuilder();
         sb.append(COLUMN_LABEL_LEFT_PADDING);
-        for (int c = 0; c < GameBoard.SIZE; c++) {
-            if (c > 0) {
+        for (int c = MIN_COL_INDEX; c < GameBoard.SIZE; c++) {
+            if (c > MIN_COL_INDEX) {
                 sb.append(COLUMN_LABEL_SPACING);
             }
-            sb.append((char) ('A' + c));
+            sb.append((char) (COLUMN_LABEL_FIRST_CHAR + c));
         }
         return sb.toString();
     }
@@ -349,11 +364,11 @@ final class BoardRenderer {
             return EMPTY_CELL_CONTENT;
         }
         boolean ownForLetter = u.getTeam().equals(teamShownAsX);
-        char c2 = ownForLetter ? (u.isKing() ? 'X' : 'x') : (u.isKing() ? 'Y' : 'y');
+        char c2 = ownForLetter ? (u.isKing() ? CHAR_OWN_KING : CHAR_OWN_UNIT) : (u.isKing() ? CHAR_ENEMY_KING : CHAR_ENEMY_UNIT);
         boolean canMove = u.getTeam().equals(currentTeam) && !u.hasMovedThisTurn();
         boolean block = u.isBlocked();
-        char c1 = canMove ? '*' : ' ';
-        char c3 = block ? 'b' : ' ';
+        char c1 = canMove ? CHAR_CAN_MOVE : CHAR_NO_MOVE;
+        char c3 = block ? CHAR_BLOCK_SUFFIX : CHAR_NO_BLOCK;
         return "" + c1 + c2 + c3;
     }
 }

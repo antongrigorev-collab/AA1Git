@@ -15,7 +15,6 @@ import java.util.Random;
  * @author usylb
  */
 public final class AIPlayer {
-
     private static final int KING_SCORE_ENEMY_WEIGHT = 2;
     private static final int KING_SCORE_FELLOW_PRESENT_WEIGHT = 3;
     private static final int PLACE_SCORE_ENEMY_WEIGHT = 2;
@@ -23,6 +22,28 @@ public final class AIPlayer {
     private static final int BLOCK_OPTION_INDEX = 4;
     private static final int EN_PLACE_OPTION_INDEX = 5;
     private static final int MAX_HAND_SIZE_BEFORE_DISCARD = 5;
+    private static final int INDEX_ROW = 0;
+    private static final int INDEX_COL = 1;
+    private static final int INDEX_OPTION_UP = 0;
+    private static final int INDEX_OPTION_RIGHT = 1;
+    private static final int INDEX_OPTION_DOWN = 2;
+    private static final int INDEX_OPTION_LEFT = 3;
+    private static final int DISTANCE_SAME_FIELD = 0;
+    private static final int DISTANCE_ONE_STEP = 1;
+    private static final int FELLOW_PRESENT_NO = 0;
+    private static final int FELLOW_PRESENT_YES = 1;
+    private static final int OFFSET_UP = 1;
+    private static final int OFFSET_DOWN = -1;
+    private static final int OFFSET_RIGHT = 1;
+    private static final int OFFSET_LEFT = -1;
+    private static final int INITIAL_MAX = 0;
+    private static final int ONE_BASED_OFFSET = 1;
+    private static final int MIN_HAND_SIZE_FOR_PLACE = 0;
+    private static final int INITIAL_TOTAL_SCORE = 0;
+    private static final int MIN_BOARD_INDEX = 0;
+    private static final int DEFAULT_ENEMY_KING_ROW = 0;
+    private static final int DEFAULT_ENEMY_KING_COL = 0;
+    private static final String FORMAT_NEWLINE = "%n";
     private static final String BLOCKS_MESSAGE_FORMAT = "%s (%s) blocks!";
     private static final String NO_LONGER_BLOCKS_MESSAGE_FORMAT = "%s no longer blocks.";
     private static final String MOVES_TO_MESSAGE_FORMAT = "%s moves to %s.";
@@ -31,15 +52,15 @@ public final class AIPlayer {
     private static final String NO_CARDS_LEFT_MESSAGE_FORMAT = "%s has no cards left in the deck!";
     private static final String WINS_MESSAGE_FORMAT = "%s wins!";
     private record PlacePhaseContext(Game game, Team ai, Team enemy, int kr, int kc, int ekr, int ekc, Random rnd) { }
-    private record UnitMoveRoundData(List<Unit> movable, List<int[]> positions,
-                                     List<Integer> unitTotalScores, List<List<int[]>> unitOptions,
-                                     List<List<Integer>> unitOptionScores) { }
+    private record UnitMoveRoundData(List<Unit> movable, List<int[]> positions, List<Integer> unitTotalScores,
+                                     List<List<int[]>> unitOptions, List<List<Integer>> unitOptionScores) { }
     private AIPlayer() { }
 
     /** Returns true if no move option (cardinal, block, en place) has positive score. */
     private static boolean hasNoPositiveMove(List<Integer> optScores) {
-        return optScores.get(0) <= 0 && optScores.get(1) <= 0 && optScores.get(2) <= 0
-                && optScores.get(3) <= 0 && optScores.get(EN_PLACE_OPTION_INDEX) <= 0;
+        return optScores.get(INDEX_OPTION_UP) <= DISTANCE_SAME_FIELD
+                && optScores.get(INDEX_OPTION_RIGHT) <= DISTANCE_SAME_FIELD && optScores.get(INDEX_OPTION_DOWN) <= DISTANCE_SAME_FIELD
+                && optScores.get(INDEX_OPTION_LEFT) <= DISTANCE_SAME_FIELD && optScores.get(EN_PLACE_OPTION_INDEX) <= DISTANCE_SAME_FIELD;
     }
 
     /**
@@ -57,8 +78,8 @@ public final class AIPlayer {
         if (kingPos == null) {
             return;
         }
-        int kr = kingPos[0];
-        int kc = kingPos[1];
+        int kr = kingPos[INDEX_ROW];
+        int kc = kingPos[INDEX_COL];
 
         if (runKingMove(game, ai, enemy, kr, kc, rnd)) {
             if (!game.isGameOver()) {
@@ -71,11 +92,11 @@ public final class AIPlayer {
             yieldTurn(game);
             return;
         }
-        kr = kingPos[0];
-        kc = kingPos[1];
+        kr = kingPos[INDEX_ROW];
+        kc = kingPos[INDEX_COL];
         int[] enemyKingPos = game.getKingPosition(enemy);
-        int ekr = enemyKingPos != null ? enemyKingPos[0] : 0;
-        int ekc = enemyKingPos != null ? enemyKingPos[1] : 0;
+        int ekr = enemyKingPos != null ? enemyKingPos[INDEX_ROW] : DEFAULT_ENEMY_KING_ROW;
+        int ekc = enemyKingPos != null ? enemyKingPos[INDEX_COL] : DEFAULT_ENEMY_KING_COL;
         runPlacePhase(new PlacePhaseContext(game, ai, enemy, kr, kc, ekr, ekc, rnd));
         runUnitMovesLoop(game, ai, enemy, ekr, ekc, rnd);
         if (!game.isGameOver()) {
@@ -84,7 +105,7 @@ public final class AIPlayer {
     }
 
     private static boolean isValidKingMoveTarget(Game game, int row, int col, Team enemy) {
-        if (row < 0 || row >= GameBoard.SIZE || col < 0 || col >= GameBoard.SIZE) {
+        if (row < MIN_BOARD_INDEX || row >= GameBoard.SIZE || col < MIN_BOARD_INDEX || col >= GameBoard.SIZE) {
             return false;
         }
         Unit onTo = game.getGameBoard().getField(row, col).getUnit();
@@ -92,11 +113,11 @@ public final class AIPlayer {
     }
 
     private static int computeKingMoveScore(Game game, int kr, int kc, int tr, int tc, Team ai, Team enemy) {
-        int distance = (tr == kr && tc == kc) ? 0 : 1;
+        int distance = (tr == kr && tc == kc) ? DISTANCE_SAME_FIELD : DISTANCE_ONE_STEP;
         int fellows = AIPlayerHelper.countAdjacent(game, tr, tc, ai);
         int enemies = AIPlayerHelper.countAdjacent(game, tr, tc, enemy);
         Unit onTo = game.getGameBoard().getField(tr, tc).getUnit();
-        int fellowPresent = (onTo != null && onTo.getTeam().equals(ai) && !onTo.isKing()) ? 1 : 0;
+        int fellowPresent = (onTo != null && onTo.getTeam().equals(ai) && !onTo.isKing()) ? FELLOW_PRESENT_YES : FELLOW_PRESENT_NO;
         return fellows - KING_SCORE_ENEMY_WEIGHT * enemies - distance
                 - KING_SCORE_FELLOW_PRESENT_WEIGHT * fellowPresent;
     }
@@ -104,16 +125,16 @@ public final class AIPlayer {
     /** Returns true if turn should abort (game over or king gone after move). */
     private static boolean runKingMove(Game game, Team ai, Team enemy, int kr, int kc, Random rnd) {
         List<int[]> kingMoves = new ArrayList<>();
-        kingMoves.add(new int[] { kr + 1, kc });
-        kingMoves.add(new int[] { kr, kc + 1 });
-        kingMoves.add(new int[] { kr - 1, kc });
-        kingMoves.add(new int[] { kr, kc - 1 });
+        kingMoves.add(new int[] { kr + OFFSET_UP, kc });
+        kingMoves.add(new int[] { kr, kc + OFFSET_RIGHT });
+        kingMoves.add(new int[] { kr + OFFSET_DOWN, kc });
+        kingMoves.add(new int[] { kr, kc + OFFSET_LEFT });
         kingMoves.add(new int[] { kr, kc });
         List<int[]> validKingMoves = new ArrayList<>();
         List<Integer> kingScores = new ArrayList<>();
         for (int[] to : kingMoves) {
-            int tr = to[0];
-            int tc = to[1];
+            int tr = to[INDEX_ROW];
+            int tc = to[INDEX_COL];
             if (!isValidKingMoveTarget(game, tr, tc, enemy)) {
                 continue;
             }
@@ -125,7 +146,7 @@ public final class AIPlayer {
         }
         int idx = AIPlayerHelper.selectAmongMaxScore(kingScores, rnd);
         int[] to = validKingMoves.get(idx);
-        executeMove(game, kr, kc, to[0], to[1]);
+        executeMove(game, kr, kc, to[INDEX_ROW], to[INDEX_COL]);
         if (!game.isGameOver()) {
             ShowCommand.printBoardAndShow(game);
         }
@@ -135,9 +156,9 @@ public final class AIPlayer {
         List<int[]> placeFieldsOrdered = new ArrayList<>();
         List<Integer> placeScores = new ArrayList<>();
         for (int[] d : CLOCKWISE_DIRS) {
-            int r = ctx.kr() + d[0];
-            int c = ctx.kc() + d[1];
-            if (r < 0 || r >= GameBoard.SIZE || c < 0 || c >= GameBoard.SIZE) {
+            int r = ctx.kr() + d[INDEX_ROW];
+            int c = ctx.kc() + d[INDEX_COL];
+            if (r < MIN_BOARD_INDEX || r >= GameBoard.SIZE || c < MIN_BOARD_INDEX || c >= GameBoard.SIZE) {
                 continue;
             }
             Field field = ctx.game().getGameBoard().getField(r, c);
@@ -151,20 +172,20 @@ public final class AIPlayer {
             int fellows = AIPlayerHelper.countAdjacent4(ctx.game(), r, c, ctx.ai());
             placeScores.add(-steps + PLACE_SCORE_ENEMY_WEIGHT * enemies - fellows);
         }
-        if (placeFieldsOrdered.isEmpty() || ctx.game().getCurrentTeam().getHand().size() <= 0) {
+        if (placeFieldsOrdered.isEmpty() || ctx.game().getCurrentTeam().getHand().size() <= MIN_HAND_SIZE_FOR_PLACE) {
             return;
         }
         int fieldIdx = AIPlayerHelper.selectAmongMaxScore(placeScores, ctx.rnd());
         int[] pf = placeFieldsOrdered.get(fieldIdx);
-        int pr = pf[0];
-        int pc = pf[1];
+        int pr = pf[INDEX_ROW];
+        int pc = pf[INDEX_COL];
         List<Unit> handUnits = ctx.game().getCurrentTeam().getHand().snapshot();
         List<Integer> atkWeights = new ArrayList<>();
         for (Unit u : handUnits) {
-            atkWeights.add(Math.max(0, u.getAtk()));
+            atkWeights.add(Math.max(MIN_BOARD_INDEX, u.getAtk()));
         }
         int unitIdx = AIPlayerHelper.weightedSelect(atkWeights, ctx.rnd());
-        int handIndex = unitIdx + 1;
+        int handIndex = unitIdx + ONE_BASED_OFFSET;
         ctx.game().setSelectedField(ctx.game().getGameBoard().getField(pr, pc));
         AIPlayerHelper.placeUnit(ctx.game(), handIndex, pr, pc);
         ShowCommand.printBoardAndShow(ctx.game());
@@ -184,8 +205,8 @@ public final class AIPlayer {
             return false;
         }
         int chosenUnit = AIPlayerHelper.selectAmongMaxScore(data.unitTotalScores(), rnd);
-        int ur = data.positions().get(chosenUnit)[0];
-        int uc = data.positions().get(chosenUnit)[1];
+        int ur = data.positions().get(chosenUnit)[INDEX_ROW];
+        int uc = data.positions().get(chosenUnit)[INDEX_COL];
         game.setSelectedField(game.getGameBoard().getField(ur, uc));
 
         List<Integer> optScores = data.unitOptionScores().get(chosenUnit);
@@ -194,7 +215,7 @@ public final class AIPlayer {
             Unit u = data.movable().get(chosenUnit);
             u.setBlocked(true);
             u.setMovedThisTurn(true);
-            System.out.printf((BLOCKS_MESSAGE_FORMAT) + "%n", u.getName(),
+            System.out.printf((BLOCKS_MESSAGE_FORMAT) + FORMAT_NEWLINE, u.getName(),
                     game.getGameBoard().getField(ur, uc).coordinate());
             ShowCommand.printBoardAndShow(game);
             return true;
@@ -202,10 +223,10 @@ public final class AIPlayer {
         int moveIdx = AIPlayerHelper.weightedSelect(optScores, rnd);
         Unit u = data.movable().get(chosenUnit);
         List<int[]> opts = data.unitOptions().get(chosenUnit);
-        int tr = opts.get(moveIdx)[0];
-        int tc = opts.get(moveIdx)[1];
+        int tr = opts.get(moveIdx)[INDEX_ROW];
+        int tc = opts.get(moveIdx)[INDEX_COL];
         if (tr == AIPlayerHelper.EN_PLACE_SENTINEL_ROW && tc == AIPlayerHelper.EN_PLACE_SENTINEL_COL) {
-            System.out.printf((MOVES_TO_MESSAGE_FORMAT) + "%n", u.getName(),
+            System.out.printf((MOVES_TO_MESSAGE_FORMAT) + FORMAT_NEWLINE, u.getName(),
                     game.getGameBoard().getField(ur, uc).coordinate());
             u.setMovedThisTurn(true);
             ShowCommand.printBoardAndShow(game);
@@ -214,7 +235,7 @@ public final class AIPlayer {
         if (tr == ur && tc == uc && moveIdx == BLOCK_OPTION_INDEX) {
             u.setBlocked(true);
             u.setMovedThisTurn(true);
-            System.out.printf((BLOCKS_MESSAGE_FORMAT) + "%n", u.getName(),
+            System.out.printf((BLOCKS_MESSAGE_FORMAT) + FORMAT_NEWLINE, u.getName(),
                     game.getGameBoard().getField(ur, uc).coordinate());
         } else {
             executeMove(game, ur, uc, tr, tc);
@@ -227,8 +248,8 @@ public final class AIPlayer {
     private static UnitMoveRoundData computeUnitMoveRoundData(Game game, Team ai, Team enemy, int ekr, int ekc) {
         List<Unit> movable = new ArrayList<>();
         List<int[]> positions = new ArrayList<>();
-        for (int r = 0; r < GameBoard.SIZE; r++) {
-            for (int c = 0; c < GameBoard.SIZE; c++) {
+        for (int r = MIN_BOARD_INDEX; r < GameBoard.SIZE; r++) {
+            for (int c = MIN_BOARD_INDEX; c < GameBoard.SIZE; c++) {
                 Unit u = game.getGameBoard().getField(r, c).getUnit();
                 if (u != null && u.getTeam().equals(ai) && !u.isKing() && !u.hasMovedThisTurn()) {
                     movable.add(u);
@@ -239,14 +260,14 @@ public final class AIPlayer {
         List<Integer> unitTotalScores = new ArrayList<>();
         List<List<int[]>> unitOptions = new ArrayList<>();
         List<List<Integer>> unitOptionScores = new ArrayList<>();
-        for (int i = 0; i < movable.size(); i++) {
+        for (int i = MIN_BOARD_INDEX; i < movable.size(); i++) {
             Unit u = movable.get(i);
-            int ur = positions.get(i)[0];
-            int uc = positions.get(i)[1];
+            int ur = positions.get(i)[INDEX_ROW];
+            int uc = positions.get(i)[INDEX_COL];
             AIPlayerHelper.UnitMoveContext moveCtx = new AIPlayerHelper.UnitMoveContext(game, u, ur, uc,
                     ai, enemy, ekr, ekc);
             AIPlayerHelper.UnitMoveOption opt = AIPlayerHelper.computeUnitMoveOptions(moveCtx);
-            int total = 0;
+            int total = INITIAL_TOTAL_SCORE;
             for (Integer score : opt.scores()) {
                 total += score;
             }
@@ -266,7 +287,7 @@ public final class AIPlayer {
         for (Unit u : hand) {
             weights.add(u.getAtk() + u.getDef());
         }
-        int max = 0;
+        int max = INITIAL_MAX;
         for (Integer w : weights) {
             if (w > max) {
                 max = w;
@@ -274,24 +295,23 @@ public final class AIPlayer {
         }
         List<Integer> inv = new ArrayList<>();
         for (int w : weights) {
-            inv.add(Math.max(0, max - w));
+            inv.add(Math.max(MIN_BOARD_INDEX, max - w));
         }
-        return AIPlayerHelper.weightedSelect(inv, game.getRandom()) + 1;
+        return AIPlayerHelper.weightedSelect(inv, game.getRandom()) + ONE_BASED_OFFSET;
     }
 
     private static void printYieldResult(Game game, YieldResult result) {
         if (result.discarded() != null) {
             Unit u = result.discarded();
-            System.out.printf((DISCARDED_UNIT_MESSAGE_FORMAT) + "%n",
+            System.out.printf((DISCARDED_UNIT_MESSAGE_FORMAT) + FORMAT_NEWLINE,
                     result.yieldingTeam().getName(), u.getName(), u.getAtk(), u.getDef());
         }
-        System.out.printf((TURN_ANNOUNCEMENT_MESSAGE_FORMAT) + "%n", game.getCurrentTeam().getName());
+        System.out.printf((TURN_ANNOUNCEMENT_MESSAGE_FORMAT) + FORMAT_NEWLINE, game.getCurrentTeam().getName());
         if (result.newTeamDeckEmpty()) {
-            System.out.printf((NO_CARDS_LEFT_MESSAGE_FORMAT) + "%n",
-                    game.getCurrentTeam().getName());
+            System.out.printf((NO_CARDS_LEFT_MESSAGE_FORMAT) + FORMAT_NEWLINE, game.getCurrentTeam().getName());
         }
         if (result.winner() != null) {
-            System.out.printf((WINS_MESSAGE_FORMAT) + "%n", result.winner().getName());
+            System.out.printf((WINS_MESSAGE_FORMAT) + FORMAT_NEWLINE, result.winner().getName());
         }
     }
 
@@ -303,35 +323,34 @@ public final class AIPlayer {
         try {
             YieldResult result = game.endTurn(discardIdx);
             printYieldResult(game, result);
-        } catch (HandFullMustDiscardException | CannotDiscardException | InvalidHandIndexException
-                | InitializationException e) {
+        } catch (HandFullMustDiscardException | CannotDiscardException | InvalidHandIndexException | InitializationException e) {
             System.out.println(e.getFormattedMessage());
         }
     }
-    private static void executeEnPlaceMove(Game game, Unit unit, Field toField) {
+    private static void executeEnPlaceMove(Unit unit, Field toField) {
         if (unit.isBlocked()) {
             unit.setBlocked(false);
-            System.out.printf((NO_LONGER_BLOCKS_MESSAGE_FORMAT) + "%n", unit.getName());
+            System.out.printf((NO_LONGER_BLOCKS_MESSAGE_FORMAT) + FORMAT_NEWLINE, unit.getName());
         }
         unit.setMovedThisTurn(true);
-        System.out.printf((MOVES_TO_MESSAGE_FORMAT) + "%n", unit.getName(), toField.coordinate());
+        System.out.printf((MOVES_TO_MESSAGE_FORMAT) + FORMAT_NEWLINE, unit.getName(), toField.coordinate());
     }
 
     private static void executeMoveToEmpty(Game game, Unit unit, int fromRow, int fromCol, int toRow, int toCol) {
         Field toField = game.getGameBoard().getField(toRow, toCol);
         if (unit.isBlocked()) {
             unit.setBlocked(false);
-            System.out.printf((NO_LONGER_BLOCKS_MESSAGE_FORMAT) + "%n", unit.getName());
+            System.out.printf((NO_LONGER_BLOCKS_MESSAGE_FORMAT) + FORMAT_NEWLINE, unit.getName());
         }
         game.getGameBoard().getField(fromRow, fromCol).removeUnit();
         game.getGameBoard().placeUnit(toRow, toCol, unit);
         unit.setMovedThisTurn(true);
         game.setSelectedField(toField);
-        System.out.printf((MOVES_TO_MESSAGE_FORMAT) + "%n", unit.getName(), toField.coordinate());
+        System.out.printf((MOVES_TO_MESSAGE_FORMAT) + FORMAT_NEWLINE, unit.getName(), toField.coordinate());
     }
 
     private static void executeDuelMove(Game game, Unit unit, Unit defender, int fromRow, int fromCol, int toRow,
-                                       int toCol) {
+                                        int toCol) {
         Field toField = game.getGameBoard().getField(toRow, toCol);
         DuelResult result = game.performDuel(unit, defender, defender.isBlocked(), fromRow, fromCol, toRow, toCol);
         for (String line : result.lines()) {
@@ -362,7 +381,7 @@ public final class AIPlayer {
         }
         Field toField = game.getGameBoard().getField(toRow, toCol);
         if (fromRow == toRow && fromCol == toCol) {
-            executeEnPlaceMove(game, unit, toField);
+            executeEnPlaceMove(unit, toField);
             return;
         }
         if (toField.isEmpty()) {

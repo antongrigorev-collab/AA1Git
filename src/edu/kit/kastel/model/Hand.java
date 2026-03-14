@@ -14,6 +14,12 @@ import java.util.List;
 public class Hand {
     private static final int MAX_SIZE = 5;
 
+    /** Offset to convert 1-based hand index to 0-based list index. */
+    private static final int ONE_BASED_TO_ZERO_OFFSET = 1;
+
+    /** Minimum valid list index. */
+    private static final int MIN_LIST_INDEX = 0;
+
     private final List<Unit> units = new ArrayList<>();
     private boolean placedThisTurn;
 
@@ -79,8 +85,8 @@ public class Hand {
      * @return the unit or null
      */
     public Unit get(int oneBasedIndex) {
-        int idx = oneBasedIndex - 1;
-        if (idx < 0 || idx >= units.size()) {
+        int idx = oneBasedIndex - ONE_BASED_TO_ZERO_OFFSET;
+        if (idx < MIN_LIST_INDEX || idx >= units.size()) {
             return null;
         }
         return units.get(idx);
@@ -93,8 +99,8 @@ public class Hand {
      * @return the removed unit or null if out of range
      */
     public Unit remove(int oneBasedIndex) {
-        int idx = oneBasedIndex - 1;
-        if (idx < 0 || idx >= units.size()) {
+        int idx = oneBasedIndex - ONE_BASED_TO_ZERO_OFFSET;
+        if (idx < MIN_LIST_INDEX || idx >= units.size()) {
             return null;
         }
         return units.remove(idx);

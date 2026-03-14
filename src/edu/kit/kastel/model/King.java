@@ -15,6 +15,12 @@ public final class King extends Unit {
     /** Display role for Farmer King (A.1.3). */
     private static final String KING_ROLE = "King";
 
+    /** King has no attack value (A.1.3). */
+    private static final int KING_ATK = 0;
+
+    /** King has no defense value (A.1.3). */
+    private static final int KING_DEF = 0;
+
     private King() {
     }
 
@@ -53,11 +59,11 @@ public final class King extends Unit {
 
     @Override
     public int getAtk() {
-        return 0;
+        return KING_ATK;
     }
 
     @Override
     public int getDef() {
-        return 0;
+        return KING_DEF;
     }
 }

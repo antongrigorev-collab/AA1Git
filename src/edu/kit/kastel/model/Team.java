@@ -11,6 +11,12 @@ public final class Team {
     /** Initial life points for each team at game start (A.1.7). */
     public static final int INITIAL_LIFE_POINTS = 8000;
 
+    /** Threshold: team is dead when life points are at or below this value. */
+    private static final int LIFE_THRESHOLD_DEAD = 0;
+
+    /** Minimum damage amount to apply (non-positive damage is ignored). */
+    private static final int MIN_DAMAGE_TO_APPLY = 0;
+
     private final String name;
     private int lifePoints;
 
@@ -74,7 +80,7 @@ public final class Team {
      * @param amount the damage to apply
      */
     public void takeDamage(int amount) {
-        if (amount <= 0) {
+        if (amount <= MIN_DAMAGE_TO_APPLY) {
             return;
         }
         lifePoints -= amount;
@@ -86,7 +92,7 @@ public final class Team {
      * @return true if the team is dead
      */
     public boolean isDead() {
-        return lifePoints <= 0;
+        return lifePoints <= LIFE_THRESHOLD_DEAD;
     }
 
     /**

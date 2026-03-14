@@ -85,7 +85,7 @@ public class YieldCommand extends Command {
                 | InitializationException e) {
             System.out.println(e.getFormattedMessage());
         }
-        if (game != null && !game.isGameOver() && game.getCurrentTeam().equals(game.getTeam2())) {
+        if (!game.isGameOver() && game.getCurrentTeam().equals(game.getTeam2())) {
             AIPlayer.runTurn(game);
         }
     }
