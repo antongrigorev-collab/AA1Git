@@ -1,14 +1,10 @@
 package edu.kit.kastel.commands;
 
-import edu.kit.kastel.exceptions.EmptyFieldException;
 import edu.kit.kastel.exceptions.FieldTooFarException;
 import edu.kit.kastel.exceptions.GameException;
 import edu.kit.kastel.exceptions.InvalidFieldException;
 import edu.kit.kastel.exceptions.KingCannotAttackException;
 import edu.kit.kastel.exceptions.MoveOntoOwnKingException;
-import edu.kit.kastel.exceptions.NoFieldSelectedException;
-import edu.kit.kastel.exceptions.NotOwnUnitException;
-import edu.kit.kastel.exceptions.UnitAlreadyMovedException;
 import edu.kit.kastel.model.Compatibility;
 import edu.kit.kastel.model.DuelResult;
 import edu.kit.kastel.model.Field;
@@ -63,24 +59,13 @@ public class MoveCommand extends Command {
 
     @Override
     public void execute(String[] commandArguments) throws GameException {
-        Game game = commandHandler.getGame();
-        if (game == null || game.isGameOver()) {
+        Command.SelectedUnitContext ctx = getSelectedOwnUnitNotMoved(commandHandler);
+        if (ctx == null) {
             return;
         }
-        var selected = game.getSelectedField();
-        if (selected == null) {
-            throw new NoFieldSelectedException();
-        }
-        if (selected.isEmpty()) {
-            throw new EmptyFieldException(selected.coordinate());
-        }
-        Unit unit = selected.getUnit();
-        if (!unit.getTeam().equals(game.getCurrentTeam())) {
-            throw new NotOwnUnitException();
-        }
-        if (unit.hasMovedThisTurn()) {
-            throw new UnitAlreadyMovedException(unit.getName());
-        }
+        Game game = ctx.game();
+        Field selected = ctx.selected();
+        Unit unit = ctx.unit();
         String toStr = commandArguments[INDEX_FIRST_ARG].toUpperCase();
         int[] toRc = BoardGeometry.parseField(toStr);
         if (toRc == null) {
@@ -140,9 +125,7 @@ public class MoveCommand extends Command {
     }
 
     private void executeMoveToOccupied(MoveToOccupiedContext ctx) {
-        Game game = ctx.game();
-        Unit defender = ctx.defender();
-        if (!defender.getTeam().equals(game.getCurrentTeam())) {
+        if (!ctx.defender().getTeam().equals(ctx.game().getCurrentTeam())) {
             executeMoveToOccupiedVsEnemy(ctx);
         } else {
             executeMoveToOccupiedVsAlly(ctx);
@@ -150,74 +133,60 @@ public class MoveCommand extends Command {
     }
 
     private void executeMoveToOccupiedVsEnemy(MoveToOccupiedContext ctx) {
-        Game game = ctx.game();
-        Unit unit = ctx.unit();
-        Unit defender = ctx.defender();
-        Field selected = ctx.selected();
-        Field toField = ctx.toField();
-        int toRow = ctx.toRow();
-        int toCol = ctx.toCol();
-        DuelResult result = game.performDuel(unit, defender, defender.isBlocked(),
-                ctx.fromRow(), ctx.fromCol(), toRow, toCol);
+        DuelResult result = ctx.game().performDuel(ctx.unit(), ctx.defender(), ctx.defender().isBlocked(),
+                ctx.fromRow(), ctx.fromCol(), ctx.toRow(), ctx.toCol());
         for (String line : result.lines()) {
             System.out.println(line);
         }
         if (result.winner() != null) {
-            if (toField.getUnit() == unit) {
-                unit.setMovedThisTurn(true);
-                game.setSelectedField(toField);
-            } else if (selected.getUnit() == unit) {
-                unit.setMovedThisTurn(true);
-                game.setSelectedField(selected);
+            if (ctx.toField().getUnit() == ctx.unit()) {
+                ctx.unit().setMovedThisTurn(true);
+                ctx.game().setSelectedField(ctx.toField());
+            } else if (ctx.selected().getUnit() == ctx.unit()) {
+                ctx.unit().setMovedThisTurn(true);
+                ctx.game().setSelectedField(ctx.selected());
             } else {
-                game.setSelectedField(null);
+                ctx.game().setSelectedField(null);
             }
-            ShowCommand.printBoardAndShow(game);
+            ShowCommand.printBoardAndShow(ctx.game());
             return;
         }
-        if (toField.getUnit() == unit) {
-            unit.setMovedThisTurn(true);
-            game.setSelectedField(toField);
+        if (ctx.toField().getUnit() == ctx.unit()) {
+            ctx.unit().setMovedThisTurn(true);
+            ctx.game().setSelectedField(ctx.toField());
         }
-        ShowCommand.printBoardAndShow(game);
+        ShowCommand.printBoardAndShow(ctx.game());
     }
 
     private void executeMoveToOccupiedVsAlly(MoveToOccupiedContext ctx) {
-        Game game = ctx.game();
-        Unit unit = ctx.unit();
-        Unit defender = ctx.defender();
-        Field selected = ctx.selected();
-        Field toField = ctx.toField();
-        int toRow = ctx.toRow();
-        int toCol = ctx.toCol();
-        Compatibility.MergeStats stats = Compatibility.check(unit, defender);
-        if (unit.isBlocked()) {
-            unit.setBlocked(false);
-            System.out.println(unit.getName() + NO_LONGER_BLOCKS_SUFFIX);
+        Compatibility.MergeStats stats = Compatibility.check(ctx.unit(), ctx.defender());
+        if (ctx.unit().isBlocked()) {
+            ctx.unit().setBlocked(false);
+            System.out.println(ctx.unit().getName() + NO_LONGER_BLOCKS_SUFFIX);
         }
         if (stats != null) {
-            Unit merged = Game.createMergedUnit(unit, defender, stats);
-            merged.setTeam(game.getCurrentTeam());
+            Unit merged = Game.createMergedUnit(ctx.unit(), ctx.defender(), stats);
+            merged.setTeam(ctx.game().getCurrentTeam());
             merged.setMovedThisTurn(false);
-            selected.removeUnit();
-            toField.removeUnit();
-            game.getGameBoard().placeUnit(toRow, toCol, merged);
-            game.setSelectedField(toField);
-            System.out.println(unit.getName() + MOVES_TO_MIDDLE + toField.coordinate() + MOVES_TO_SUFFIX);
-            System.out.println(unit.getName() + AND_CONNECTOR + defender.getName() + ON_MIDDLE
-                    + toField.coordinate() + JOIN_FORCES_SUFFIX);
+            ctx.selected().removeUnit();
+            ctx.toField().removeUnit();
+            ctx.game().getGameBoard().placeUnit(ctx.toRow(), ctx.toCol(), merged);
+            ctx.game().setSelectedField(ctx.toField());
+            System.out.println(ctx.unit().getName() + MOVES_TO_MIDDLE + ctx.toField().coordinate() + MOVES_TO_SUFFIX);
+            System.out.println(ctx.unit().getName() + AND_CONNECTOR + ctx.defender().getName() + ON_MIDDLE
+                    + ctx.toField().coordinate() + JOIN_FORCES_SUFFIX);
             System.out.println(UNION_SUCCESS_MESSAGE);
         } else {
-            selected.removeUnit();
-            toField.removeUnit();
-            game.getGameBoard().placeUnit(toRow, toCol, unit);
-            unit.setMovedThisTurn(true);
-            game.setSelectedField(toField);
-            System.out.println(unit.getName() + MOVES_TO_MIDDLE + toField.coordinate() + MOVES_TO_SUFFIX);
-            System.out.println(unit.getName() + AND_CONNECTOR + defender.getName() + ON_MIDDLE
-                    + toField.coordinate() + JOIN_FORCES_SUFFIX);
-            System.out.println(UNION_FAILED_PREFIX + defender.getName() + WAS_ELIMINATED_SUFFIX);
+            ctx.selected().removeUnit();
+            ctx.toField().removeUnit();
+            ctx.game().getGameBoard().placeUnit(ctx.toRow(), ctx.toCol(), ctx.unit());
+            ctx.unit().setMovedThisTurn(true);
+            ctx.game().setSelectedField(ctx.toField());
+            System.out.println(ctx.unit().getName() + MOVES_TO_MIDDLE + ctx.toField().coordinate() + MOVES_TO_SUFFIX);
+            System.out.println(ctx.unit().getName() + AND_CONNECTOR + ctx.defender().getName() + ON_MIDDLE
+                    + ctx.toField().coordinate() + JOIN_FORCES_SUFFIX);
+            System.out.println(UNION_FAILED_PREFIX + ctx.defender().getName() + WAS_ELIMINATED_SUFFIX);
         }
-        ShowCommand.printBoardAndShow(game);
+        ShowCommand.printBoardAndShow(ctx.game());
     }
 }

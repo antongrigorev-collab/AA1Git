@@ -1,12 +1,7 @@
 package edu.kit.kastel.commands;
 
 import edu.kit.kastel.exceptions.CannotBlockKingException;
-import edu.kit.kastel.exceptions.EmptyFieldException;
 import edu.kit.kastel.exceptions.GameException;
-import edu.kit.kastel.exceptions.NoFieldSelectedException;
-import edu.kit.kastel.exceptions.NotOwnUnitException;
-import edu.kit.kastel.exceptions.UnitAlreadyMovedException;
-import edu.kit.kastel.model.Game;
 import edu.kit.kastel.model.Unit;
 
 import java.util.List;
@@ -35,35 +30,23 @@ public class BlockCommand extends Command {
 
     @Override
     public void execute(String[] commandArguments) throws GameException {
-        Game game = commandHandler.getGame();
-        if (game == null || game.isGameOver()) {
+        Command.SelectedUnitContext ctx = getSelectedOwnUnitNotMoved(commandHandler);
+        if (ctx == null) {
             return;
         }
-        var selected = game.getSelectedField();
-        if (selected == null) {
-            throw new NoFieldSelectedException();
-        }
-        if (selected.isEmpty()) {
-            throw new EmptyFieldException(selected.coordinate());
-        }
-        Unit unit = selected.getUnit();
-        if (!unit.getTeam().equals(game.getCurrentTeam())) {
-            throw new NotOwnUnitException();
-        }
+        Unit unit = ctx.unit();
         if (unit.isKing()) {
             throw new CannotBlockKingException();
-        }
-        if (unit.hasMovedThisTurn()) {
-            throw new UnitAlreadyMovedException(unit.getName());
         }
         unit.setBlocked(true);
         unit.setMovedThisTurn(true);
         System.out.println(unit.getName() + BLOCK_MESSAGE_COORDINATE_PREFIX
-                + selected.coordinate() + BLOCK_MESSAGE_SUFFIX);
-        List<String> lines = game.getGameBoard().render(game.getSelectedField(), game.getTeam1(), game.getCurrentTeam());
+                + ctx.selected().coordinate() + BLOCK_MESSAGE_SUFFIX);
+        List<String> lines = ctx.game().getGameBoard().render(
+                ctx.game().getSelectedField(), ctx.game().getTeam1(), ctx.game().getCurrentTeam());
         for (String line : lines) {
             System.out.println(line);
         }
-        ShowCommand.printShow(game);
+        ShowCommand.printShow(ctx.game());
     }
 }

@@ -8,7 +8,7 @@ package edu.kit.kastel.model;
 public final class BoardGeometry {
 
     private static final int ADJACENT_MAX_OFFSET = 1;
-    private static final int FIELD_COORD_LENGTH = 2;
+    private static final int FIELD_COORDINATES_LENGTH = 2;
     private static final char COLUMN_MIN = 'A';
     private static final char COLUMN_MAX = 'G';
     private static final char ROW_CHAR_MIN = '1';
@@ -35,12 +35,12 @@ public final class BoardGeometry {
     /**
      * Parses "A1"-"G7" to row,col. Row 1 = index 0.
      *
-     * @param coord field identifier A1 to G7
+     * @param coordinates field identifier A1 to G7
      * @return int array [row, col] or null if invalid
      */
-    public static int[] parseField(String coord) {
-        String u = coord.strip().toUpperCase();
-        if (u.length() != FIELD_COORD_LENGTH || u.charAt(CHAR_INDEX_COL) < COLUMN_MIN
+    public static int[] parseField(String coordinates) {
+        String u = coordinates.strip().toUpperCase();
+        if (u.length() != FIELD_COORDINATES_LENGTH || u.charAt(CHAR_INDEX_COL) < COLUMN_MIN
                 || u.charAt(CHAR_INDEX_COL) > COLUMN_MAX || u.charAt(CHAR_INDEX_ROW) < ROW_CHAR_MIN
                 || u.charAt(CHAR_INDEX_ROW) > ROW_CHAR_MAX) {
             return null;

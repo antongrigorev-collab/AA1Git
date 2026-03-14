@@ -16,71 +16,6 @@ public class GameBoard {
     /** Board dimension (7x7). */
     public static final int SIZE = 7;
 
-    /** Separator between row number and cell content. */
-    private static final String ROW_NUMBER_SEPARATOR = " ";
-
-    /** Indent for board row labels and separator lines. */
-    private static final String BOARD_ROW_INDENT = "  ";
-
-    /** Padding before column labels (A..G). */
-    private static final String COLUMN_LABEL_LEFT_PADDING = "    ";
-
-    /** Spacing between column labels. */
-    private static final String COLUMN_LABEL_SPACING = "   ";
-
-    /** Content for empty cell (3 spaces). */
-    private static final String EMPTY_CELL_CONTENT = "   ";
-
-    /** Custom symbol set: index for horizontal line (a-z order). */
-    private static final int CUSTOM_SYMBOL_INDEX_HORIZONTAL = 8;
-
-    /** Custom symbol set: index for vertical line. */
-    private static final int CUSTOM_SYMBOL_INDEX_VERTICAL = 9;
-
-    private static final int CUSTOM_SYMBOL_INDEX_TOP_LEFT_CORNER = 0;
-    private static final int CUSTOM_SYMBOL_INDEX_TOP_RIGHT_CORNER = 1;
-    private static final int CUSTOM_SYMBOL_INDEX_BOTTOM_LEFT_CORNER = 2;
-    private static final int CUSTOM_SYMBOL_INDEX_BOTTOM_RIGHT_CORNER = 3;
-    private static final int CUSTOM_SYMBOL_INDEX_TOP_MID = 4;
-    private static final int CUSTOM_SYMBOL_INDEX_RIGHT_MID = 5;
-    private static final int CUSTOM_SYMBOL_INDEX_BOTTOM_MID = 6;
-    private static final int CUSTOM_SYMBOL_INDEX_LEFT_MID = 7;
-    private static final int CUSTOM_SYMBOL_INDEX_CENTER = 10;
-
-    private static final int CUSTOM_SYMBOL_INDEX_TOP_LEFT_CORNER_SELECTED = 11;
-    private static final int CUSTOM_SYMBOL_INDEX_TOP_RIGHT_CORNER_SELECTED = 12;
-    private static final int CUSTOM_SYMBOL_INDEX_BOTTOM_LEFT_CORNER_SELECTED = 13;
-    private static final int CUSTOM_SYMBOL_INDEX_BOTTOM_RIGHT_CORNER_SELECTED = 14;
-    private static final int CUSTOM_SYMBOL_INDEX_TOP_MID_SELECTED_LEFT = 15;
-    private static final int CUSTOM_SYMBOL_INDEX_TOP_MID_SELECTED_RIGHT = 16;
-    private static final int CUSTOM_SYMBOL_INDEX_RIGHT_MID_SELECTED_ABOVE = 17;
-    private static final int CUSTOM_SYMBOL_INDEX_RIGHT_MID_SELECTED_BELOW = 18;
-    private static final int CUSTOM_SYMBOL_INDEX_BOTTOM_MID_SELECTED_LEFT = 19;
-    private static final int CUSTOM_SYMBOL_INDEX_BOTTOM_MID_SELECTED_RIGHT = 20;
-    private static final int CUSTOM_SYMBOL_INDEX_LEFT_MID_SELECTED_ABOVE = 21;
-    private static final int CUSTOM_SYMBOL_INDEX_LEFT_MID_SELECTED_BELOW = 22;
-    private static final int CUSTOM_SYMBOL_INDEX_CENTER_SELECTED_TOP_LEFT = 25;
-    private static final int CUSTOM_SYMBOL_INDEX_CENTER_SELECTED_TOP_RIGHT = 26;
-    private static final int CUSTOM_SYMBOL_INDEX_CENTER_SELECTED_BOTTOM_LEFT = 27;
-    private static final int CUSTOM_SYMBOL_INDEX_CENTER_SELECTED_BOTTOM_RIGHT = 28;
-
-    /** Custom symbol set: index for horizontal line when selected. */
-    private static final int CUSTOM_SYMBOL_INDEX_HORIZONTAL_SELECTED = 23;
-
-    /** Custom symbol set: index for vertical line when selected. */
-    private static final int CUSTOM_SYMBOL_INDEX_VERTICAL_SELECTED = 24;
-
-    /** Custom symbol set: offset from base corner index to selected variant. */
-    private static final int CUSTOM_CORNER_SELECTED_OFFSET = 11;
-
-    /** Standard symbols: corner, horizontal, vertical, then selected variants. */
-    private static final char STD_CORNER = '+';
-    private static final char STD_H = '-';
-    private static final char STD_V = '|';
-    private static final char STD_CORNER_SEL = '#';
-    private static final char STD_H_SEL = '=';
-    private static final char STD_V_SEL = 'N';
-
     private final SymbolSet symbolSet;
     private final VerbosityMode verbosityMode;
     private final Field[][] grid;
@@ -146,7 +81,7 @@ public class GameBoard {
 
     /**
      * Renders the board as a list of lines (no trailing spaces).
-     * Row 7 at top, row 1 at bottom; columns A..G.
+     * Row 7 at top, row 1 at bottom; columns from A to G.
      *
      * @param selectedField  the currently selected field, or null
      * @param teamShownAsX   the team whose units are displayed as x/X (e.g. the human player)

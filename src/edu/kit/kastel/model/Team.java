@@ -1,7 +1,5 @@
 package edu.kit.kastel.model;
 
-import edu.kit.kastel.exceptions.InvalidArgumentException;
-
 /**
  * Represents one team in Crown of Farmland: name, life points, deck, hand, and
  * the Farmer King. Created via {@link #createTeam1(String)} or
@@ -37,9 +35,8 @@ public final class Team {
      *
      * @param name the team name (e.g. "Player")
      * @return the new team
-     * @throws InvalidArgumentException if name is invalid
      */
-    public static Team createTeam1(String name) throws InvalidArgumentException {
+    public static Team createTeam1(String name) {
         return new Team(name, King.forTeam1());
     }
 
@@ -48,9 +45,8 @@ public final class Team {
      *
      * @param name the team name (e.g. "Enemy")
      * @return the new team
-     * @throws InvalidArgumentException if name is invalid
      */
-    public static Team createTeam2(String name) throws InvalidArgumentException {
+    public static Team createTeam2(String name) {
         return new Team(name, King.forTeam2());
     }
 

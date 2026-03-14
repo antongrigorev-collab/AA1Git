@@ -32,6 +32,9 @@ final class AIPlayerHelper {
     private static final int SCORE_ZERO = 0;
     private static final int MIN_BLOCK_SCORE = 1;
     private static final int MIN_EN_PLACE_SCORE = 0;
+    private static final int[][] EIGHT_NEIGHBOR_OFFSETS = {
+        {-1, -1}, {-1, 0}, {-1, 1}, {0, -1}, {0, 1}, {1, -1}, {1, 0}, {1, 1}
+    };
 
     /**
      * Context for merge/eliminate action (game, units, coordinates, target field).
@@ -113,7 +116,7 @@ final class AIPlayerHelper {
             }
         }
         if (tiedIndices.size() == 1) {
-            return tiedIndices.get(0);
+            return tiedIndices.getFirst();
         }
         List<Integer> ones = new ArrayList<>();
         for (int i = 0; i < tiedIndices.size(); i++) {
@@ -124,31 +127,41 @@ final class AIPlayerHelper {
     }
 
     /**
-     * Counts adjacent units in 8 directions.
+     * Returns 1 if the cell (row, col) contains a non-king unit of the given team.
      *
-     * @param game        game state
-     * @param row         row
-     * @param col         column
-     * @param team        team to count
-     * @param includeKing whether to count the king
+     * @param game game state
+     * @param row  row
+     * @param col  column
+     * @param team team to count
+     * @return 0 or 1
+     */
+    private static int countAdjacentOneCell(Game game, int row, int col, Team team) {
+        if (row < 0 || row >= GameBoard.SIZE || col < 0 || col >= GameBoard.SIZE) {
+            return 0;
+        }
+        Unit u = game.getGameBoard().getField(row, col).getUnit();
+        if (u == null || !u.getTeam().equals(team)) {
+            return 0;
+        }
+        if (!u.isKing()) {
+            return 1;
+        }
+        return 0;
+    }
+
+    /**
+     * Counts adjacent units in 8 directions (king is not counted).
+     *
+     * @param game game state
+     * @param row  row
+     * @param col  column
+     * @param team team to count
      * @return count
      */
-    static int countAdjacent(Game game, int row, int col, Team team, boolean includeKing) {
+    static int countAdjacent(Game game, int row, int col, Team team) {
         int count = 0;
-        for (int dr = -1; dr <= 1; dr++) {
-            for (int dc = -1; dc <= 1; dc++) {
-                if (dr == 0 && dc == 0) {
-                    continue;
-                }
-                int r = row + dr;
-                int c = col + dc;
-                if (r >= 0 && r < GameBoard.SIZE && c >= 0 && c < GameBoard.SIZE) {
-                    Unit u = game.getGameBoard().getField(r, c).getUnit();
-                    if (u != null && u.getTeam().equals(team) && (includeKing || !u.isKing())) {
-                        count++;
-                    }
-                }
-            }
+        for (int[] offset : EIGHT_NEIGHBOR_OFFSETS) {
+            count += countAdjacentOneCell(game, row + offset[0], col + offset[1], team);
         }
         return count;
     }
@@ -224,6 +237,32 @@ final class AIPlayerHelper {
     record UnitMoveContext(Game game, Unit unit, int unitRow, int unitCol,
                            Team ai, Team enemy, int enemyKingRow, int enemyKingCol) { }
 
+    private static int scoreEmptyField(Game game, int tr, int tc, int ekr, int ekc, Team enemy) {
+        int steps = Math.abs(tr - ekr) + Math.abs(tc - ekc);
+        int enemies = countAdjacent4(game, tr, tc, enemy);
+        return ADVANCE_SCORE_STEPS_MULTIPLIER * steps - enemies;
+    }
+
+    private static int scoreFriendlyField(Unit u, Unit target, Compatibility.MergeStats stats) {
+        if (stats != null && !target.isKing()) {
+            return stats.atk() + stats.def() - u.getAtk() - u.getDef();
+        }
+        return SCORE_ZERO - target.getAtk() - target.getDef();
+    }
+
+    private static int scoreEnemyField(Unit u, Unit target) {
+        if (target.isKing()) {
+            return u.getAtk();
+        }
+        if (!target.isRevealed()) {
+            return u.getAtk() - PENALTY_ATTACKING_HIDDEN_UNIT;
+        }
+        if (target.isBlocked()) {
+            return u.getAtk() - target.getDef();
+        }
+        return ATTACK_DIFFERENCE_MULTIPLIER * (u.getAtk() - target.getAtk());
+    }
+
     /**
      * Computes move options and scores for one unit (A.2): 4 directions, block, en place.
      *
@@ -252,37 +291,22 @@ final class AIPlayerHelper {
             }
             Field toField = game.getGameBoard().getField(tr, tc);
             Unit target = toField.getUnit();
-            int score = SCORE_ZERO;
+            int score;
             if (target == null) {
-                int steps = Math.abs(tr - ekr) + Math.abs(tc - ekc);
-                int enemies = countAdjacent4(game, tr, tc, enemy);
-                score = ADVANCE_SCORE_STEPS_MULTIPLIER * steps - enemies;
+                score = scoreEmptyField(game, tr, tc, ekr, ekc, enemy);
             } else if (target.getTeam().equals(ai)) {
-                Compatibility.MergeStats stats = Compatibility.check(u, target);
-                if (stats != null && !target.isKing()) {
-                    score = stats.atk() + stats.def() - u.getAtk() - u.getDef();
-                } else {
-                    score = SCORE_ZERO - target.getAtk() - target.getDef();
-                }
+                score = scoreFriendlyField(u, target, Compatibility.check(u, target));
             } else {
-                if (target.isKing()) {
-                    score = u.getAtk();
-                } else if (!target.isRevealed()) {
-                    score = u.getAtk() - PENALTY_ATTACKING_HIDDEN_UNIT;
-                } else if (target.isBlocked()) {
-                    score = u.getAtk() - target.getDef();
-                } else {
-                    score = ATTACK_DIFFERENCE_MULTIPLIER * (u.getAtk() - target.getAtk());
-                }
+                score = scoreEnemyField(u, target);
             }
             options.add(d);
             scores.add(score);
         }
-        int blockScore = (int) Math.max(MIN_BLOCK_SCORE, (u.getDef() - maxEnemyAtkInLine(game, ur, uc, enemy))
+        int blockScore = Math.max(MIN_BLOCK_SCORE, (u.getDef() - maxEnemyAtkInLine(game, ur, uc, enemy))
                 / AI_SCORE_STATUS_DIVISOR);
         options.add(new int[] { ur, uc });
         scores.add(blockScore);
-        int enPlaceScore = (int) Math.max(MIN_EN_PLACE_SCORE, (u.getAtk() - maxEnemyAtkInLine(game, ur, uc, enemy))
+        int enPlaceScore = Math.max(MIN_EN_PLACE_SCORE, (u.getAtk() - maxEnemyAtkInLine(game, ur, uc, enemy))
                 / AI_SCORE_STATUS_DIVISOR);
         options.add(new int[] { EN_PLACE_SENTINEL_ROW, EN_PLACE_SENTINEL_COL });
         scores.add(enPlaceScore);
@@ -297,7 +321,7 @@ final class AIPlayerHelper {
     static void executeMergeOrEliminate(MergeActionContext ctx) {
         if (ctx.unit().isBlocked()) {
             ctx.unit().setBlocked(false);
-            System.out.println(String.format(NO_LONGER_BLOCKS_MESSAGE_FORMAT, ctx.unit().getName()));
+            System.out.printf((NO_LONGER_BLOCKS_MESSAGE_FORMAT) + "%n", ctx.unit().getName());
         }
         Compatibility.MergeStats stats = Compatibility.check(ctx.unit(), ctx.defender());
         if (stats != null) {
@@ -308,9 +332,9 @@ final class AIPlayerHelper {
             ctx.toField().removeUnit();
             ctx.game().getGameBoard().placeUnit(ctx.toRow(), ctx.toCol(), merged);
             ctx.game().setSelectedField(ctx.toField());
-            System.out.println(String.format(MOVES_TO_MESSAGE_FORMAT, ctx.unit().getName(), ctx.toField().coordinate()));
-            System.out.println(String.format(JOIN_FORCES_MESSAGE_FORMAT, ctx.unit().getName(),
-                    ctx.defender().getName(), ctx.toField().coordinate()));
+            System.out.printf((MOVES_TO_MESSAGE_FORMAT) + "%n", ctx.unit().getName(), ctx.toField().coordinate());
+            System.out.printf((JOIN_FORCES_MESSAGE_FORMAT) + "%n", ctx.unit().getName(),
+                    ctx.defender().getName(), ctx.toField().coordinate());
             System.out.println(SUCCESS_MESSAGE);
         } else {
             ctx.game().getGameBoard().getField(ctx.fromRow(), ctx.fromCol()).removeUnit();
@@ -318,10 +342,10 @@ final class AIPlayerHelper {
             ctx.game().getGameBoard().placeUnit(ctx.toRow(), ctx.toCol(), ctx.unit());
             ctx.unit().setMovedThisTurn(true);
             ctx.game().setSelectedField(ctx.toField());
-            System.out.println(String.format(MOVES_TO_MESSAGE_FORMAT, ctx.unit().getName(), ctx.toField().coordinate()));
-            System.out.println(String.format(JOIN_FORCES_MESSAGE_FORMAT, ctx.unit().getName(),
-                    ctx.defender().getName(), ctx.toField().coordinate()));
-            System.out.println(String.format(UNION_FAILED_MESSAGE_FORMAT, ctx.defender().getName()));
+            System.out.printf((MOVES_TO_MESSAGE_FORMAT) + "%n", ctx.unit().getName(), ctx.toField().coordinate());
+            System.out.printf((JOIN_FORCES_MESSAGE_FORMAT) + "%n", ctx.unit().getName(),
+                    ctx.defender().getName(), ctx.toField().coordinate());
+            System.out.printf((UNION_FAILED_MESSAGE_FORMAT) + "%n", ctx.defender().getName());
         }
     }
     /**
@@ -342,11 +366,11 @@ final class AIPlayerHelper {
         unit.setTeam(game.getCurrentTeam());
         Field field = game.getGameBoard().getField(row, col);
         Unit current = field.getUnit();
-        System.out.println(String.format(PLACES_ON_MESSAGE_FORMAT, game.getCurrentTeam().getName(), unit.getName(), field.coordinate()));
+        System.out.printf((PLACES_ON_MESSAGE_FORMAT) + "%n", game.getCurrentTeam().getName(), unit.getName(), field.coordinate());
         if (current == null) {
             game.getGameBoard().placeUnit(row, col, unit);
         } else {
-            System.out.println(String.format(JOIN_FORCES_MESSAGE_FORMAT, unit.getName(), current.getName(), field.coordinate()));
+            System.out.printf((JOIN_FORCES_MESSAGE_FORMAT) + "%n", unit.getName(), current.getName(), field.coordinate());
             Compatibility.MergeStats stats = Compatibility.check(unit, current);
             if (stats != null) {
                 Unit merged = Game.createMergedUnit(unit, current, stats);
@@ -358,13 +382,13 @@ final class AIPlayerHelper {
             } else {
                 field.removeUnit();
                 game.getGameBoard().placeUnit(row, col, unit);
-                System.out.println(String.format(UNION_FAILED_MESSAGE_FORMAT, current.getName()));
+                System.out.printf((UNION_FAILED_MESSAGE_FORMAT) + "%n", current.getName());
             }
         }
         if (game.getBoardCount(game.getCurrentTeam()) > Game.MAX_NON_KING_UNITS_ON_BOARD) {
             Unit justPlaced = game.getGameBoard().getField(row, col).getUnit();
             game.getGameBoard().getField(row, col).removeUnit();
-            System.out.println(String.format(JUST_PLACED_ELIMINATED_MESSAGE_FORMAT, justPlaced.getName()));
+            System.out.printf((JUST_PLACED_ELIMINATED_MESSAGE_FORMAT) + "%n", justPlaced.getName());
         }
     }
 }

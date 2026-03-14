@@ -65,11 +65,7 @@ public class ShowCommand extends Command {
      * @param game the game (must not be null)
      */
     public static void printBoardAndShow(Game game) {
-        List<String> lines = game.getGameBoard().render(
-                game.getSelectedField(), game.getTeam1(), game.getCurrentTeam());
-        for (String line : lines) {
-            System.out.println(line);
-        }
+        printBoard(game);
         printShow(game);
     }
 

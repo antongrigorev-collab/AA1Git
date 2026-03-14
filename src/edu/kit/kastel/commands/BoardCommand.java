@@ -3,7 +3,7 @@ package edu.kit.kastel.commands;
 import edu.kit.kastel.exceptions.GameException;
 import edu.kit.kastel.model.Game;
 
-import java.util.List;
+
 
 /**
  * Command "board": prints the current game board (and selected field highlight)
@@ -31,9 +31,6 @@ public class BoardCommand extends Command {
         if (game == null) {
             return;
         }
-        List<String> lines = game.getGameBoard().render(game.getSelectedField(), game.getTeam1(), game.getCurrentTeam());
-        for (String line : lines) {
-            System.out.println(line);
-        }
+        ShowCommand.printBoard(game);
     }
 }

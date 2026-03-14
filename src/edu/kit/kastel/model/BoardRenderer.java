@@ -80,6 +80,10 @@ final class BoardRenderer {
     private BoardRenderer() {
     }
 
+    /** Context for building a separator line; groups parameters to stay under the 7-parameter limit. */
+    private record SeparatorContext(int rowBelow, int rowAbove, Field selectedField, boolean useStandard,
+            char[] sym, char hNorm, char hSel, boolean isTopBorder, boolean isBottomBorder) { }
+
     /**
      * Renders the given board with the same format and semantics as
      * {@link GameBoard#render(Field, Team, Team)}.
@@ -119,57 +123,66 @@ final class BoardRenderer {
         return selectedField.row() == row && selectedField.col() == col;
     }
 
+    private static char getFirstJunctionChar(int rowBelow, int rowAbove, Field selectedField, boolean useStandard,
+                                              char[] sym, boolean isTopBorder, boolean isBottomBorder) {
+        if (useStandard) {
+            boolean leftEdgeSel = selectedField != null
+                    && (isSelected(rowBelow, 0, selectedField)
+                    || (rowAbove >= 0 && isSelected(rowAbove, 0, selectedField)));
+            return leftEdgeSel ? STD_CORNER_SEL : STD_CORNER;
+        }
+        if (isTopBorder) {
+            return isSelected(rowBelow, 0, selectedField)
+                    ? sym[CUSTOM_SYMBOL_INDEX_TOP_LEFT_CORNER_SELECTED]
+                    : sym[CUSTOM_SYMBOL_INDEX_TOP_LEFT_CORNER];
+        }
+        if (isBottomBorder) {
+            return isSelected(rowBelow, 0, selectedField)
+                    ? sym[CUSTOM_SYMBOL_INDEX_BOTTOM_LEFT_CORNER_SELECTED]
+                    : sym[CUSTOM_SYMBOL_INDEX_BOTTOM_LEFT_CORNER];
+        }
+        return customLeftMidJunction(rowBelow, rowAbove, selectedField, sym);
+    }
+
+    private static void appendSegmentAndJunction(StringBuilder sb, int c, SeparatorContext ctx) {
+        boolean segSel = isSegmentSelected(ctx.rowBelow(), ctx.rowAbove(), c, ctx.selectedField(),
+                ctx.isTopBorder(), ctx.isBottomBorder());
+        char hChar = segSel ? ctx.hSel() : ctx.hNorm();
+        sb.append(hChar).append(hChar).append(hChar);
+        boolean junctionSel = ctx.useStandard() && ctx.selectedField() != null
+                && isStandardJunctionSelected(ctx.rowBelow(), ctx.rowAbove(), c,
+                c == GameBoard.SIZE - 1, ctx.selectedField());
+        char junction = ctx.useStandard()
+                ? (junctionSel ? STD_CORNER_SEL : STD_CORNER)
+                : customJunctionAfterCell(ctx.rowBelow(), ctx.rowAbove(), c, ctx.selectedField(),
+                ctx.sym(), ctx.isTopBorder(), ctx.isBottomBorder());
+        sb.append(junction);
+    }
+
     private static String buildSeparatorLine(int row, Field selectedField, boolean useStandard, char[] sym) {
-        int rowBelow = row >= 0 ? row : 0;
+        int rowBelow = Math.max(row, 0);
         int rowAbove = (row >= 0 && row < GameBoard.SIZE - 1) ? row + 1 : -1;
         boolean isTopBorder = row == GameBoard.SIZE - 1;
         boolean isBottomBorder = row == -1;
 
         StringBuilder sb = new StringBuilder();
         sb.append(BOARD_ROW_INDENT);
-
         char hNorm = useStandard ? STD_H : sym[CUSTOM_SYMBOL_INDEX_HORIZONTAL];
         char hSel = useStandard ? STD_H_SEL : sym[CUSTOM_SYMBOL_INDEX_HORIZONTAL_SELECTED];
+        sb.append(getFirstJunctionChar(rowBelow, rowAbove, selectedField, useStandard, sym, isTopBorder, isBottomBorder));
 
-        char firstJunction;
-        if (useStandard) {
-            boolean leftEdgeSel = selectedField != null
-                    && (isSelected(rowBelow, 0, selectedField)
-                    || (rowAbove >= 0 && isSelected(rowAbove, 0, selectedField)));
-            firstJunction = leftEdgeSel ? STD_CORNER_SEL : STD_CORNER;
-        } else if (isTopBorder) {
-            firstJunction = selectedField != null && isSelected(rowBelow, 0, selectedField)
-                    ? sym[CUSTOM_SYMBOL_INDEX_TOP_LEFT_CORNER_SELECTED]
-                    : sym[CUSTOM_SYMBOL_INDEX_TOP_LEFT_CORNER];
-        } else if (isBottomBorder) {
-            firstJunction = selectedField != null && isSelected(rowBelow, 0, selectedField)
-                    ? sym[CUSTOM_SYMBOL_INDEX_BOTTOM_LEFT_CORNER_SELECTED]
-                    : sym[CUSTOM_SYMBOL_INDEX_BOTTOM_LEFT_CORNER];
-        } else {
-            firstJunction = customLeftMidJunction(rowBelow, rowAbove, selectedField, sym);
-        }
-        sb.append(firstJunction);
-
+        SeparatorContext ctx = new SeparatorContext(rowBelow, rowAbove, selectedField, useStandard, sym,
+                hNorm, hSel, isTopBorder, isBottomBorder);
         for (int c = 0; c < GameBoard.SIZE; c++) {
-            boolean segSel = isSegmentSelected(rowBelow, rowAbove, c, selectedField, isTopBorder, isBottomBorder);
-            sb.append(segSel ? hSel : hNorm).append(segSel ? hSel : hNorm).append(segSel ? hSel : hNorm);
-            boolean junctionSel = useStandard && selectedField != null
-                    && isStandardJunctionSelected(rowBelow, rowAbove, c, false, c == GameBoard.SIZE - 1, selectedField);
-            char junction = useStandard
-                    ? (junctionSel ? STD_CORNER_SEL : STD_CORNER)
-                    : customJunctionAfterCell(rowBelow, rowAbove, c, selectedField, sym, isTopBorder, isBottomBorder);
-            sb.append(junction);
+            appendSegmentAndJunction(sb, c, ctx);
         }
         return sb.toString();
     }
 
-    private static boolean isStandardJunctionSelected(int rowBelow, int rowAbove, int junctionCol, boolean isLeftEdge,
+    private static boolean isStandardJunctionSelected(int rowBelow, int rowAbove, int junctionCol,
                                                       boolean isRightEdge, Field selectedField) {
         if (selectedField == null) {
             return false;
-        }
-        if (isLeftEdge) {
-            return isSelected(rowBelow, 0, selectedField) || (rowAbove >= 0 && isSelected(rowAbove, 0, selectedField));
         }
         if (isRightEdge) {
             return isSelected(rowBelow, GameBoard.SIZE - 1, selectedField)
@@ -218,20 +231,25 @@ final class BoardRenderer {
         return sym[CUSTOM_SYMBOL_INDEX_RIGHT_MID];
     }
 
+    private static char customJunctionRightEdge(int rowBelow, int rowAbove, Field selectedField, char[] sym,
+                                                boolean isTopBorder, boolean isBottomBorder) {
+        if (isTopBorder) {
+            return isSelected(rowBelow, GameBoard.SIZE - 1, selectedField)
+                    ? sym[CUSTOM_SYMBOL_INDEX_TOP_RIGHT_CORNER_SELECTED]
+                    : sym[CUSTOM_SYMBOL_INDEX_TOP_RIGHT_CORNER];
+        }
+        if (isBottomBorder) {
+            return isSelected(rowBelow, GameBoard.SIZE - 1, selectedField)
+                    ? sym[CUSTOM_SYMBOL_INDEX_BOTTOM_RIGHT_CORNER_SELECTED]
+                    : sym[CUSTOM_SYMBOL_INDEX_BOTTOM_RIGHT_CORNER];
+        }
+        return customRightMidJunction(rowBelow, rowAbove, selectedField, sym);
+    }
+
     private static char customJunctionAfterCell(int rowBelow, int rowAbove, int c, Field selectedField, char[] sym,
                                                boolean isTopBorder, boolean isBottomBorder) {
         if (c == GameBoard.SIZE - 1) {
-            if (isTopBorder) {
-                return selectedField != null && isSelected(rowBelow, GameBoard.SIZE - 1, selectedField)
-                        ? sym[CUSTOM_SYMBOL_INDEX_TOP_RIGHT_CORNER_SELECTED]
-                        : sym[CUSTOM_SYMBOL_INDEX_TOP_RIGHT_CORNER];
-            }
-            if (isBottomBorder) {
-                return selectedField != null && isSelected(rowBelow, GameBoard.SIZE - 1, selectedField)
-                        ? sym[CUSTOM_SYMBOL_INDEX_BOTTOM_RIGHT_CORNER_SELECTED]
-                        : sym[CUSTOM_SYMBOL_INDEX_BOTTOM_RIGHT_CORNER];
-            }
-            return customRightMidJunction(rowBelow, rowAbove, selectedField, sym);
+            return customJunctionRightEdge(rowBelow, rowAbove, selectedField, sym, isTopBorder, isBottomBorder);
         }
         if (isTopBorder) {
             return customTopMidJunction(rowBelow, c, selectedField, sym);
@@ -242,30 +260,32 @@ final class BoardRenderer {
         return customCenterJunction(rowBelow, rowAbove, c, selectedField, sym);
     }
 
-    private static char customTopMidJunction(int row, int c, Field selectedField, char[] sym) {
+    private static char midJunctionSymbol(int row, int c, Field selectedField, char[] sym,
+                                          int idxNormal, int idxSelectedLeft, int idxSelectedRight) {
         if (selectedField == null) {
-            return sym[CUSTOM_SYMBOL_INDEX_TOP_MID];
+            return sym[idxNormal];
         }
         if (isSelected(row, c, selectedField)) {
-            return sym[CUSTOM_SYMBOL_INDEX_TOP_MID_SELECTED_LEFT];
+            return sym[idxSelectedLeft];
         }
         if (isSelected(row, c + 1, selectedField)) {
-            return sym[CUSTOM_SYMBOL_INDEX_TOP_MID_SELECTED_RIGHT];
+            return sym[idxSelectedRight];
         }
-        return sym[CUSTOM_SYMBOL_INDEX_TOP_MID];
+        return sym[idxNormal];
+    }
+
+    private static char customTopMidJunction(int row, int c, Field selectedField, char[] sym) {
+        return midJunctionSymbol(row, c, selectedField, sym,
+                CUSTOM_SYMBOL_INDEX_TOP_MID,
+                CUSTOM_SYMBOL_INDEX_TOP_MID_SELECTED_LEFT,
+                CUSTOM_SYMBOL_INDEX_TOP_MID_SELECTED_RIGHT);
     }
 
     private static char customBottomMidJunction(int row, int c, Field selectedField, char[] sym) {
-        if (selectedField == null) {
-            return sym[CUSTOM_SYMBOL_INDEX_BOTTOM_MID];
-        }
-        if (isSelected(row, c, selectedField)) {
-            return sym[CUSTOM_SYMBOL_INDEX_BOTTOM_MID_SELECTED_LEFT];
-        }
-        if (isSelected(row, c + 1, selectedField)) {
-            return sym[CUSTOM_SYMBOL_INDEX_BOTTOM_MID_SELECTED_RIGHT];
-        }
-        return sym[CUSTOM_SYMBOL_INDEX_BOTTOM_MID];
+        return midJunctionSymbol(row, c, selectedField, sym,
+                CUSTOM_SYMBOL_INDEX_BOTTOM_MID,
+                CUSTOM_SYMBOL_INDEX_BOTTOM_MID_SELECTED_LEFT,
+                CUSTOM_SYMBOL_INDEX_BOTTOM_MID_SELECTED_RIGHT);
     }
 
     private static char customCenterJunction(int rowBelow, int rowAbove, int c, Field selectedField, char[] sym) {
@@ -287,6 +307,14 @@ final class BoardRenderer {
         return sym[CUSTOM_SYMBOL_INDEX_CENTER];
     }
 
+    private static char getVerticalChar(boolean edgeSelected, boolean useStandard, char[] sym) {
+        if (useStandard) {
+            return edgeSelected ? STD_V_SEL : STD_V;
+        }
+        return edgeSelected && sym.length > CUSTOM_SYMBOL_INDEX_VERTICAL_SELECTED
+                ? sym[CUSTOM_SYMBOL_INDEX_VERTICAL_SELECTED] : sym[CUSTOM_SYMBOL_INDEX_VERTICAL];
+    }
+
     private static String buildCellLine(GameBoard board, int r, Field selectedField, Team teamShownAsX,
                                         Team currentTeam, boolean useStandard, char[] sym) {
         StringBuilder sb = new StringBuilder();
@@ -294,25 +322,11 @@ final class BoardRenderer {
         for (int c = 0; c < GameBoard.SIZE; c++) {
             boolean edgeSelected = isSelected(r, c, selectedField)
                     || (c > 0 && isSelected(r, c - 1, selectedField));
-            char vChar;
-            if (useStandard) {
-                vChar = edgeSelected ? STD_V_SEL : STD_V;
-            } else {
-                vChar = edgeSelected && sym.length > CUSTOM_SYMBOL_INDEX_VERTICAL_SELECTED
-                        ? sym[CUSTOM_SYMBOL_INDEX_VERTICAL_SELECTED] : sym[CUSTOM_SYMBOL_INDEX_VERTICAL];
-            }
-            sb.append(vChar);
+            sb.append(getVerticalChar(edgeSelected, useStandard, sym));
             sb.append(cellContent(board, r, c, teamShownAsX, currentTeam));
         }
         boolean rightEdgeSelected = isSelected(r, GameBoard.SIZE - 1, selectedField);
-        char lastV;
-        if (useStandard) {
-            lastV = rightEdgeSelected ? STD_V_SEL : STD_V;
-        } else {
-            lastV = rightEdgeSelected && sym.length > CUSTOM_SYMBOL_INDEX_VERTICAL_SELECTED
-                    ? sym[CUSTOM_SYMBOL_INDEX_VERTICAL_SELECTED] : sym[CUSTOM_SYMBOL_INDEX_VERTICAL];
-        }
-        sb.append(lastV);
+        sb.append(getVerticalChar(rightEdgeSelected, useStandard, sym));
         return sb.toString();
     }
 
@@ -335,11 +349,10 @@ final class BoardRenderer {
             return EMPTY_CELL_CONTENT;
         }
         boolean ownForLetter = u.getTeam().equals(teamShownAsX);
-        char letter = ownForLetter ? (u.isKing() ? 'X' : 'x') : (u.isKing() ? 'Y' : 'y');
+        char c2 = ownForLetter ? (u.isKing() ? 'X' : 'x') : (u.isKing() ? 'Y' : 'y');
         boolean canMove = u.getTeam().equals(currentTeam) && !u.hasMovedThisTurn();
         boolean block = u.isBlocked();
         char c1 = canMove ? '*' : ' ';
-        char c2 = letter;
         char c3 = block ? 'b' : ' ';
         return "" + c1 + c2 + c3;
     }

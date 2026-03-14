@@ -4,8 +4,6 @@ import edu.kit.kastel.exceptions.GameException;
 import edu.kit.kastel.model.Game;
 import edu.kit.kastel.model.Team;
 
-import java.util.List;
-
 /**
  * Command "state": prints team names, life points, deck count, board count, the
  * board, and (if a field is selected) the show output for that field.
@@ -61,10 +59,7 @@ public class StateCommand extends Command {
         printStateLine(prefix,
                 BOARD_COUNT_PREFIX + game.getBoardCount(t1) + BOARD_COUNT_SEPARATOR + Game.MAX_NON_KING_UNITS_ON_BOARD,
                 BOARD_COUNT_PREFIX + game.getBoardCount(t2) + BOARD_COUNT_SEPARATOR + Game.MAX_NON_KING_UNITS_ON_BOARD);
-        List<String> boardLines = game.getGameBoard().render(game.getSelectedField(), game.getTeam1(), game.getCurrentTeam());
-        for (String line : boardLines) {
-            System.out.println(line);
-        }
+        ShowCommand.printBoard(game);
         if (game.getSelectedField() != null) {
             ShowCommand.printShow(game);
         }

@@ -70,7 +70,7 @@ public final class Field {
     /**
      * Places a unit on this field.
      *
-     * @param unit the unit to place (may be null to clear)
+     * @param unit the unit to place (can be null to clear)
      */
     public void setUnit(Unit unit) {
         this.unit = unit;

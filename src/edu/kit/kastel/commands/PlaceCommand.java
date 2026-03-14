@@ -73,7 +73,7 @@ public class PlaceCommand extends Command {
     /** Message: "Success!". */
     private static final String MSG_SUCCESS = "Success!";
 
-    /** Message prefix: "Union failed. ". */
+    /** Message prefix: " Union failed. ". */
     private static final String MSG_UNION_FAILED = "Union failed. ";
 
     /** Message suffix: " was eliminated!". */
@@ -95,6 +95,51 @@ public class PlaceCommand extends Command {
         char c0 = Character.toUpperCase(arg.charAt(INDEX_FIRST_CHAR));
         char c1 = arg.charAt(INDEX_SECOND_CHAR);
         return c0 >= MIN_COLUMN_CHAR && c0 <= MAX_COLUMN_CHAR && c1 >= MIN_ROW_CHAR && c1 <= MAX_ROW_CHAR;
+    }
+
+    private void applyOptionalFieldArgument(Game game, List<String> argsList) {
+        if (!argsList.isEmpty() && isFieldArg(argsList.get(argsList.size() - INDEX_LAST_OFFSET))) {
+            String fieldStr = argsList.remove(argsList.size() - INDEX_LAST_OFFSET).toUpperCase();
+            int[] rc = BoardGeometry.parseField(fieldStr);
+            if (rc != null) {
+                game.setSelectedField(game.getGameBoard().getField(rc[INDEX_ROW], rc[INDEX_COL]));
+            }
+        }
+    }
+
+    private void validateSelectedFieldForPlace(Game game, Field selected) throws GameException {
+        if (selected == null) {
+            throw new NoFieldSelectedException();
+        }
+        Unit onField = selected.getUnit();
+        if (onField != null && !onField.getTeam().equals(game.getCurrentTeam())) {
+            throw new PlaceOnEnemyFieldException(selected.coordinate());
+        }
+        if (game.getCurrentTeam().getHand().hasPlacedThisTurn()) {
+            throw new AlreadyPlacedException();
+        }
+        int row = selected.row();
+        int col = selected.col();
+        if (!game.isAdjacentToKing(game.getCurrentTeam(), row, col)) {
+            throw new PlaceFieldNotAdjacentToKingException(selected.coordinate());
+        }
+    }
+
+    private List<Integer> parseAndValidateHandIndices(Game game, List<String> argsList) throws GameException {
+        int handSize = game.getCurrentTeam().getHand().size();
+        Set<Integer> seen = new HashSet<>();
+        List<Integer> indices = new ArrayList<>();
+        for (String arg : argsList) {
+            int idx = Integer.parseInt(arg);
+            if (idx < HAND_INDEX_OFFSET || idx > handSize) {
+                throw new InvalidHandIndexException(idx);
+            }
+            if (!seen.add(idx)) {
+                throw new DuplicateHandIndexException(idx);
+            }
+            indices.add(idx);
+        }
+        return indices;
     }
 
     @Override
@@ -122,43 +167,10 @@ public class PlaceCommand extends Command {
      * Throws on validation failure.
      */
     private List<Integer> validatePlaceCommand(Game game, List<String> argsList) throws GameException {
-        if (!argsList.isEmpty() && isFieldArg(argsList.get(argsList.size() - INDEX_LAST_OFFSET))) {
-            String fieldStr = argsList.remove(argsList.size() - INDEX_LAST_OFFSET).toUpperCase();
-            int[] rc = BoardGeometry.parseField(fieldStr);
-            if (rc != null) {
-                game.setSelectedField(game.getGameBoard().getField(rc[INDEX_ROW], rc[INDEX_COL]));
-            }
-        }
-        var selected = game.getSelectedField();
-        if (selected == null) {
-            throw new NoFieldSelectedException();
-        }
-        Unit onField = selected.getUnit();
-        if (onField != null && !onField.getTeam().equals(game.getCurrentTeam())) {
-            throw new PlaceOnEnemyFieldException(selected.coordinate());
-        }
-        if (game.getCurrentTeam().getHand().hasPlacedThisTurn()) {
-            throw new AlreadyPlacedException();
-        }
-        int row = selected.row();
-        int col = selected.col();
-        if (!game.isAdjacentToKing(game.getCurrentTeam(), row, col)) {
-            throw new PlaceFieldNotAdjacentToKingException(selected.coordinate());
-        }
-        int handSize = game.getCurrentTeam().getHand().size();
-        Set<Integer> seen = new HashSet<>();
-        List<Integer> indices = new ArrayList<>();
-        for (String arg : argsList) {
-            int idx = Integer.parseInt(arg);
-            if (idx < HAND_INDEX_OFFSET || idx > handSize) {
-                throw new InvalidHandIndexException(idx);
-            }
-            if (!seen.add(idx)) {
-                throw new DuplicateHandIndexException(idx);
-            }
-            indices.add(idx);
-        }
-        return indices;
+        applyOptionalFieldArgument(game, argsList);
+        Field selected = game.getSelectedField();
+        validateSelectedFieldForPlace(game, selected);
+        return parseAndValidateHandIndices(game, argsList);
     }
 
     private void placeUnitsOnField(Game game, Field selected, List<Integer> indices) {

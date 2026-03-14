@@ -75,7 +75,7 @@ public class Hand {
     /**
      * Returns the unit at the given 1-based index, or null if out of range.
      *
-     * @param oneBasedIndex index 1..size()
+     * @param oneBasedIndex index from 1 to size()
      * @return the unit or null
      */
     public Unit get(int oneBasedIndex) {
@@ -89,7 +89,7 @@ public class Hand {
     /**
      * Removes and returns the unit at the given 1-based index.
      *
-     * @param oneBasedIndex index 1..size()
+     * @param oneBasedIndex index from 1 to size()
      * @return the removed unit or null if out of range
      */
     public Unit remove(int oneBasedIndex) {
